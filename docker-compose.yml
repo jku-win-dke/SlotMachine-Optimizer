@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+   optimizer-app:
+      image: optimizer-image
+      build:
+         context: ./
+         dockerfile: Dockerfile
+      ports:
+         - 8087:8080
+      volumes:
+         - /data/optimizer
