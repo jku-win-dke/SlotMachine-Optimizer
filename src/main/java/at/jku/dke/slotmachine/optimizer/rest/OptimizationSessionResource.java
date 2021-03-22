@@ -26,11 +26,12 @@ public class OptimizationSessionResource {
      * @return a new optimizer session with a generated sessionId
      */
 	@ApiOperation(value = "Initialize heuristic optimization session.", response = Iterable.class, tags = "initOptimizerSession")
-	@PostMapping("/sessions")
+	@PostMapping(path = "/sessions", produces = "application/json")
     public OptimizationSessionDTO initOptimizerSession() {
 	    OptimizationSessionDTO optimizerSession = new OptimizationSessionDTO(UUID.randomUUID());
 
-        return null;
+	    return optimizerSession;
+        //return null;
     }
 
     /**
@@ -39,17 +40,22 @@ public class OptimizationSessionResource {
      * @param payload
      */
 	@ApiOperation(value = "Submit preferences for an optimization session", response = Iterable.class, tags = "submitPreferences")
-	@PostMapping("/sessions/{sessionId}/preferences")
-    public void submitPreferences(@PathVariable UUID sessionId, SlotPreferencesDTO payload) {
+	@PostMapping(path = "/sessions/{sessionId}/preferences", produces = "application/json", consumes = "application/json")
+    public SlotPreferencesDTO submitPreferences(@PathVariable UUID sessionId, @RequestBody SlotPreferencesDTO payload) {
+	// public void submitPreferences(@PathVariable UUID sessionId, @RequestBody SlotPreferencesDTO payload) {
+		SlotPreferencesDTO slots = payload;
+		return slots;
     }
 
     /**
      * Start the optimization session.
      */
 	@ApiOperation(value = "Start the optimization session", response = Iterable.class, tags = "startOptimizationSession")
-	@PutMapping("/sessions/{sessionId}/start")
-    public void startOptimizationSession(@PathVariable UUID sessionId) {
-
+	@PutMapping(path = "/sessions/{sessionId}/start", consumes = "application/json", produces = "application/json")
+    //public void startOptimizationSession(@PathVariable UUID sessionId, @RequestBody FlightSequenceDTO flightSequence) {
+	public FlightSequenceDTO startOptimizationSession(@PathVariable UUID sessionId, @RequestBody FlightSequenceDTO flightSequence) {
+		FlightSequenceDTO flightSeq = flightSequence;
+		return flightSeq;
     }
 
     /**

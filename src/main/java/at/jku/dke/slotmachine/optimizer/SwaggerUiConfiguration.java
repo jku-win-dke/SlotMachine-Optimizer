@@ -3,7 +3,6 @@ package at.jku.dke.slotmachine.optimizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import com.google.common.base.Predicates;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
@@ -16,13 +15,9 @@ public class SwaggerUiConfiguration {
     @Bean
     public Docket api() {
         // @formatter:off
-        //Register the controllers to swagger
-        //Also it is configuring the Swagger Docket
+        //Register the controllers to swagger and configure swagger docket
         return new Docket(DocumentationType.SWAGGER_2).select()
-                // .apis(RequestHandlerSelectors.any())
                 .apis(Predicates.not(RequestHandlerSelectors.basePackage("org.springframework.boot")))
-                // .paths(PathSelectors.any())
-                // .paths(PathSelectors.ant("/swagger2-demo"))
                 .build();
         // @formatter:on
     }
