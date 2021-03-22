@@ -1,0 +1,67 @@
+package at.jku.dke.slotmachine.optimizer.rest;
+
+import at.jku.dke.slotmachine.optimizer.rest.dto.FlightSequenceDTO;
+import at.jku.dke.slotmachine.optimizer.rest.dto.OptimizationSessionDTO;
+import at.jku.dke.slotmachine.optimizer.rest.dto.SlotPreferencesDTO;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import io.swagger.annotations.*;
+
+import java.util.*;
+
+@Api(value = "OptimizerRestController")
+@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Success!"),
+			@ApiResponse(code = 401, message = "Not authorized!"),
+			@ApiResponse(code = 403, message = "Forbidden!"),
+			@ApiResponse(code = 404, message = "Not found!")
+	}
+)
+@RestController
+public class OptimizationSessionResource {
+
+    /**
+     * Initialize heuristic optimization session.
+     * @return a new optimizer session with a generated sessionId
+     */
+	@ApiOperation(value = "Initialize heuristic optimization session.", response = Iterable.class, tags = "initOptimizerSession")
+	@PostMapping("/sessions")
+    public OptimizationSessionDTO initOptimizerSession() {
+	    OptimizationSessionDTO optimizerSession = new OptimizationSessionDTO(UUID.randomUUID());
+
+        return null;
+    }
+
+    /**
+     * Submit preferences for an optimization session.
+     * @param sessionId
+     * @param payload
+     */
+	@ApiOperation(value = "Submit preferences for an optimization session", response = Iterable.class, tags = "submitPreferences")
+	@PostMapping("/sessions/{sessionId}/preferences")
+    public void submitPreferences(@PathVariable UUID sessionId, SlotPreferencesDTO payload) {
+    }
+
+    /**
+     * Start the optimization session.
+     */
+	@ApiOperation(value = "Start the optimization session", response = Iterable.class, tags = "startOptimizationSession")
+	@PutMapping("/sessions/{sessionId}/start")
+    public void startOptimizationSession(@PathVariable UUID sessionId) {
+
+    }
+
+    /**
+     * Get the result of the optimization result, if already available.
+     * @param sessionId
+     */
+	@ApiOperation(value = "Get the result of the optimization result, if already available", response = Iterable.class, tags = "getOptimizedFlightOrders")
+	@GetMapping("/sessions/{sessionId}/result")
+    public ResponseEntity<FlightSequenceDTO> getOptimizedFlightSequence(@PathVariable UUID sessionId) {
+		ResponseEntity<FlightSequenceDTO> response =
+				ResponseEntity.notFound().build();
+
+		return response;
+    }
+}
