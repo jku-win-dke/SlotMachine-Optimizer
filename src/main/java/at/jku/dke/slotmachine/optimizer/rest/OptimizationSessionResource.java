@@ -20,6 +20,10 @@ import java.util.*;
 )
 @RestController
 public class OptimizationSessionResource {
+	
+	private List<OptimizationSessionDTO> sessions;
+	private List<SlotPreferencesDTO> slotpreferences = new LinkedList();
+	private List<FlightSequenceDTO> flightSequences = new LinkedList();
 
     /**
      * Initialize heuristic optimization session.
@@ -55,6 +59,7 @@ public class OptimizationSessionResource {
     //public void startOptimizationSession(@PathVariable UUID sessionId, @RequestBody FlightSequenceDTO flightSequence) {
 	public FlightSequenceDTO startOptimizationSession(@PathVariable UUID sessionId, @RequestBody FlightSequenceDTO flightSequence) {
 		FlightSequenceDTO flightSeq = flightSequence;
+		flightSequences.add(flightSeq);
 		return flightSeq;
     }
 
@@ -63,11 +68,17 @@ public class OptimizationSessionResource {
      * @param sessionId
      */
 	@ApiOperation(value = "Get the result of the optimization result, if already available", response = Iterable.class, tags = "getOptimizedFlightOrders")
-	@GetMapping("/sessions/{sessionId}/result")
+	@GetMapping(path = "/sessions/{sessionId}/result", produces = "application/json")
     public ResponseEntity<FlightSequenceDTO> getOptimizedFlightSequence(@PathVariable UUID sessionId) {
 		ResponseEntity<FlightSequenceDTO> response =
 				ResponseEntity.notFound().build();
-
+		
+		for (FlightSequenceDTO f: flightSequences) {
+			if (f.getSessionId().equals(sessionId)) {
+				response = ResponseEntity.ok(f);
+			}
+		}
+		
 		return response;
     }
 }
