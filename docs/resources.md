@@ -4,16 +4,6 @@
 
 > Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.
 
-Api Documentation
-
-Base URLs:
-
-* <a href="//localhost:8080/">//localhost:8080/</a>
-
-<a href="urn:tos">Terms of service</a>
-
-License: <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a>
-
 <h1 id="api-documentation-initoptimizersession">initOptimizerSession</h1>
 
 ## initOptimizerSessionUsingPOST
