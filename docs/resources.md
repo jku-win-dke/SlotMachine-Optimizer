@@ -1,7 +1,3 @@
----
-title: Api Documentation v1.0
----
-
 <!-- Generator: Widdershins v4.0.1 -->
 
 <h1 id="api-documentation">Api Documentation v1.0</h1>
