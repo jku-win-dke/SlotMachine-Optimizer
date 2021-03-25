@@ -339,5 +339,5 @@ This operation does not require authentication
 |---|---|---|---|---|
 |sessionId|string|false|none|none|
 |weightMap|object|false|none|none|
-|Â» **additionalProperties**|[integer]|false|none|none|
+|» **additionalProperties**|[integer]|false|none|none|
 
