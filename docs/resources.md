@@ -4,14 +4,6 @@
 
 Api Documentation
 
-Base URLs:
-
-* <a href="//localhost:8080/">//localhost:8080/</a>
-
-<a href="urn:tos">Terms of service</a>
-
-License: <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a>
-
 <h1 id="api-documentation-optimization-resource">optimization-resource</h1>
 
 Optimization Resource
