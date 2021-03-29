@@ -12,6 +12,9 @@ public class FlightDTO {
         this.scheduledTime = scheduledTime;
         this.weightMap = weightMap;
     }
+    public FlightDTO() {
+    	//used for OptaPlanner
+    }
 
     public String getFlightId() {
         return flightId;
