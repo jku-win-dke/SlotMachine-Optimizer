@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <solver>
-    <solutionClass>at.jku.dke.slotmachine.optimizer.algorithms.optaplanner.SlotSequence</solutionClass>
-    <entityClass>at.jku.dke.slotmachine.optimizer.algorithms.optaplanner.FlightOptaPlanner</entityClass>
+    <solutionClass>at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritization</solutionClass>
+    <entityClass>at.jku.dke.slotmachine.optimizer.domain.Flight</entityClass>
     <scoreDirectorFactory>
-        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.algorithms.optaplanner.SlotAllocationEasyScoreCalculator</easyScoreCalculatorClass>
+        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
     <termination>
         <secondsSpentLimit>10</secondsSpentLimit>

@@ -1,5 +1,7 @@
-package at.jku.dke.slotmachine.optimizer.algorithms.jenetics;
+package at.jku.dke.slotmachine.optimizer.frameworks.jenetics;
 
+import at.jku.dke.slotmachine.optimizer.domain.Flight;
+import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import io.jenetics.EnumGene;
 import io.jenetics.engine.Codecs;
 import io.jenetics.engine.Constraint;
@@ -21,46 +23,48 @@ import org.apache.logging.log4j.Logger;
 
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
 
-public class SlotAllocationProblem implements Problem<Map<FlightDTO, SlotDTO>, EnumGene<Integer>, Integer>{
+public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGene<Integer>, Integer>{
 
-	private final ISeq<FlightDTO> flights;
-	private final ISeq<SlotDTO> availableSlots;
+	private final ISeq<Flight> flights;
+	private final ISeq<Slot> availableSlots;
 	private static final Logger logger = LogManager.getLogger();
 	
-	public SlotAllocationProblem(ISeq<FlightDTO> flights, ISeq<SlotDTO> availableSlots) {
+	public SlotAllocationProblem(ISeq<Flight> flights, ISeq<Slot> availableSlots) {
 		this.flights = flights;
 		this.availableSlots = availableSlots;
 	}
 	
     @Override
-    public Function<Map<FlightDTO, SlotDTO>, Integer> fitness() {
-        return new Function<Map<FlightDTO, SlotDTO>, Integer>() {
+    public Function<Map<Flight, Slot>, Integer> fitness() {
+        return new Function<Map<Flight, Slot>, Integer>() {
 
 			@Override
-			public Integer apply(Map<FlightDTO, SlotDTO> t) {
+			public Integer apply(Map<Flight, Slot> t) {
 				
 				// sorted list of instants (needed to get positions of slots accurately)
 				List<Instant> sortedSlots = new LinkedList<Instant>();
-				for (SlotDTO s: availableSlots) {
+				for (Slot s: availableSlots) {
 					sortedSlots.add(s.getTime());
 				}
 				Collections.sort(sortedSlots);
 				
-//				// can be used to print which slot number is assigned to which time in sortedSlots				
-//				int j = 0;
-//				for(Instant i: sortedSlots) {
-//					logger.debug("Slot " + j + ": " + i);
-//					j++;
-//				}
+				// can be used to print which slot number is assigned to which time in sortedSlots
+				int j = 0;
+				for(Instant i: sortedSlots) {
+					logger.debug("Slot " + j + ": " + i);
+					j++;
+				}
 				
 				//sum of all weights for given assigned slots, default value 0
 				int sum = 0;
+
 				logger.debug("printing weights from flights according to slots" +
-				" during fitness function calls:\n");
+							 " during fitness function calls:\n");
+
 				// gets each flight and the weight from the assigned slot
-				for(Map.Entry<FlightDTO, SlotDTO> entry: t.entrySet()) {
-					FlightDTO flight = entry.getKey();
-					SlotDTO slot = entry.getValue();
+				for(Map.Entry<Flight, Slot> entry: t.entrySet()) {
+					Flight flight = entry.getKey();
+					Slot slot = entry.getValue();
 					logger.debug("flight: " + flight.getFlightId() + 
 							": " + slot.getTime() + " -> slot: " +  
 							sortedSlots.indexOf(slot.getTime()) + ": weight: " +
@@ -78,7 +82,7 @@ public class SlotAllocationProblem implements Problem<Map<FlightDTO, SlotDTO>, E
     }
 
     @Override
-    public InvertibleCodec<Map<FlightDTO, SlotDTO>, EnumGene<Integer>> codec() {
+    public InvertibleCodec<Map<Flight, Slot>, EnumGene<Integer>> codec() {
         return Codecs.ofMapping(flights, availableSlots);
     }
 

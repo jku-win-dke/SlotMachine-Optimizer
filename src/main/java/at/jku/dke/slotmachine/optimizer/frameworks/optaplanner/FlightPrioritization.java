@@ -1,9 +1,11 @@
-package at.jku.dke.slotmachine.optimizer.algorithms.optaplanner;
+package at.jku.dke.slotmachine.optimizer.frameworks.optaplanner;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import at.jku.dke.slotmachine.optimizer.domain.Flight;
+import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import org.optaplanner.core.api.domain.solution.PlanningEntityCollectionProperty;
 import org.optaplanner.core.api.domain.solution.PlanningScore;
 import org.optaplanner.core.api.domain.solution.PlanningSolution;
@@ -11,37 +13,35 @@ import org.optaplanner.core.api.domain.solution.ProblemFactCollectionProperty;
 import org.optaplanner.core.api.domain.valuerange.ValueRangeProvider;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 
-import at.jku.dke.slotmachine.optimizer.service.dto.SlotDTO;
-
 @PlanningSolution
-public class SlotSequence {
+public class FlightPrioritization {
 
-	private Map<FlightOptaPlanner,SlotDTO> sequence = null;
+	private Map<Flight,Slot> sequence = null;
 	
     @ValueRangeProvider(id = "slotRange")
     @ProblemFactCollectionProperty
-    private List<SlotDTO> slots;
+    private List<Slot> slots;
 
     @PlanningEntityCollectionProperty
-    private List<FlightOptaPlanner> flights;
+    private List<Flight> flights;
 
     @PlanningScore
     private HardSoftScore score;
 
-    private SlotSequence() {
+    private FlightPrioritization() {
 
     }
 	
-	public SlotSequence(List<SlotDTO> slots, List<FlightOptaPlanner> flightsOptaPlanner) {
+	public FlightPrioritization(List<Slot> slots, List<Flight> flights) {
         this.slots = slots;
-        this.flights = flightsOptaPlanner;
+        this.flights = flights;
     }
 
-    public List<SlotDTO> getSlots() {
+    public List<Slot> getSlots() {
         return slots;
     }
 
-    public List<FlightOptaPlanner> getFlights() {
+    public List<Flight> getFlights() {
         return flights;
     }
 
@@ -49,11 +49,11 @@ public class SlotSequence {
         return score;
     }
 
-    public Map<FlightOptaPlanner, SlotDTO> getSequence() {
+    public Map<Flight, Slot> getSequence() {
         if(this.sequence == null) {
-            this.sequence = new HashMap<FlightOptaPlanner, SlotDTO>();
+            this.sequence = new HashMap<Flight, Slot>();
 
-            for (FlightOptaPlanner f : flights) {
+            for (Flight f : flights) {
                 this.sequence.put(f, f.getSlot());
             }
         }

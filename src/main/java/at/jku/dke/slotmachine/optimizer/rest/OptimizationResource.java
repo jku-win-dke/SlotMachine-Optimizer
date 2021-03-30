@@ -1,7 +1,6 @@
 package at.jku.dke.slotmachine.optimizer.rest;
 
-import at.jku.dke.slotmachine.optimizer.algorithms.jenetics.JeneticsApplication;
-import at.jku.dke.slotmachine.optimizer.algorithms.optaplanner.OptaPlannerApplication;
+import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.OptaPlannerRun;
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
@@ -22,6 +21,10 @@ import java.util.*;
 
 @Api(value = "SlotMachine Optimization")
 @RestController
+/***
+ * The OptimizationResource relays the REST calls to {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
+ * to initiate and manage an optimization.
+ */
 public class OptimizationResource {
 	// variable to store information
 	private List<OptimizationDTO> optimizations;
@@ -61,7 +64,7 @@ public class OptimizationResource {
 		//Map<FlightDTO, SlotDTO> resultMap = JeneticsApplication.run(flightISeq, slotISeq);
 		List<FlightDTO> flightList = Arrays.asList(optimizations.get(0).getFlights());
 		List<SlotDTO> slotList = Arrays.asList(optimizations.get(0).getSlots());
-		Map<FlightDTO, SlotDTO> resultMap = OptaPlannerApplication.run(flightList, slotList);
+		Map<FlightDTO, SlotDTO> resultMap = OptaPlannerRun.run(flightList, slotList);
 		
 		logger.info("Preparing results.");
 		String[] assignedSequence = new String[slotList.size()]; //due to perhaps different number of 
