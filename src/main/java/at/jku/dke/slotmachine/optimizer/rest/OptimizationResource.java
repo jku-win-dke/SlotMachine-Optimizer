@@ -1,7 +1,11 @@
 package at.jku.dke.slotmachine.optimizer.rest;
 
 import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.OptaPlannerRun;
+import at.jku.dke.slotmachine.optimizer.domain.*;
+import at.jku.dke.slotmachine.optimizer.frameworks.jenetics.JeneticsRun;
+import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
+import at.jku.dke.slotmachine.optimizer.service.dto.FrameworkDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
@@ -27,8 +31,10 @@ import java.util.*;
  */
 public class OptimizationResource {
 	// variable to store information
-	private List<OptimizationDTO> optimizations;
-	private List<OptimizationResultDTO> optimizationResults;
+	//private List<OptimizationDTO> optimizationDTOs;
+	//private List<OptimizationResultDTO> optimizationResults;
+	//private List<Optimization> optimizations;
+	private OptimizationService optService;
 	
 	private static final Logger logger = LogManager.getLogger();
 	
@@ -40,10 +46,9 @@ public class OptimizationResource {
 			@ApiResponse(code = 400, message = "Bad Request")
 		}
 	)
-	public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization) {
-		ResponseEntity<OptimizationDTO> optimizationResponse = new ResponseEntity<OptimizationDTO>(optimization, HttpStatus.OK);
-		if(optimizations == null) optimizations = new LinkedList<OptimizationDTO>();
-		optimizations.add(optimization); //temporary storage variables
+	public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization, @RequestParam(required = false) FrameworkDTO framework) {
+		if(optService == null) optService = new OptimizationService();
+		ResponseEntity<OptimizationDTO> optimizationResponse = new ResponseEntity<OptimizationDTO>(optService.createAndInitialize(optimization, framework), HttpStatus.OK);	
 		return optimizationResponse;
     }
 
@@ -57,40 +62,8 @@ public class OptimizationResource {
 		}
 	)
 	public ResponseEntity<Void> startOptimization(@PathVariable UUID optId) {
-		logger.info("Starting optimization and running optimization algorithm.");
-		if(optimizationResults == null) optimizationResults = new LinkedList<OptimizationResultDTO>();
-		ISeq<FlightDTO> flightISeq = ISeq.of(optimizations.get(0).getFlights());
-		ISeq<SlotDTO> slotISeq = ISeq.of(optimizations.get(0).getSlots());
-		//Map<FlightDTO, SlotDTO> resultMap = JeneticsApplication.run(flightISeq, slotISeq);
-		List<FlightDTO> flightList = Arrays.asList(optimizations.get(0).getFlights());
-		List<SlotDTO> slotList = Arrays.asList(optimizations.get(0).getSlots());
-		Map<FlightDTO, SlotDTO> resultMap = OptaPlannerRun.run(flightList, slotList);
-		
-		logger.info("Preparing results.");
-		String[] assignedSequence = new String[slotList.size()]; //due to perhaps different number of 
-																 //flights and slots
-		
-		// get sorted list of slots (by time)
-		List<Instant> sortedSlots = new LinkedList<Instant>();
-		for (SlotDTO s: slotList) {
-			sortedSlots.add(s.getTime());
-		}
-		Collections.sort(sortedSlots);
-		
-		// use sorted list to get an array of assigned flights for the given slots
-		for(Map.Entry<FlightDTO, SlotDTO> entry: resultMap.entrySet()) {
-			FlightDTO flight = entry.getKey();
-			SlotDTO slot = entry.getValue();
-			int posOfSlot = sortedSlots.indexOf(slot.getTime());
-			assignedSequence[posOfSlot] = flight.getFlightId();
-		}
-		
-		OptimizationResultDTO optResult = new OptimizationResultDTO();
-		optResult.setOptId(optId);
-		optResult.setFlightSequence(assignedSequence);
-		logger.info("Storing results.");
-		optimizationResults.add(optResult);
-		
+		if(optService == null) optService = new OptimizationService();
+		optService.startOptimization(optId);	
 		return null;
     }
 
@@ -117,17 +90,12 @@ public class OptimizationResource {
 		}
 	)
     public ResponseEntity<OptimizationResultDTO> getOptimizationResult(@PathVariable UUID optId) {
-		if (optimizationResults != null) {
-			
-			for (OptimizationResultDTO optRes: optimizationResults) {
-				if (optId.equals(optRes.getOptId())) {
-					ResponseEntity<OptimizationResultDTO> response = new ResponseEntity<OptimizationResultDTO>(optRes, HttpStatus.OK);
-					logger.info("Returning results for this UUID.");
-					return response;
-				}
-			}
+		if(optService == null) optService = new OptimizationService();
+		OptimizationResultDTO optRes = optService.getOptimizationResult(optId);
+		if (optRes != null) {
+			ResponseEntity<OptimizationResultDTO> response = new ResponseEntity<OptimizationResultDTO>(optRes, HttpStatus.OK);
+			return response;
 		}
-		logger.info("No results to return for this UUID.");
 		ResponseEntity<OptimizationResultDTO> response = new ResponseEntity<OptimizationResultDTO>(HttpStatus.NOT_FOUND);
 		return response;
     }

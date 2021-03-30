@@ -1,9 +1,11 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
+import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 import java.time.Instant;
 
+@PlanningEntity
 public class Flight {
     private String flightId;
     private Instant scheduledTime;
@@ -18,6 +20,10 @@ public class Flight {
         this.weightMap = weightMap;
     }
 
+    public Flight() {
+    	// empty default constructor needed for OptaPlanner
+    }
+    
     public String getFlightId() {
         return flightId;
     }

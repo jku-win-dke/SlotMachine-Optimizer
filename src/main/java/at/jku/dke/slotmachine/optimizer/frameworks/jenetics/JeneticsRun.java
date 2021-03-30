@@ -1,9 +1,13 @@
 package at.jku.dke.slotmachine.optimizer.frameworks.jenetics;
 
+import java.util.List;
 import java.util.Map;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
+import at.jku.dke.slotmachine.optimizer.frameworks.Run;
+import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,7 +23,7 @@ public class JeneticsRun {
 
 	private static final Logger logger = LogManager.getLogger();
 	
-	public static Map<Flight, Slot> run(ISeq<Flight> flights, ISeq<Slot> slots) {
+	public static Map<Flight, Slot> run(List<Flight> flights, List<Slot> slots) {
 		logger.info("Start optimization using Jenetics framework");
 		
 		SlotAllocationProblem p = new SlotAllocationProblem(
