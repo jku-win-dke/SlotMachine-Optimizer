@@ -6,7 +6,6 @@ import java.util.Map;
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.frameworks.Run;
-import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,7 +18,7 @@ import io.jenetics.engine.EvolutionStatistics;
 import io.jenetics.engine.Limits;
 import io.jenetics.util.ISeq;
 
-public class JeneticsRun {
+public class JeneticsRun extends Run {
 
 	private static final Logger logger = LogManager.getLogger();
 	

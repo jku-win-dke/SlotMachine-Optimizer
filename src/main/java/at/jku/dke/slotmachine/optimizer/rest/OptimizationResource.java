@@ -5,7 +5,6 @@ import at.jku.dke.slotmachine.optimizer.domain.*;
 import at.jku.dke.slotmachine.optimizer.frameworks.jenetics.JeneticsRun;
 import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
-import at.jku.dke.slotmachine.optimizer.service.dto.FrameworkDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
@@ -46,9 +45,9 @@ public class OptimizationResource {
 			@ApiResponse(code = 400, message = "Bad Request")
 		}
 	)
-	public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization, @RequestParam(required = false) FrameworkDTO framework) {
+	public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization){
 		if(optService == null) optService = new OptimizationService();
-		ResponseEntity<OptimizationDTO> optimizationResponse = new ResponseEntity<OptimizationDTO>(optService.createAndInitialize(optimization, framework), HttpStatus.OK);	
+		ResponseEntity<OptimizationDTO> optimizationResponse = new ResponseEntity<OptimizationDTO>(optService.createAndInitialize(optimization), HttpStatus.OK);	
 		return optimizationResponse;
     }
 

@@ -9,6 +9,7 @@ public class OptimizationDTO {
 	private String[] initialFlightSequence;
 	private FlightDTO[] flights;
 	private SlotDTO[] slots;
+	private String framework;
 
 	public UUID getOptId() {
 		return optId;
@@ -40,5 +41,13 @@ public class OptimizationDTO {
 
 	public void setSlots(SlotDTO[] slots) {
 		this.slots = slots;
+	}
+
+	public String getFramework() {
+		return framework;
+	}
+
+	public void setFramework(String framework) {
+		this.framework = framework;
 	}
 }

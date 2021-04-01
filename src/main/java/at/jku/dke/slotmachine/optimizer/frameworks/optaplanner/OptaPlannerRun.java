@@ -20,7 +20,7 @@ import org.optaplanner.core.config.solver.termination.TerminationConfig;
 
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
 
-public class OptaPlannerRun {
+public class OptaPlannerRun extends Run {
 
 	private static final Logger logger = LogManager.getLogger();
 	

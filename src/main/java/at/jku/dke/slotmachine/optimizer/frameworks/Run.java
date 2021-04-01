@@ -11,7 +11,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Slot;
  * to slots.
  */
 public class Run {
-    public Map<Flight, Slot> run(List<Flight> flights, List<Slot> slots) {
+    public static Map<Flight, Slot> run(List<Flight> flights, List<Slot> slots) {
     	return null;
     }
 }

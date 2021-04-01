@@ -12,9 +12,9 @@ public class Optimization {
 	private UUID optId;
     private List<Flight> flightList;
     private List<Slot> slotList;
-    private Class<? extends Run> optimization; // specify the application used to run the optimization.
+    private Run optimization; // specify the application used to run the optimization.
     
-	public Optimization(List<Flight> flightList, List<Slot> slotList, Class<? extends Run> optimization, UUID optId) {
+    public Optimization(List<Flight> flightList, List<Slot> slotList, Run optimization, UUID optId) {
 		this.flightList = flightList;
 		this.slotList = slotList;
 		this.optimization = optimization;
@@ -37,11 +37,11 @@ public class Optimization {
 		this.slotList = slotList;
 	}
 
-	public Class<? extends Run> getOptimization() {
+	public Run getOptimization() {
 		return optimization;
 	}
 
-	public void setOptimization(Class<? extends Run> optimization) {
+	public void setOptimization(Run optimization) {
 		this.optimization = optimization;
 	}
 

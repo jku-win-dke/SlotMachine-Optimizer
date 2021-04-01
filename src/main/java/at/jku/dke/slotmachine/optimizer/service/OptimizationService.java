@@ -7,7 +7,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import at.jku.dke.slotmachine.optimizer.domain.*;
-import at.jku.dke.slotmachine.optimizer.frameworks.Run;
 import at.jku.dke.slotmachine.optimizer.frameworks.jenetics.JeneticsRun;
 import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.OptaPlannerRun;
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
@@ -19,11 +18,28 @@ public class OptimizationService {
 	private List<Optimization> optimizations;
 	private static final Logger logger = LogManager.getLogger();
 	
-	public OptimizationDTO createAndInitialize(OptimizationDTO optdto, FrameworkDTO frameworkdto) {
+	public OptimizationDTO createAndInitialize(OptimizationDTO optdto) {
 		if(optimizationDTOs == null) optimizationDTOs = new LinkedList<OptimizationDTO>();
 		if(optimizations == null) optimizations = new LinkedList<Optimization>();
+		// overwrite old optimization if same optimization id is used twice
+		for (Optimization opt: optimizations) {
+			if (opt.getOptId().equals(optdto.getOptId())) {
+				logger.info("Found duplicate optimization entry according to UUID, delete old entry.");
+				optimizations.remove(opt);
+				optimizationDTOs.add(optdto);
+				Optimization optNew = toOptimization(optdto);
+				optimizations.add(optNew);	
+				for (OptimizationResultDTO optRes: optimizationResults) {
+					if (optNew.getOptId().equals(optRes.getOptId())) {
+						logger.info("Found old result entry according to UUID, delete old entry.");
+						optimizationResults.remove(optRes);
+					}
+				}
+				return optdto;
+			}
+		}
 		optimizationDTOs.add(optdto);
-		Optimization opt = toOptimization(optdto, frameworkdto);
+		Optimization opt = toOptimization(optdto);
 		optimizations.add(opt);	
 		return optdto;
 	}
@@ -34,9 +50,18 @@ public class OptimizationService {
 		// search for optId
 		Optimization curOpt = getOptimizationById(optId);
 		
-		// Map<Flight,Slot> resultMap = curOpt.getClass()
-		//Map<Flight,Slot> resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
-		Map<Flight,Slot> resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+		// run the chosen framework according to the object stored in .getOptimization()
+		Map<Flight,Slot> resultMap = null;
+		if (curOpt.getOptimization().getClass().equals(JeneticsRun.class)) {
+			logger.info("Optimization uses Jenetics framework.");
+			resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+		} else if (curOpt.getOptimization().getClass().equals(OptaPlannerRun.class)) {
+			logger.info("Optimization uses OptaPlannerRun framework.");
+			resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+		} else {
+			logger.info("No framework set, uses default Jenetics framework.");
+			resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+		}
 		
 		logger.info("Preparing results.");
 		String[] assignedSequence = new String[curOpt.getSlotList().size()]; //due to perhaps different number of 
@@ -78,7 +103,7 @@ public class OptimizationService {
 		return null;
 	}
 
-	private static Optimization toOptimization(OptimizationDTO optdto, FrameworkDTO frameworkdto) {
+	private static Optimization toOptimization(OptimizationDTO optdto) {
 		List<Flight> flightList = new LinkedList<Flight>();
 		for (FlightDTO flightdto: optdto.getFlights()) {
 			Flight f = new Flight(flightdto.getFlightId(),flightdto.getScheduledTime(),flightdto.getWeightMap());
@@ -89,14 +114,24 @@ public class OptimizationService {
 			Slot s = new Slot(slotdto.getTime());
 			slotList.add(s);
 		}
-		if (frameworkdto != null && frameworkdto.equals("jenetics")) {
-			//return new Optimization(flightList, slotList, JeneticsRun.class, optdto.getOptId());
-			return new Optimization(flightList, slotList, Run.class, optdto.getOptId());
-		} else if (frameworkdto != null && frameworkdto.equals("optaplanner")) {
-			//return new Optimization(flightList, slotList, OptaPlannerRun.class, optdto.getOptId());
-			return new Optimization(flightList, slotList, Run.class, optdto.getOptId());
+		
+		// store object of chosen framework run-class, default is JeneticsRun
+		if (optdto.getFramework() != null && optdto.getFramework().equals("jenetics")) {
+			JeneticsRun classRun = new JeneticsRun();
+			logger.info("Jenetics Framework is chosen.");
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
+		} else if (optdto.getFramework() != null && optdto.getFramework().equals("optaplanner")) {
+			OptaPlannerRun classRun = new OptaPlannerRun();
+			logger.info("OptaPlanner Framework is chosen.");
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
+		} else if (optdto.getFramework() == null){
+			logger.info("Framework is not set for given UUID, therefore default Jenetics Framework is used.");
+			JeneticsRun classRun = new JeneticsRun();
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
 		} else {
-			return new Optimization(flightList, slotList, Run.class, optdto.getOptId());
+			logger.info("No recognizable framework is chosen, therefore default Jenetics Framework is used.");
+			JeneticsRun classRun = new JeneticsRun();
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
 		}	
 	}
 	private Optimization getOptimizationById(UUID optId) {
