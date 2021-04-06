@@ -10,6 +10,7 @@ import at.jku.dke.slotmachine.optimizer.domain.*;
 import at.jku.dke.slotmachine.optimizer.frameworks.jenetics.JeneticsRun;
 import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.OptaPlannerRun;
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
+import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO.OptimizationFramework;
 
 public class OptimizationService {
 
@@ -28,11 +29,13 @@ public class OptimizationService {
 				optimizations.remove(opt);
 				optimizationDTOs.add(optdto);
 				Optimization optNew = toOptimization(optdto);
-				optimizations.add(optNew);	
-				for (OptimizationResultDTO optRes: optimizationResults) {
-					if (optNew.getOptId().equals(optRes.getOptId())) {
-						logger.info("Found old result entry according to UUID, delete old entry.");
-						optimizationResults.remove(optRes);
+				optimizations.add(optNew);
+				if (optimizationResults != null) {
+					for (OptimizationResultDTO optRes: optimizationResults) {
+						if (optNew.getOptId().equals(optRes.getOptId())) {
+							logger.info("Found old result entry according to UUID, delete old entry.");
+							optimizationResults.remove(optRes);
+						}
 					}
 				}
 				return optdto;
@@ -116,11 +119,11 @@ public class OptimizationService {
 		}
 		
 		// store object of chosen framework run-class, default is JeneticsRun
-		if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals("jenetics")) {
+		if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals(OptimizationFramework.JENETICS)) {
 			JeneticsRun classRun = new JeneticsRun();
 			logger.info("Jenetics Framework is chosen.");
 			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
-		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals("optaplanner")) {
+		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.OPTAPLANNER) {
 			OptaPlannerRun classRun = new OptaPlannerRun();
 			logger.info("OptaPlanner Framework is chosen.");
 			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
