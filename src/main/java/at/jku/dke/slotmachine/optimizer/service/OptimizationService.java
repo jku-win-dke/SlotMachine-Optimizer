@@ -116,15 +116,15 @@ public class OptimizationService {
 		}
 		
 		// store object of chosen framework run-class, default is JeneticsRun
-		if (optdto.getFramework() != null && optdto.getFramework().equals("jenetics")) {
+		if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals("jenetics")) {
 			JeneticsRun classRun = new JeneticsRun();
 			logger.info("Jenetics Framework is chosen.");
 			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
-		} else if (optdto.getFramework() != null && optdto.getFramework().equals("optaplanner")) {
+		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals("optaplanner")) {
 			OptaPlannerRun classRun = new OptaPlannerRun();
 			logger.info("OptaPlanner Framework is chosen.");
 			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
-		} else if (optdto.getFramework() == null){
+		} else if (optdto.getOptimizationFramework() == null){
 			logger.info("Framework is not set for given UUID, therefore default Jenetics Framework is used.");
 			JeneticsRun classRun = new JeneticsRun();
 			return new Optimization(flightList, slotList, classRun, optdto.getOptId());

@@ -1,7 +1,5 @@
 package at.jku.dke.slotmachine.optimizer.service.dto;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 public class OptimizationDTO {
@@ -9,7 +7,11 @@ public class OptimizationDTO {
 	private String[] initialFlightSequence;
 	private FlightDTO[] flights;
 	private SlotDTO[] slots;
-	private String framework;
+	private OptimizationFramework optimizationFramework;
+
+	public enum OptimizationFramework {
+		JENETICS, OPTAPLANNER
+	}
 
 	public UUID getOptId() {
 		return optId;
@@ -43,11 +45,11 @@ public class OptimizationDTO {
 		this.slots = slots;
 	}
 
-	public String getFramework() {
-		return framework;
+	public OptimizationFramework getOptimizationFramework() {
+		return optimizationFramework;
 	}
 
-	public void setFramework(String framework) {
-		this.framework = framework;
+	public void setOptimizationFramework(OptimizationFramework optimizationFramework) {
+		this.optimizationFramework = optimizationFramework;
 	}
 }
