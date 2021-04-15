@@ -20,6 +20,7 @@ public class OptimizationService {
 	private static final Logger logger = LogManager.getLogger();
 	
 	public OptimizationDTO createAndInitialize(OptimizationDTO optdto) {
+		logger.info("Started process to initialize optimization session.");
 		if(optimizationDTOs == null) optimizationDTOs = new LinkedList<OptimizationDTO>();
 		if(optimizations == null) optimizations = new LinkedList<Optimization>();
 		// overwrite old optimization if same optimization id is used twice

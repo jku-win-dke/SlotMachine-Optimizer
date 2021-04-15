@@ -46,6 +46,7 @@ public class OptimizationResource {
 		}
 	)
 	public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization){
+		logger.debug("Given parameter to initialize optimization: " + optimization.toString());
 		if(optService == null) optService = new OptimizationService();
 		ResponseEntity<OptimizationDTO> optimizationResponse = new ResponseEntity<OptimizationDTO>(optService.createAndInitialize(optimization), HttpStatus.OK);	
 		return optimizationResponse;

@@ -54,9 +54,9 @@ public class OptaPlannerRun extends Run {
         }
 
         FlightPrioritization unsolvedFlightPrioritization = new FlightPrioritization(slots, flights);
-
+        logger.info("Score Calculations applications for unsolved: " + unsolvedFlightPrioritization.getApplications());
         FlightPrioritization solvedFlightPrioritization = solver.solve(unsolvedFlightPrioritization);
-
+        logger.info("Score Calculations applications for solved: " + solvedFlightPrioritization.getApplications());
         logger.info("print solved sequence:\n");
         for(Flight f : solvedFlightPrioritization.getFlights()) {
             logger.info(f.getFlightId() + " :" + f.getSlot().getTime());

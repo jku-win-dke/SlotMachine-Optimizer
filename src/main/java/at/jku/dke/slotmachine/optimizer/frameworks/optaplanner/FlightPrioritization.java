@@ -16,6 +16,8 @@ import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 @PlanningSolution
 public class FlightPrioritization {
 
+	private int applications; // applications of score calculations, used for logger
+	
 	private Map<Flight,Slot> sequence = null;
 	
     @ValueRangeProvider(id = "slotRange")
@@ -60,4 +62,12 @@ public class FlightPrioritization {
 
         return this.sequence;
     }
+
+	public int getApplications() {
+		return applications;
+	}
+
+	public void setApplications(int applications) {
+		this.applications = applications;
+	}
 }

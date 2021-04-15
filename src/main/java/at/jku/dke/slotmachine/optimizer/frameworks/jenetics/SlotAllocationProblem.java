@@ -28,6 +28,7 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 	private final ISeq<Flight> flights;
 	private final ISeq<Slot> availableSlots;
 	private static final Logger logger = LogManager.getLogger();
+	private int fitnessIterations;
 	
 	public SlotAllocationProblem(ISeq<Flight> flights, ISeq<Slot> availableSlots) {
 		this.flights = flights;
@@ -40,7 +41,10 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 
 			@Override
 			public Integer apply(Map<Flight, Slot> t) {
-				
+				if (getFitnessIterations() < 0) {					// used for logger
+					setFitnessIterations(0);
+				}
+				setFitnessIterations(getFitnessIterations() + 1); 	// used for logger
 				// sorted list of instants (needed to get positions of slots accurately)
 				List<Instant> sortedSlots = new LinkedList<Instant>();
 				for (Slot s: availableSlots) {
@@ -117,4 +121,11 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 
         return constraint;
     }
+
+	public int getFitnessIterations() {
+		return fitnessIterations;
+	}
+	public void setFitnessIterations(int i) {
+		fitnessIterations = i;
+	}
 }

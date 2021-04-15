@@ -7,10 +7,9 @@ import java.util.List;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
+
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
-
-import at.jku.dke.slotmachine.optimizer.service.dto.SlotDTO;
 
 public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalculator<FlightPrioritization, HardSoftScore> {
 
@@ -18,7 +17,10 @@ public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalcula
     public HardSoftScore calculateScore(FlightPrioritization flightPrioritization) {
         int hardScore = 0;
         int softScore = 0;
-
+		if (flightPrioritization.getApplications() < 0) {									// used for logger
+			flightPrioritization.setApplications(0);
+		}
+		flightPrioritization.setApplications(flightPrioritization.getApplications() + 1); 	// used for logger
         for(Flight f : flightPrioritization.getFlights()) {
             if(f.getScheduledTime().isAfter(f.getSlot().getTime())) {
                 hardScore--;
