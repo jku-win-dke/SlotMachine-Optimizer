@@ -31,13 +31,30 @@ public class OptimizationService {
 				optimizationDTOs.add(optdto);
 				Optimization optNew = toOptimization(optdto);
 				optimizations.add(optNew);
+				OptimizationResultDTO optResToBeDeleted = null;
 				if (optimizationResults != null) {
 					for (OptimizationResultDTO optRes: optimizationResults) {
 						if (optNew.getOptId().equals(optRes.getOptId())) {
 							logger.info("Found old result entry according to UUID, delete old entry.");
-							optimizationResults.remove(optRes);
+							optResToBeDeleted = optRes;
+							//optimizationResults.remove(optRes);
 						}
 					}
+				}
+				if(optResToBeDeleted != null) {
+					optimizationResults.remove(optResToBeDeleted);
+				}
+				logger.info("current list of optimiziation sessions: ");
+				for(Optimization o: optimizations) {
+					boolean availableResult = false;
+					if(optimizationResults != null) {
+						for(OptimizationResultDTO optRes: optimizationResults) {
+							if (optRes.getOptId().equals(optdto.getOptId())) {
+								availableResult = true;
+							}
+						}
+					}
+					logger.info("optId: " + o.getOptId() + " optRes available: " + availableResult);
 				}
 				return optdto;
 			}
@@ -45,6 +62,18 @@ public class OptimizationService {
 		optimizationDTOs.add(optdto);
 		Optimization opt = toOptimization(optdto);
 		optimizations.add(opt);	
+		logger.info("current list of optimiziation sessions: ");
+		for(Optimization o: optimizations) {
+			boolean availableResult = false;
+			if(optimizationResults != null) {
+				for(OptimizationResultDTO optRes: optimizationResults) {
+					if (optRes.getOptId().equals(optdto.getOptId())) {
+						availableResult = true;
+					}
+				}
+			}
+			logger.info("optId: " + o.getOptId() + " optRes available: " + availableResult);
+		}
 		return optdto;
 	}
 	
@@ -90,6 +119,17 @@ public class OptimizationService {
 		optResult.setOptId(optId);
 		optResult.setFlightSequence(assignedSequence);
 		logger.info("Storing results.");
+		//if optId already has a result remove the old result
+		OptimizationResultDTO oldOptResult = null;
+		for (OptimizationResultDTO optResDTO: optimizationResults) {
+			if (optResDTO.getOptId().equals(optResult.getOptId())) {
+				oldOptResult = optResDTO;
+			}
+		}
+		if(oldOptResult != null) {
+			logger.info("Old result for this optId found and replaced by new result.");
+			optimizationResults.remove(oldOptResult);
+		}
 		optimizationResults.add(optResult);
 	}
 	

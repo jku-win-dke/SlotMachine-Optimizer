@@ -33,6 +33,7 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 	public SlotAllocationProblem(ISeq<Flight> flights, ISeq<Slot> availableSlots) {
 		this.flights = flights;
 		this.availableSlots = availableSlots;
+		this.fitnessIterations = 0;
 	}
 	
     @Override

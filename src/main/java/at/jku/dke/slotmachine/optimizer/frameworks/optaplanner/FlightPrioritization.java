@@ -37,6 +37,7 @@ public class FlightPrioritization {
 	public FlightPrioritization(List<Slot> slots, List<Flight> flights) {
         this.slots = slots;
         this.flights = flights;
+        this.applications = 0;
     }
 
     public List<Slot> getSlots() {
