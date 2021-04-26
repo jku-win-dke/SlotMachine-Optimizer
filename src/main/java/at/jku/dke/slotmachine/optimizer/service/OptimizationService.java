@@ -139,6 +139,10 @@ public class OptimizationService {
 			for (OptimizationResultDTO optRes: optimizationResults) {
 				if (optId.equals(optRes.getOptId())) {
 					logger.info("Returning results for this UUID.");
+					if(logger.isInfoEnabled()) {
+						//calculate and print how good the result is
+						printMarginResultComparison(optRes);
+					}
 					return optRes;
 				}
 			}
@@ -185,5 +189,21 @@ public class OptimizationService {
 			}
 		}
 		return null;
+	}
+	private void printMarginResultComparison(OptimizationResultDTO optRes) {
+		Optimization opt = getOptimizationById(optRes.getOptId());
+		int totalWeights = 0;
+		for (int i = 0; i < optRes.getFlightSequence().length; i++) {
+			Flight currentFlight = null;
+			for (Flight f: opt.getFlightList()) {
+				if (f.getFlightId().equals(optRes.getFlightSequence()[i])) {
+					currentFlight = f;
+				}
+			}
+			logger.debug("Weight at assigned slot for flight " + currentFlight.getFlightId() + ": " 
+					+ currentFlight.getWeightMap()[i]);
+			totalWeights = totalWeights + currentFlight.getWeightMap()[i];
+		}
+		logger.info("Total weights for complete flight sequence: " + totalWeights);
 	}
 }
