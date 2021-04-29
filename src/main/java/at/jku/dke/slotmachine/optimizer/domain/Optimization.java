@@ -13,12 +13,14 @@ public class Optimization {
     private List<Flight> flightList;
     private List<Slot> slotList;
     private Run optimization; // specify the application used to run the optimization.
+    private JeneticsConfig jenConfig; // specially for jenetics configuration
     
-    public Optimization(List<Flight> flightList, List<Slot> slotList, Run optimization, UUID optId) {
+    public Optimization(List<Flight> flightList, List<Slot> slotList, Run optimization, UUID optId, JeneticsConfig jenConfig) {
 		this.flightList = flightList;
 		this.slotList = slotList;
 		this.optimization = optimization;
 		this.setOptId(optId);
+		this.setJenConfig(jenConfig);
 	}
 
 	public List<Flight> getFlightList() {
@@ -51,6 +53,14 @@ public class Optimization {
 
 	public void setOptId(UUID optId) {
 		this.optId = optId;
+	}
+
+	public JeneticsConfig getJenConfig() {
+		return jenConfig;
+	}
+
+	public void setJenConfig(JeneticsConfig jenConfig) {
+		this.jenConfig = jenConfig;
 	}
 
 	

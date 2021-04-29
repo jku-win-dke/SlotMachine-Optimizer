@@ -162,24 +162,40 @@ public class OptimizationService {
 			Slot s = new Slot(slotdto.getTime());
 			slotList.add(s);
 		}
-		
+		JeneticsConfig jenConfig = null;
+		if (optdto.getJenConfig() != null) {
+			jenConfig = new JeneticsConfig(
+					optdto.getJenConfig().getAlterer(),
+					optdto.getJenConfig().getAltererAttributes(),
+					optdto.getJenConfig().getOffspringSelector(),
+					optdto.getJenConfig().getOffspringSelectorAttributes(),
+					optdto.getJenConfig().getSurvivorSelector(),
+					optdto.getJenConfig().getSurvivorSelectorAttributes(),
+					optdto.getJenConfig().getOffspringFraction(),
+					optdto.getJenConfig().getMaximalPhenotypeAge(),
+					optdto.getJenConfig().getPopulationSize(),
+					optdto.getJenConfig().getTermination(),
+					optdto.getJenConfig().getTerminationAttributes());
+		} else {
+			jenConfig = new JeneticsConfig();
+		}
 		// store object of chosen framework run-class, default is JeneticsRun
 		if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals(OptimizationFramework.JENETICS)) {
 			JeneticsRun classRun = new JeneticsRun();
 			logger.info("Jenetics Framework is chosen.");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
 		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.OPTAPLANNER) {
 			OptaPlannerRun classRun = new OptaPlannerRun();
 			logger.info("OptaPlanner Framework is chosen.");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
 		} else if (optdto.getOptimizationFramework() == null){
 			logger.info("Framework is not set for given UUID, therefore default Jenetics Framework is used.");
 			JeneticsRun classRun = new JeneticsRun();
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
 		} else {
 			logger.info("No recognizable framework is chosen, therefore default Jenetics Framework is used.");
 			JeneticsRun classRun = new JeneticsRun();
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId());
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
 		}	
 	}
 	private Optimization getOptimizationById(UUID optId) {

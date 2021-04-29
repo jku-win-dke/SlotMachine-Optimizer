@@ -3,20 +3,25 @@ package at.jku.dke.slotmachine.optimizer.frameworks.jenetics;
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import io.jenetics.EnumGene;
+import io.jenetics.engine.Codec;
 import io.jenetics.engine.Codecs;
 import io.jenetics.engine.Constraint;
 import io.jenetics.engine.InvertibleCodec;
 import io.jenetics.engine.Problem;
 import io.jenetics.engine.RetryConstraint;
 import io.jenetics.util.ISeq;
+import io.jenetics.util.IntRange;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -81,6 +86,7 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 					// adds weight at position of slot
 					sum = sum + flight.getWeightMap()[posOfSlot];
 				}
+				logger.debug("Fitness value of fitness iteration " + getFitnessIterations() +": " + sum);
 				return sum;
 			}
         };
@@ -90,22 +96,24 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
     public InvertibleCodec<Map<Flight, Slot>, EnumGene<Integer>> codec() {
         return Codecs.ofMapping(flights, availableSlots);
     }
-
+    
     @Override
     public Optional<Constraint<EnumGene<Integer>, Integer>> constraint() {
         Optional<Constraint<EnumGene<Integer>, Integer>> constraint = Optional.of(
                 RetryConstraint.of(
                         codec(),
                         flightSlotMap -> {
-                                boolean noFlightBeforeScheduledTime =
-                                    flightSlotMap.entrySet()
-                                                 .stream()
-                                                 .noneMatch(entry ->
-                                                            entry.getKey()
-                                                                 .getScheduledTime()
-                                                                 .isAfter(entry.getValue().getTime())
-                                                 );
+                                boolean noFlightBeforeScheduledTime = true;
+                                
+                                for (Map.Entry<Flight, Slot> entry: flightSlotMap.entrySet()) {
+                					Flight flight = entry.getKey();
+                					Slot slot = entry.getValue();
+                					if (flight.getScheduledTime().isAfter(slot.getTime())) {
+                						noFlightBeforeScheduledTime = false;
+                					}
+                                }
 
+                                /* not used due to the Codec-Mapping
                                 boolean noSlotBookedMultipleTimes =
                                     flightSlotMap.entrySet()
                                                  .stream()
@@ -113,13 +121,13 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
                                                          flightSlotMap.entrySet().stream().anyMatch(
                                                              other -> entry != other  &&
                                                                       entry.getValue().equals(other.getValue()))
-                                                 );
-
-                                return noFlightBeforeScheduledTime && noSlotBookedMultipleTimes;
+                                                 );*/
+                                
+                                return (!noFlightBeforeScheduledTime);// && (!noSlotBookedMultipleTimes);
                         }
                 )
         );
-
+        
         return constraint;
     }
 
@@ -129,4 +137,6 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 	public void setFitnessIterations(int i) {
 		fitnessIterations = i;
 	}
+
+
 }

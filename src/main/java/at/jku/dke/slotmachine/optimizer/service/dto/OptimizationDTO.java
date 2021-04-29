@@ -8,6 +8,7 @@ public class OptimizationDTO {
 	private FlightDTO[] flights;
 	private SlotDTO[] slots;
 	private OptimizationFramework optimizationFramework;
+	private JeneticConfigDTO jenConfig;
 
 	public enum OptimizationFramework {
 		JENETICS, OPTAPLANNER
@@ -51,5 +52,13 @@ public class OptimizationDTO {
 
 	public void setOptimizationFramework(OptimizationFramework optimizationFramework) {
 		this.optimizationFramework = optimizationFramework;
+	}
+
+	public JeneticConfigDTO getJenConfig() {
+		return jenConfig;
+	}
+
+	public void setJenConfig(JeneticConfigDTO jenConfig) {
+		this.jenConfig = jenConfig;
 	}
 }
