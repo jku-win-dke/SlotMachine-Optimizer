@@ -73,9 +73,13 @@ public class JeneticsConfig {
 
 	public JeneticsConfig() {
 		super();
-		/*this.alterer = new Alterer[2];
+		this.alterer = new Alterer[2];
 		this.alterer[0] = Alterer.SWAPMUTATOR;
-		this.alterer[1] = Alterer.PARTIALLYMATCHEDCROSSOVER;*/
+		this.alterer[1] = Alterer.PARTIALLYMATCHEDCROSSOVER;
+		this.altererAttributes = new double[2][2];
+		this.altererAttributes[0][0] = 0.2;
+		this.altererAttributes[1][0] = 0.35;
+		
 		// TODO constructor with default values
 		
 	}

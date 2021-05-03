@@ -87,7 +87,13 @@ public class OptimizationService {
 		Map<Flight,Slot> resultMap = null;
 		if (curOpt.getOptimization().getClass().equals(JeneticsRun.class)) {
 			logger.info("Optimization uses Jenetics framework.");
-			resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+			
+			// use jenetics configuration, if jenConfig is not null
+			if (curOpt.getJenConfig()!=null) {
+				resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt.getJenConfig());
+			} else {
+				resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+			}
 		} else if (curOpt.getOptimization().getClass().equals(OptaPlannerRun.class)) {
 			logger.info("Optimization uses OptaPlannerRun framework.");
 			resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
