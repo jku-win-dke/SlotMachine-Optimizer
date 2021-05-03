@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.JeneticsConfig;
@@ -14,12 +15,23 @@ import at.jku.dke.slotmachine.optimizer.service.dto.JeneticConfigDTO.Alterer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.jenetics.BoltzmannSelector;
 import io.jenetics.Crossover;
 import io.jenetics.EnumGene;
+import io.jenetics.ExponentialRankSelector;
 import io.jenetics.Genotype;
+import io.jenetics.LinearRankSelector;
 import io.jenetics.Mutator;
 import io.jenetics.PartiallyMatchedCrossover;
+import io.jenetics.PermutationChromosome;
+import io.jenetics.Phenotype;
+import io.jenetics.ProbabilitySelector;
+import io.jenetics.RouletteWheelSelector;
+import io.jenetics.Selector;
+import io.jenetics.StochasticUniversalSelector;
 import io.jenetics.SwapMutator;
+import io.jenetics.TournamentSelector;
+import io.jenetics.TruncationSelector;
 import io.jenetics.engine.Codecs;
 import io.jenetics.engine.Constraint;
 import io.jenetics.engine.Engine;
@@ -29,6 +41,8 @@ import io.jenetics.engine.InvertibleCodec;
 import io.jenetics.engine.Limits;
 import io.jenetics.engine.RetryConstraint;
 import io.jenetics.util.ISeq;
+import io.jenetics.util.RandomRegistry;
+import io.jenetics.util.Seq;
 
 public class JeneticsRun extends Run {
 
@@ -105,29 +119,40 @@ public class JeneticsRun extends Run {
 		
 		// engine takes mutator and crossover from jenConfig - if no alterer detected default values are used
 		Engine<EnumGene<Integer>, Integer> e = Engine.builder(p)
-				.populationSize(100)
+				.populationSize(getPopulationSize(jenConfig))
 				.alterers(
 						getMutator(jenConfig),
 						getCrossover(jenConfig))
+				.offspringSelector(getOffspringSelector(jenConfig))
+				.survivorsSelector(getSurvivorSelector(jenConfig))
+				.maximalPhenotypeAge(getMaximalPhenotypeAge(jenConfig))
+				.offspringFraction(getOffspringFraction(jenConfig))
 				.constraint(constraint)
 				.build();
 		logger.info("Alterer used by the engine: " + e.alterer().toString());
 		logger.debug("Constraints used by the engine: " + e.constraint().toString());
-		logger.debug("Problem used by the engine " + e.toString() + ": " + p.toString());
+		logger.debug("Problem used by the engine: " + e.toString() + ": " + p.toString());
+		logger.info("Offspring Selector used by the engine: " + e.offspringSelector().toString());
+		logger.info("Survivors Selector used by the engine: " + e.survivorsSelector().toString());
+		logger.info("Maximal phenotype age: " + e.maximalPhenotypeAge() + " | offspring fraction: " + (double) e.offspringSize()/e.populationSize() 
+				+ " | population size: " + e.populationSize());
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
-        Genotype<EnumGene<Integer>> result = e.stream()
-        		//.limit(Limits.bySteadyFitness(250))
-        		//.limit(Limits.byFitnessThreshold(1))
-        		// try to have the worst fitness value at -99999, meaning that
-        		// the algorithms tries to use no values before scheduledTime
-        		// (the hard constraint (-100000)), unless the value is not
-        		// improving after 2500 generations or after 6 minutes
-        		.limit(pred -> pred.worstFitness() < -99999)
-        		.limit(Limits.bySteadyFitness(2500))
-        		.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
-        		.peek(statistics)
-        		.collect(EvolutionResult.toBestGenotype());
+        // use random registry to compare different settings from jenConfig
+        Genotype<EnumGene<Integer>> result = RandomRegistry.with(new Random(963), r ->
+			        e.stream()
+					//.limit(Limits.bySteadyFitness(250))
+					//.limit(Limits.byFitnessThreshold(1))
+					// try to have the worst fitness value at -99999, meaning that
+					// the algorithms tries to use no values before scheduledTime
+					// (the hard constraint (-100000)), unless the value is not
+					// improving after 2500 generations or after 6 minutes
+					.limit(pred -> pred.worstFitness() < -99999)
+					.limit(Limits.bySteadyFitness(2500))
+					.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
+					.peek(statistics)
+					.collect(EvolutionResult.toBestGenotype())
+        		);
         
         logger.info("Statistics:\n" + statistics);
 
@@ -267,5 +292,158 @@ public class JeneticsRun extends Run {
 			}
 		}
 		return new SwapMutator<EnumGene<Integer>, Integer>(0.2);
+	}
+	
+	/**
+	 * Gets the survivor selector according to jenConfig. If no selector is deteced
+	 * it returns the default value (TournamentSelector<EnumGene<Integer>, Integer>())
+	 * 
+	 * @param jenConfig configuration of Jenetics
+	 * @return selector (as an object, e.g. TournamentSelector<EnumGene<Integer>, Integer>())
+	 */
+	private static Selector<EnumGene<Integer>, Integer> getSurvivorSelector(JeneticsConfig jenConfig) {
+		if (jenConfig == null || jenConfig.getSurvivorSelector() == null) {
+			logger.info("TournamentSelector will be used as the survivor selector.");
+			return new TournamentSelector<EnumGene<Integer>, Integer>();
+		}
+		logger.info("The survivor selector, which will be used is:");
+		return getSelector(jenConfig.getSurvivorSelector(), jenConfig.getSurvivorSelectorAttributes());
+	}
+
+	/**
+	 * Gets the offspring selector according to jenConfig. If no selector is detected
+	 * it returns the default value (TournamentSelector<EnumGene<Integer>, Integer>())
+	 * 
+	 * @param jenConfig configuration of Jenetics
+	 * @return selector (as an object, e.g. TournamentSelector<EnumGene<Integer>, Integer>())
+	 */
+	private static Selector<EnumGene<Integer>, Integer> getOffspringSelector(JeneticsConfig jenConfig) {
+		if (jenConfig == null || jenConfig.getOffspringSelector() == null) {
+			logger.info("TournamentSelector will be used as the offspring selector.");
+			return new TournamentSelector<EnumGene<Integer>, Integer>();
+		}
+		logger.info("The survivor selector, which will be used is:");
+		return getSelector(jenConfig.getOffspringSelector(), jenConfig.getOffspringSelectorAttributes());
+	}
+
+	/**
+	 * Gets the selector according to given parameters. If no selector is detected
+	 * then TournamentSelector is returned.
+	 * 
+	 * @param selector chosen selector
+	 * @param selectorAttributes chosen attributes of the selector (not always used; not required)
+	 * @return selector (as an object, e.g. TournamentSelector<EnumGene<Integer>, Integer>())
+	 */
+	private static Selector<EnumGene<Integer>, Integer> getSelector(
+			at.jku.dke.slotmachine.optimizer.service.dto.JeneticConfigDTO.Selector selector,
+			double[] selectorAttributes) {
+		// if no selector can be detected, should usually not happen
+		if (selector == null) {
+			logger.info("TournamentSelector (no selector chosen)");
+			return new TournamentSelector<EnumGene<Integer>, Integer>();
+		}
+		// parameter of survivorSelectorAttribute[0]
+		double parameter0 = 0.0;
+		if (selectorAttributes != null && selectorAttributes.length > 0) {
+			parameter0 = selectorAttributes[0];
+		}
+		// parameter of survivorSelectorAttribute[1]; usually not used by selectors
+		// and currently not used
+		/*double parameter1 = 0.0;
+		if (selectorAttributes != null && selectorAttributes.length > 1) {
+			parameter1 = selectorAttributes[1];
+		}*/
+		switch (selector) {
+			case BOLTZMANNSELECTOR: 
+				if (selectorAttributes == null || selectorAttributes.length == 0) {
+					logger.info("BoltzmannSelector");
+					return new BoltzmannSelector<EnumGene<Integer>, Integer>();
+				}
+				logger.info("BoltzmannSelector (b = " + parameter0 + ")");
+				return new BoltzmannSelector<EnumGene<Integer>, Integer>(parameter0);
+			case EXPONENTIALRANKSELECTOR:
+				if (selectorAttributes == null || selectorAttributes.length == 0) {
+					logger.info("ExponentialRankSelector");
+					return new ExponentialRankSelector<EnumGene<Integer>, Integer>();
+				}
+				logger.info("ExponentialRankSelector (c  = " + parameter0 + ")");
+				return new ExponentialRankSelector<EnumGene<Integer>, Integer>(parameter0);
+			case LINEARRANKSELECTOR:
+				if (selectorAttributes == null || selectorAttributes.length == 0) {
+					logger.info("LinearRankSelector");
+					return new LinearRankSelector<EnumGene<Integer>, Integer>();
+				}
+				logger.info("LinearRankSelector (nminus = " + parameter0 + ")");
+				return new LinearRankSelector<EnumGene<Integer>, Integer>(parameter0);
+			case ROULETTEWHEELSELECTOR:
+				logger.info("RouletteWheelSelector");
+				return new RouletteWheelSelector<EnumGene<Integer>, Integer>();
+			case STOCHASTICUNIVERSALSELECTOR:
+				logger.info("StochasticUniversalSelector");
+				return new StochasticUniversalSelector<EnumGene<Integer>, Integer>();
+			case TOURNAMENTSELECTOR:
+				if (selectorAttributes == null || selectorAttributes.length == 0) {
+					logger.info("TournamentSelector");
+					return new TournamentSelector<EnumGene<Integer>, Integer>();
+				}
+				logger.info("TournamentSelector (sampleSize = " + parameter0 + ")");
+				return new TournamentSelector<EnumGene<Integer>, Integer>((int) parameter0);
+			case TRUNCATIONSELECTOR:
+				if (selectorAttributes == null || selectorAttributes.length == 0) {
+					logger.info("TruncationSelector");
+					return new TruncationSelector<EnumGene<Integer>, Integer>();
+				}
+				logger.info("TruncationSelector (n = " + parameter0 + ")");
+				return new TruncationSelector<EnumGene<Integer>, Integer>((int) parameter0);
+			default:
+				logger.info("TournamentSelector (no selector chosen)");
+				return new TournamentSelector<EnumGene<Integer>, Integer>(); 
+		}
+	}
+
+	/**
+	 * Gets the population size according to jenConfig. If jenConfig == null, then
+	 * it returns 50 (default value). If the population size is less than 1, then
+	 * it returns 50 (default value) as well.
+	 * 
+	 * @param jenConfig configuration of Jenetics
+	 * @return population size
+	 */
+	private static int getPopulationSize(JeneticsConfig jenConfig) {
+		if (jenConfig == null || jenConfig.getPopulationSize() < 1) {
+			return 50;
+		}
+		return jenConfig.getPopulationSize();
+	}
+	
+	/**
+	 * Gets the maximal phenotype age according to jenConfig. If jenConfig == null, then
+	 * it returns 70 (default value). If the maximal phenotype age is less than 1, then
+	 * it returns 70 (default value) as well.
+	 * 
+	 * @param jenConfig configuration of Jenetics
+	 * @return maximal phenotype age
+	 */
+	private static int getMaximalPhenotypeAge(JeneticsConfig jenConfig) {
+		if (jenConfig == null || jenConfig.getMaximalPhenotypeAge() < 1) {
+			return 70;
+		}
+		return jenConfig.getMaximalPhenotypeAge();
+	}
+	
+	/**
+	 * Gets the offspring fraction according to jenConfig. If jenConfig == null, then
+	 * it returns 0.6 (default value). If the offspring fraction is not within the 
+	 * range of 0 and 1 (including 0 and 1), then it returns 0.6 (default value) as well.
+	 * 
+	 * @param jenConfig configuration of Jenetics
+	 * @return offspring fraction
+	 */
+	private static double getOffspringFraction(JeneticsConfig jenConfig) {
+		if (jenConfig == null || jenConfig.getOffspringFraction() < 0 || 
+				jenConfig.getOffspringFraction() > 1) {
+			return 0.6;
+		}
+		return jenConfig.getOffspringFraction();
 	}
 }
