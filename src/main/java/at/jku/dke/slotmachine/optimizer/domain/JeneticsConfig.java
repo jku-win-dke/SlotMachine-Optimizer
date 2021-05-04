@@ -46,19 +46,20 @@ public class JeneticsConfig {
 	 */
 	private int populationSize;
 	/**
-	 * contains information about which termination method is used
+	 * contains information about which termination methods are used, maximum supported
+	 * size is 3
 	 */
-	private Termination termination;
+	private Termination[] termination;
 	/**
 	 * contains attributes from the termination method with the possibility to contain
 	 * more than one attribute
 	 */
-	private double[] terminationAttributes;
+	private double[][] terminationAttributes;
 	
 	public JeneticsConfig(Alterer[] alterer, double[][] altererAttributes, Selector offspringSelector,
 			double[] offspringSelectorAttributes, Selector survivorSelector, double[] survivorSelectorAttributes,
-			double offspringFraction, int maximalPhenotypeAge, int populationSize, Termination termination,
-			double[] terminationAttributes) {
+			double offspringFraction, int maximalPhenotypeAge, int populationSize, Termination[] termination,
+			double[][] terminationAttributes) {
 		super();
 		this.alterer = alterer;
 		this.altererAttributes = altererAttributes;
@@ -69,6 +70,8 @@ public class JeneticsConfig {
 		this.offspringFraction = offspringFraction;
 		this.maximalPhenotypeAge = maximalPhenotypeAge;
 		this.populationSize = populationSize;
+		this.termination = termination;
+		this.terminationAttributes = terminationAttributes;
 	}
 
 	public JeneticsConfig() {
@@ -156,19 +159,19 @@ public class JeneticsConfig {
 		this.populationSize = populationSize;
 	}
 
-	public Termination getTermination() {
+	public Termination[] getTermination() {
 		return termination;
 	}
 
-	public void setTermination(Termination termination) {
+	public void setTermination(Termination[] termination) {
 		this.termination = termination;
 	}
 
-	public double[] getTerminationAttributes() {
+	public double[][] getTerminationAttributes() {
 		return terminationAttributes;
 	}
 
-	public void setTerminationAttributes(double[] terminationAttributes) {
+	public void setTerminationAttributes(double[][] terminationAttributes) {
 		this.terminationAttributes = terminationAttributes;
 	}
 

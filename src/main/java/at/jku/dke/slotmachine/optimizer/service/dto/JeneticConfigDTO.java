@@ -44,14 +44,15 @@ public class JeneticConfigDTO {
 	 */
 	private int populationSize;
 	/**
-	 * contains information about which termination method is used
+	 * contains information about which termination methods are used, maximum supported
+	 * size is 3
 	 */
-	private Termination termination;
+	private Termination[] termination;
 	/**
 	 * contains attributes from the termination method with the possibility to contain
 	 * more than one attribute
 	 */
-	private double[] terminationAttributes;
+	private double[][] terminationAttributes;
 	
 	public enum Alterer {
 		PARTIALLYMATCHEDCROSSOVER, SWAPMUTATOR
@@ -74,7 +75,11 @@ public class JeneticConfigDTO {
 	}
 	
 	public enum Termination {
-		BYTHRESHOLD, BYSTEADYFITNESS, BYEVOLUTIONTIME, BYFIXEDGENERATION
+		WORSTFITNESS, BYFITNESSTHRESHOLD, BYSTEADYFITNESS, BYFIXEDGENERATION,
+		BYEXECUTIONTIME, BYPOPULATIONCONVERGENCE
+		/*//not implemented currently, other possible Selectors are:
+		, BYFITNESSCONVERGENCE, BYGENECONVERGENCE
+		*/
 	}
 
 	public Alterer[] getAlterer() {
@@ -149,19 +154,19 @@ public class JeneticConfigDTO {
 		this.populationSize = populationSize;
 	}
 
-	public Termination getTermination() {
+	public Termination[] getTermination() {
 		return termination;
 	}
 
-	public void setTermination(Termination termination) {
+	public void setTermination(Termination[] termination) {
 		this.termination = termination;
 	}
 
-	public double[] getTerminationAttributes() {
+	public double[][] getTerminationAttributes() {
 		return terminationAttributes;
 	}
 
-	public void setTerminationAttributes(double[] terminationAttributes) {
+	public void setTerminationAttributes(double[][] terminationAttributes) {
 		this.terminationAttributes = terminationAttributes;
 	}
 }

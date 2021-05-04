@@ -1,16 +1,19 @@
 package at.jku.dke.slotmachine.optimizer.frameworks.jenetics;
 
 import java.time.Duration;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Predicate;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.JeneticsConfig;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.frameworks.Run;
 import at.jku.dke.slotmachine.optimizer.service.dto.JeneticConfigDTO.Alterer;
+import at.jku.dke.slotmachine.optimizer.service.dto.JeneticConfigDTO.Termination;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -138,21 +141,83 @@ public class JeneticsRun extends Run {
 				+ " | population size: " + e.populationSize());
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
-        // use random registry to compare different settings from jenConfig
-        Genotype<EnumGene<Integer>> result = RandomRegistry.with(new Random(963), r ->
-			        e.stream()
-					//.limit(Limits.bySteadyFitness(250))
-					//.limit(Limits.byFitnessThreshold(1))
-					// try to have the worst fitness value at -99999, meaning that
-					// the algorithms tries to use no values before scheduledTime
-					// (the hard constraint (-100000)), unless the value is not
-					// improving after 2500 generations or after 6 minutes
-					.limit(pred -> pred.worstFitness() < -99999)
-					.limit(Limits.bySteadyFitness(2500))
-					.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
-					.peek(statistics)
-					.collect(EvolutionResult.toBestGenotype())
-        		);
+        Genotype<EnumGene<Integer>> result = null;
+        int randomNr = 963;
+        List<Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>> limits = getLimits(jenConfig);
+        if (limits != null) {
+	        switch (limits.size()) {
+	        	case 1:
+	        		logger.info("1 termination method detected: " + limits.get(0).toString());
+	            	result = RandomRegistry.with(new Random(randomNr), r ->
+		        		e.stream()
+						.limit(limits.get(0))
+						.peek(statistics)
+						.collect(EvolutionResult.toBestGenotype())
+		        	);
+	            	break;
+	        	case 2:
+	        		logger.info("2 termination method detected: " + limits.get(0).toString()
+	        				+ " | " + limits.get(1).toString());
+	            	result = RandomRegistry.with(new Random(randomNr), r ->
+		        		e.stream()
+						.limit(limits.get(0))
+						.limit(limits.get(1))
+						.peek(statistics)
+						.collect(EvolutionResult.toBestGenotype())
+		        	);
+	            	break;
+	        	case 3:
+	        		logger.info("3 termination method detected: " + limits.get(0).toString()
+	        				+ " | " + limits.get(1).toString() 
+	        				+ " | " + limits.get(2).toString());
+	        		result = RandomRegistry.with(new Random(randomNr), r ->
+		        		e.stream()
+						.limit(limits.get(0))
+						.limit(limits.get(1))
+						.limit(limits.get(2))
+						.peek(statistics)
+						.collect(EvolutionResult.toBestGenotype())
+		        	);
+	        		break;
+	        	default:
+	        		logger.info("No termination method detected. Default values will be used.");
+	            	result = RandomRegistry.with(new Random(randomNr), r ->
+		        		e.stream()
+						.limit(pred -> pred.worstFitness() < -99999)
+						.limit(Limits.bySteadyFitness(2500))
+						.limit(Limits.byExecutionTime(Duration.ofSeconds(180)))
+						.peek(statistics)
+						.collect(EvolutionResult.toBestGenotype())
+		        	);
+	            	break;
+	        }
+        } else {
+    		logger.info("No termination method detected. Default values will be used.");
+        	result = RandomRegistry.with(new Random(randomNr), r ->
+        		e.stream()
+				.limit(pred -> pred.worstFitness() < -99999)
+				.limit(Limits.bySteadyFitness(2500))
+				.limit(Limits.byExecutionTime(Duration.ofSeconds(180)))
+				.peek(statistics)
+				.collect(EvolutionResult.toBestGenotype())
+        	);
+        }
+        
+//        // use random registry to compare different settings from jenConfig
+//        Genotype<EnumGene<Integer>> result = RandomRegistry.with(new Random(963), r ->
+//			        e.stream()
+//					//.limit(Limits.bySteadyFitness(250))
+//					//.limit(Limits.byFitnessThreshold(1))
+//					// try to have the worst fitness value at -99999, meaning that
+//					// the algorithms tries to use no values before scheduledTime
+//					// (the hard constraint (-100000)), unless the value is not
+//					// improving after 2500 generations or after 6 minutes
+//					.limit(pred -> pred.worstFitness() < -99999)
+//					.limit(Limits.bySteadyFitness(2500))
+//					.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
+//					.peek(statistics)
+//					.collect(EvolutionResult.toBestGenotype())
+//        		);
         
         logger.info("Statistics:\n" + statistics);
 
@@ -445,5 +510,124 @@ public class JeneticsRun extends Run {
 			return 0.6;
 		}
 		return jenConfig.getOffspringFraction();
+	}
+
+	/**
+	 * Gets the limits (termination methods) according to jenConfig.
+	 * 
+	 * @param jenConfig
+	 * @return
+	 */
+	private static List<Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>> getLimits(JeneticsConfig jenConfig) {
+		if (jenConfig == null || jenConfig.getTermination() == null) {
+			logger.info("No termination methods detected.");
+			return null;
+		}
+		List<Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>> terminationList = new LinkedList<Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>>();
+		switch (jenConfig.getTermination().length) {
+			case 0:
+				logger.info("No chosen termination methods detected.");
+				return null;
+			case 1:
+				if (jenConfig.getTerminationAttributes() == null || jenConfig.getTerminationAttributes().length < 1) {
+					logger.info("No attributes detected for the termination method.");
+					terminationList.add(getLimit(jenConfig.getTermination()[0], new double[0]));
+				} else {
+					terminationList.add(getLimit(jenConfig.getTermination()[0], jenConfig.getTerminationAttributes()[0]));
+				}
+				logger.info("Termination method " + terminationList.get(0).toString() + " will be used.");
+				return terminationList;
+			case 2:
+				if (jenConfig.getTerminationAttributes() == null || jenConfig.getTerminationAttributes().length < 1) {
+					logger.info("No attributes detected for the termination method.");
+					terminationList.add(getLimit(jenConfig.getTermination()[0], new double[0]));
+					terminationList.add(getLimit(jenConfig.getTermination()[1], new double[0]));
+				} else {
+					terminationList.add(getLimit(jenConfig.getTermination()[0], jenConfig.getTerminationAttributes()[0]));
+					
+					if (jenConfig.getTerminationAttributes().length < 2) {
+						terminationList.add(getLimit(jenConfig.getTermination()[1], new double[0]));
+					} else {
+						terminationList.add(getLimit(jenConfig.getTermination()[1], jenConfig.getTerminationAttributes()[1]));
+					}
+				}
+				logger.info("Termination methods " + terminationList.get(0).toString() + " and " 
+						+ terminationList.get(1) + " will be used.");
+				return terminationList;
+			case 3:
+				if (jenConfig.getTerminationAttributes() == null || jenConfig.getTerminationAttributes().length < 1) {
+					logger.info("No attributes detected for the termination method.");
+					terminationList.add(getLimit(jenConfig.getTermination()[0], new double[0]));
+					terminationList.add(getLimit(jenConfig.getTermination()[1], new double[0]));
+					terminationList.add(getLimit(jenConfig.getTermination()[2], new double[0]));
+				} else {
+					terminationList.add(getLimit(jenConfig.getTermination()[0], jenConfig.getTerminationAttributes()[0]));
+					
+					if (jenConfig.getTerminationAttributes().length < 2) {
+						terminationList.add(getLimit(jenConfig.getTermination()[1], new double[0]));
+						terminationList.add(getLimit(jenConfig.getTermination()[2], new double[0]));
+					} else {
+						terminationList.add(getLimit(jenConfig.getTermination()[1], jenConfig.getTerminationAttributes()[1]));
+						
+						if (jenConfig.getTerminationAttributes().length < 3) {
+							terminationList.add(getLimit(jenConfig.getTermination()[2], new double[0]));
+						} else {
+							terminationList.add(getLimit(jenConfig.getTermination()[2], jenConfig.getTerminationAttributes()[2]));
+						}
+					}
+				}
+				logger.info("Termination methods " + terminationList.get(0).toString() + " and " 
+						+ terminationList.get(1) + " and " + terminationList.get(2) + " will be used.");
+				return terminationList;
+			default:
+				logger.info("No chosen termination methods detected or too many methods detected.");
+				return null;
+		}
+	}
+
+	/**
+	 * Returns the termination method of the given parameters.
+	 * 
+	 * @param termination chosen termination method
+	 * @param attributes array of attributes
+	 * @return termination method
+	 */
+	private static Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>> getLimit(Termination termination,
+			double[] attributes) {
+		
+		switch (termination) {
+			case WORSTFITNESS:
+				if (attributes != null && attributes.length > 0) {
+					return pred -> pred.worstFitness() < attributes[0];
+				}
+				return pred -> pred.worstFitness() < -99999;
+			case BYFITNESSTHRESHOLD:
+				if (attributes != null && attributes.length > 0) {
+					return Limits.byFitnessThreshold((int) attributes[0]);
+				}
+				return Limits.byFitnessThreshold(1000);
+			case BYSTEADYFITNESS:
+				if (attributes != null && attributes.length > 0 && attributes[0] >= 1) {
+					return Limits.bySteadyFitness((int) attributes[0]);
+				}
+				return Limits.bySteadyFitness(100);
+			case BYFIXEDGENERATION:
+				if (attributes != null && attributes.length > 0 && attributes[0] >= 0) {
+					return Limits.byFixedGeneration((int) attributes[0]);
+				}
+				return Limits.byFixedGeneration(1000);
+			case BYEXECUTIONTIME:
+				if (attributes != null && attributes.length > 0) {
+					return Limits.byExecutionTime(Duration.ofSeconds((int) attributes[0]));
+				}
+				return Limits.byExecutionTime(Duration.ofSeconds(10));
+			case BYPOPULATIONCONVERGENCE:
+				if (attributes != null && attributes.length > 0 && attributes[0] <= 1 && attributes[0] >= 0) {
+					return Limits.byPopulationConvergence(attributes[0]);
+				}
+				return Limits.byPopulationConvergence(0.5);
+			default:
+				return Limits.byExecutionTime(Duration.ofSeconds(10));
+		}
 	}
 }
