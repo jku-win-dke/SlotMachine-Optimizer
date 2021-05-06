@@ -132,12 +132,12 @@ public class JeneticsRun extends Run {
 				.offspringFraction(getOffspringFraction(jenConfig))
 				.constraint(constraint)
 				.build();
-		logger.info("Alterer used by the engine: " + e.alterer().toString());
+		logger.debug("Alterer used by the engine: " + e.alterer().toString());
 		logger.debug("Constraints used by the engine: " + e.constraint().toString());
 		logger.debug("Problem used by the engine: " + e.toString() + ": " + p.toString());
-		logger.info("Offspring Selector used by the engine: " + e.offspringSelector().toString());
-		logger.info("Survivors Selector used by the engine: " + e.survivorsSelector().toString());
-		logger.info("Maximal phenotype age: " + e.maximalPhenotypeAge() + " | offspring fraction: " + (double) e.offspringSize()/e.populationSize() 
+		logger.debug("Offspring Selector used by the engine: " + e.offspringSelector().toString());
+		logger.debug("Survivors Selector used by the engine: " + e.survivorsSelector().toString());
+		logger.debug("Maximal phenotype age: " + e.maximalPhenotypeAge() + " | offspring fraction: " + (double) e.offspringSize()/e.populationSize() 
 				+ " | population size: " + e.populationSize());
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
@@ -147,7 +147,7 @@ public class JeneticsRun extends Run {
         if (limits != null) {
 	        switch (limits.size()) {
 	        	case 1:
-	        		logger.info("1 termination method detected: " + limits.get(0).toString());
+	        		logger.debug("1 termination method detected: " + limits.get(0).toString());
 	            	result = RandomRegistry.with(new Random(randomNr), r ->
 		        		e.stream()
 						.limit(limits.get(0))
@@ -156,7 +156,7 @@ public class JeneticsRun extends Run {
 		        	);
 	            	break;
 	        	case 2:
-	        		logger.info("2 termination method detected: " + limits.get(0).toString()
+	        		logger.debug("2 termination method detected: " + limits.get(0).toString()
 	        				+ " | " + limits.get(1).toString());
 	            	result = RandomRegistry.with(new Random(randomNr), r ->
 		        		e.stream()
@@ -167,7 +167,7 @@ public class JeneticsRun extends Run {
 		        	);
 	            	break;
 	        	case 3:
-	        		logger.info("3 termination method detected: " + limits.get(0).toString()
+	        		logger.debug("3 termination method detected: " + limits.get(0).toString()
 	        				+ " | " + limits.get(1).toString() 
 	        				+ " | " + limits.get(2).toString());
 	        		result = RandomRegistry.with(new Random(randomNr), r ->
@@ -180,7 +180,7 @@ public class JeneticsRun extends Run {
 		        	);
 	        		break;
 	        	default:
-	        		logger.info("No termination method detected. Default values will be used.");
+	        		logger.debug("No termination method detected. Default values will be used.");
 	            	result = RandomRegistry.with(new Random(randomNr), r ->
 		        		e.stream()
 						.limit(pred -> pred.worstFitness() < -99999)
@@ -192,7 +192,7 @@ public class JeneticsRun extends Run {
 	            	break;
 	        }
         } else {
-    		logger.info("No termination method detected. Default values will be used.");
+    		logger.debug("No termination method detected. Default values will be used.");
         	result = RandomRegistry.with(new Random(randomNr), r ->
         		e.stream()
 				.limit(pred -> pred.worstFitness() < -99999)
@@ -249,7 +249,7 @@ public class JeneticsRun extends Run {
 			if (jenConfig.getAlterer().length == 2) {
 				alterer1 = jenConfig.getAlterer()[1];
 			} else if (jenConfig.getAlterer().length > 2) {
-				logger.info("More than 2 Alterers detected. Only the first two will be used.");
+				logger.debug("More than 2 Alterers detected. Only the first two will be used.");
 			}
 			
 			// detect if first or second alterer is crossover (or both)
@@ -265,7 +265,7 @@ public class JeneticsRun extends Run {
 			// if both fields contain crossover or the first field contains crossovers
 			if (crossover0) {
 				if (crossover0 && crossover1) {
-				logger.info("Only the first crossover will be used, the second crossover will be ignored.");
+				logger.debug("Only the first crossover will be used, the second crossover will be ignored.");
 				}
 				// get alterer attribute (if existing)
 				
@@ -274,7 +274,7 @@ public class JeneticsRun extends Run {
 					if (jenConfig.getAltererAttributes() != null && jenConfig.getAltererAttributes().length > 0 &&
 							jenConfig.getAltererAttributes()[0].length > 0) {
 						double parameter = jenConfig.getAltererAttributes()[0][0];
-						logger.info("Crossover: PartiallyMatchedCrossover will be used with probability of " + parameter + ".");
+						logger.debug("Crossover: PartiallyMatchedCrossover will be used with probability of " + parameter + ".");
 						return new PartiallyMatchedCrossover<>(parameter);
 					}
 				}
@@ -286,12 +286,12 @@ public class JeneticsRun extends Run {
 					if (jenConfig.getAltererAttributes() != null && jenConfig.getAltererAttributes().length > 1 &&
 							jenConfig.getAltererAttributes()[1].length > 0) {
 						double parameter = jenConfig.getAltererAttributes()[1][0];
-						logger.info("Crossover: PartiallyMatchedCrossover will be used with probability of " + parameter + ".");
+						logger.debug("Crossover: PartiallyMatchedCrossover will be used with probability of " + parameter + ".");
 						return new PartiallyMatchedCrossover<>(parameter);
 					}
 				}
 			} else {
-				logger.info("No crossover detected. Default value will be used.");
+				logger.debug("No crossover detected. Default value will be used.");
 			}
 		}
 		return new PartiallyMatchedCrossover<>(0.35);
@@ -311,7 +311,7 @@ public class JeneticsRun extends Run {
 			if (jenConfig.getAlterer().length == 2) {
 				alterer1 = jenConfig.getAlterer()[1];
 			} else if (jenConfig.getAlterer().length > 2) {
-				logger.info("More than 2 Alterers detected. Only the first two will be used.");
+				logger.debug("More than 2 Alterers detected. Only the first two will be used.");
 			}
 			
 			// detect if first or second alterer is crossover (or both)
@@ -327,7 +327,7 @@ public class JeneticsRun extends Run {
 			// if both fields contain crossover or the first field contains crossovers
 			if (crossover0) {
 				if (crossover0 && crossover1) {
-				logger.info("Only the first mutator will be used, the second mutator will be ignored.");
+				logger.debug("Only the first mutator will be used, the second mutator will be ignored.");
 				}
 				// get alterer attribute (if existing)
 				
@@ -336,7 +336,7 @@ public class JeneticsRun extends Run {
 					if (jenConfig.getAltererAttributes() != null && jenConfig.getAltererAttributes().length > 0 &&
 							jenConfig.getAltererAttributes()[0].length > 0) {
 						double parameter = jenConfig.getAltererAttributes()[0][0];
-						logger.info("Mutator: SwapMutator will be used with probability of " + parameter + ".");
+						logger.debug("Mutator: SwapMutator will be used with probability of " + parameter + ".");
 						return new SwapMutator<EnumGene<Integer>, Integer>(parameter);
 					}
 				}
@@ -348,12 +348,12 @@ public class JeneticsRun extends Run {
 					if (jenConfig.getAltererAttributes() != null && jenConfig.getAltererAttributes().length > 1 &&
 							jenConfig.getAltererAttributes()[1].length > 0) {
 						double parameter = jenConfig.getAltererAttributes()[1][0];
-						logger.info("Mutator: SwapMutator will be used with probability of " + parameter + ".");
+						logger.debug("Mutator: SwapMutator will be used with probability of " + parameter + ".");
 						return new SwapMutator<EnumGene<Integer>, Integer>(parameter);
 					}
 				}
 			} else {
-				logger.info("No mutator detected. Default value will be used.");
+				logger.debug("No mutator detected. Default value will be used.");
 			}
 		}
 		return new SwapMutator<EnumGene<Integer>, Integer>(0.2);
@@ -368,10 +368,10 @@ public class JeneticsRun extends Run {
 	 */
 	private static Selector<EnumGene<Integer>, Integer> getSurvivorSelector(JeneticsConfig jenConfig) {
 		if (jenConfig == null || jenConfig.getSurvivorSelector() == null) {
-			logger.info("TournamentSelector will be used as the survivor selector.");
+			logger.debug("TournamentSelector will be used as the survivor selector.");
 			return new TournamentSelector<EnumGene<Integer>, Integer>();
 		}
-		logger.info("The survivor selector, which will be used is:");
+		logger.debug("The survivor selector, which will be used is:");
 		return getSelector(jenConfig.getSurvivorSelector(), jenConfig.getSurvivorSelectorAttributes());
 	}
 
@@ -384,10 +384,10 @@ public class JeneticsRun extends Run {
 	 */
 	private static Selector<EnumGene<Integer>, Integer> getOffspringSelector(JeneticsConfig jenConfig) {
 		if (jenConfig == null || jenConfig.getOffspringSelector() == null) {
-			logger.info("TournamentSelector will be used as the offspring selector.");
+			logger.debug("TournamentSelector will be used as the offspring selector.");
 			return new TournamentSelector<EnumGene<Integer>, Integer>();
 		}
-		logger.info("The survivor selector, which will be used is:");
+		logger.debug("The survivor selector, which will be used is:");
 		return getSelector(jenConfig.getOffspringSelector(), jenConfig.getOffspringSelectorAttributes());
 	}
 
@@ -404,7 +404,7 @@ public class JeneticsRun extends Run {
 			double[] selectorAttributes) {
 		// if no selector can be detected, should usually not happen
 		if (selector == null) {
-			logger.info("TournamentSelector (no selector chosen)");
+			logger.debug("TournamentSelector (no selector chosen)");
 			return new TournamentSelector<EnumGene<Integer>, Integer>();
 		}
 		// parameter of survivorSelectorAttribute[0]
@@ -421,47 +421,47 @@ public class JeneticsRun extends Run {
 		switch (selector) {
 			case BOLTZMANNSELECTOR: 
 				if (selectorAttributes == null || selectorAttributes.length == 0) {
-					logger.info("BoltzmannSelector");
+					logger.debug("BoltzmannSelector");
 					return new BoltzmannSelector<EnumGene<Integer>, Integer>();
 				}
-				logger.info("BoltzmannSelector (b = " + parameter0 + ")");
+				logger.debug("BoltzmannSelector (b = " + parameter0 + ")");
 				return new BoltzmannSelector<EnumGene<Integer>, Integer>(parameter0);
 			case EXPONENTIALRANKSELECTOR:
 				if (selectorAttributes == null || selectorAttributes.length == 0) {
-					logger.info("ExponentialRankSelector");
+					logger.debug("ExponentialRankSelector");
 					return new ExponentialRankSelector<EnumGene<Integer>, Integer>();
 				}
-				logger.info("ExponentialRankSelector (c  = " + parameter0 + ")");
+				logger.debug("ExponentialRankSelector (c  = " + parameter0 + ")");
 				return new ExponentialRankSelector<EnumGene<Integer>, Integer>(parameter0);
 			case LINEARRANKSELECTOR:
 				if (selectorAttributes == null || selectorAttributes.length == 0) {
-					logger.info("LinearRankSelector");
+					logger.debug("LinearRankSelector");
 					return new LinearRankSelector<EnumGene<Integer>, Integer>();
 				}
-				logger.info("LinearRankSelector (nminus = " + parameter0 + ")");
+				logger.debug("LinearRankSelector (nminus = " + parameter0 + ")");
 				return new LinearRankSelector<EnumGene<Integer>, Integer>(parameter0);
 			case ROULETTEWHEELSELECTOR:
-				logger.info("RouletteWheelSelector");
+				logger.debug("RouletteWheelSelector");
 				return new RouletteWheelSelector<EnumGene<Integer>, Integer>();
 			case STOCHASTICUNIVERSALSELECTOR:
-				logger.info("StochasticUniversalSelector");
+				logger.debug("StochasticUniversalSelector");
 				return new StochasticUniversalSelector<EnumGene<Integer>, Integer>();
 			case TOURNAMENTSELECTOR:
 				if (selectorAttributes == null || selectorAttributes.length == 0) {
-					logger.info("TournamentSelector");
+					logger.debug("TournamentSelector");
 					return new TournamentSelector<EnumGene<Integer>, Integer>();
 				}
-				logger.info("TournamentSelector (sampleSize = " + parameter0 + ")");
+				logger.debug("TournamentSelector (sampleSize = " + parameter0 + ")");
 				return new TournamentSelector<EnumGene<Integer>, Integer>((int) parameter0);
 			case TRUNCATIONSELECTOR:
 				if (selectorAttributes == null || selectorAttributes.length == 0) {
-					logger.info("TruncationSelector");
+					logger.debug("TruncationSelector");
 					return new TruncationSelector<EnumGene<Integer>, Integer>();
 				}
-				logger.info("TruncationSelector (n = " + parameter0 + ")");
+				logger.debug("TruncationSelector (n = " + parameter0 + ")");
 				return new TruncationSelector<EnumGene<Integer>, Integer>((int) parameter0);
 			default:
-				logger.info("TournamentSelector (no selector chosen)");
+				logger.debug("TournamentSelector (no selector chosen)");
 				return new TournamentSelector<EnumGene<Integer>, Integer>(); 
 		}
 	}
@@ -520,26 +520,26 @@ public class JeneticsRun extends Run {
 	 */
 	private static List<Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>> getLimits(JeneticsConfig jenConfig) {
 		if (jenConfig == null || jenConfig.getTermination() == null) {
-			logger.info("No termination methods detected.");
+			logger.debug("No termination methods detected.");
 			return null;
 		}
 		List<Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>> terminationList = new LinkedList<Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>>();
 		switch (jenConfig.getTermination().length) {
 			case 0:
-				logger.info("No chosen termination methods detected.");
+				logger.debug("No chosen termination methods detected.");
 				return null;
 			case 1:
 				if (jenConfig.getTerminationAttributes() == null || jenConfig.getTerminationAttributes().length < 1) {
-					logger.info("No attributes detected for the termination method.");
+					logger.debug("No attributes detected for the termination method.");
 					terminationList.add(getLimit(jenConfig.getTermination()[0], new double[0]));
 				} else {
 					terminationList.add(getLimit(jenConfig.getTermination()[0], jenConfig.getTerminationAttributes()[0]));
 				}
-				logger.info("Termination method " + terminationList.get(0).toString() + " will be used.");
+				logger.debug("Termination method " + terminationList.get(0).toString() + " will be used.");
 				return terminationList;
 			case 2:
 				if (jenConfig.getTerminationAttributes() == null || jenConfig.getTerminationAttributes().length < 1) {
-					logger.info("No attributes detected for the termination method.");
+					logger.debug("No attributes detected for the termination method.");
 					terminationList.add(getLimit(jenConfig.getTermination()[0], new double[0]));
 					terminationList.add(getLimit(jenConfig.getTermination()[1], new double[0]));
 				} else {
@@ -551,12 +551,12 @@ public class JeneticsRun extends Run {
 						terminationList.add(getLimit(jenConfig.getTermination()[1], jenConfig.getTerminationAttributes()[1]));
 					}
 				}
-				logger.info("Termination methods " + terminationList.get(0).toString() + " and " 
+				logger.debug("Termination methods " + terminationList.get(0).toString() + " and " 
 						+ terminationList.get(1) + " will be used.");
 				return terminationList;
 			case 3:
 				if (jenConfig.getTerminationAttributes() == null || jenConfig.getTerminationAttributes().length < 1) {
-					logger.info("No attributes detected for the termination method.");
+					logger.debug("No attributes detected for the termination method.");
 					terminationList.add(getLimit(jenConfig.getTermination()[0], new double[0]));
 					terminationList.add(getLimit(jenConfig.getTermination()[1], new double[0]));
 					terminationList.add(getLimit(jenConfig.getTermination()[2], new double[0]));
@@ -576,11 +576,11 @@ public class JeneticsRun extends Run {
 						}
 					}
 				}
-				logger.info("Termination methods " + terminationList.get(0).toString() + " and " 
+				logger.debug("Termination methods " + terminationList.get(0).toString() + " and " 
 						+ terminationList.get(1) + " and " + terminationList.get(2) + " will be used.");
 				return terminationList;
 			default:
-				logger.info("No chosen termination methods detected or too many methods detected.");
+				logger.debug("No chosen termination methods detected or too many methods detected.");
 				return null;
 		}
 	}

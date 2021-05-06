@@ -54,7 +54,8 @@ public class OptimizationService {
 							}
 						}
 					}
-					logger.info("optId: " + o.getOptId() + " optRes available: " + availableResult);
+					logger.info("optId: " + o.getOptId());
+					logger.debug("Result is available? " + availableResult);
 				}
 				return optdto;
 			}
@@ -72,7 +73,8 @@ public class OptimizationService {
 					}
 				}
 			}
-			logger.info("optId: " + o.getOptId() + " optRes available: " + availableResult);
+			logger.info("optId: " + o.getOptId());
+			logger.debug("Result is available? " + availableResult);
 		}
 		return optdto;
 	}
