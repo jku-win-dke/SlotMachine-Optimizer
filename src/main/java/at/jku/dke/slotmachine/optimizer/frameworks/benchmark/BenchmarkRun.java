@@ -32,14 +32,14 @@ public class BenchmarkRun extends Run {
         FlightPrioritization solvedFlightPrioritization = solver.solve(unsolvedFlightPrioritization);
         logger.debug("Score Calculations applications for solved: " + solvedFlightPrioritization.getApplications());
         logger.info("print solved sequence:\n");
-        for(Flight f : solvedFlightPrioritization.getFlights()) {
+        for(FlightBenchmark f : solvedFlightPrioritization.getFlights()) {
             logger.info(f.getFlightId() + " :" + f.getSlot().getTime());
         }
 
         logger.info("Score of solved Slotsequence: " + solvedFlightPrioritization.getScore());
         Map<Flight, Slot> solution = new LinkedHashMap<Flight, Slot>();
 
-        for(Map.Entry<Flight, Slot> entry: solvedFlightPrioritization.getSequence().entrySet()) {
+        for(Map.Entry<FlightBenchmark, Slot> entry: solvedFlightPrioritization.getSequence().entrySet()) {
             Flight f = new Flight(entry.getKey().getFlightId(),
     	   		                  entry.getKey().getScheduledTime(),
     			                  entry.getKey().getWeightMap());

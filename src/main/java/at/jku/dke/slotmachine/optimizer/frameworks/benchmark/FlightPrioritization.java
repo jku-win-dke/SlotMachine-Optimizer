@@ -1,9 +1,11 @@
 package at.jku.dke.slotmachine.optimizer.frameworks.benchmark;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import at.jku.dke.slotmachine.optimizer.frameworks.benchmark.FlightBenchmark;
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import org.optaplanner.core.api.domain.solution.PlanningEntityCollectionProperty;
@@ -18,14 +20,14 @@ public class FlightPrioritization {
 
 	private int applications; // applications of score calculations, used for logger
 	
-	private Map<Flight,Slot> sequence = null;
+	private Map<FlightBenchmark,Slot> sequence = null;
 	
     @ValueRangeProvider(id = "slotRange")
     @ProblemFactCollectionProperty
     private List<Slot> slots;
 
     @PlanningEntityCollectionProperty
-    private List<Flight> flights;
+    private List<FlightBenchmark> flights;
 
     @PlanningScore
     private HardSoftScore score;
@@ -34,9 +36,13 @@ public class FlightPrioritization {
 
     }
 	
-	public FlightPrioritization(List<Slot> slots, List<Flight> flights) {
+	public FlightPrioritization(List<Slot> slots, List<Flight> flightDomain) {
         this.slots = slots;
-        this.flights = flights;
+        List<FlightBenchmark> flightList = new LinkedList<FlightBenchmark>();
+        for (Flight f: flightDomain) {
+        	flightList.add(new FlightBenchmark(f.getFlightId(), f.getScheduledTime(), f.getWeightMap(), slots));
+        }
+        this.flights = flightList;
         this.applications = 0;
     }
 
@@ -44,7 +50,7 @@ public class FlightPrioritization {
         return slots;
     }
 
-    public List<Flight> getFlights() {
+    public List<FlightBenchmark> getFlights() {
         return flights;
     }
 
@@ -52,11 +58,11 @@ public class FlightPrioritization {
         return score;
     }
 
-    public Map<Flight, Slot> getSequence() {
+    public Map<FlightBenchmark, Slot> getSequence() {
         if(this.sequence == null) {
-            this.sequence = new HashMap<Flight, Slot>();
+            this.sequence = new HashMap<FlightBenchmark, Slot>();
 
-            for (Flight f : flights) {
+            for (FlightBenchmark f : flights) {
                 this.sequence.put(f, f.getSlot());
             }
         }

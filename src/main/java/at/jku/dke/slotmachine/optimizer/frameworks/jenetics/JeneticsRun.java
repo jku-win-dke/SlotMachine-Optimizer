@@ -78,11 +78,6 @@ public class JeneticsRun extends Run {
         Genotype<EnumGene<Integer>> result = e.stream()
         		//.limit(Limits.bySteadyFitness(250))
         		//.limit(Limits.byFitnessThreshold(1))
-        		// try to have the worst fitness value at -99999, meaning that
-        		// the algorithms tries to use no values before scheduledTime
-        		// (the hard constraint (-100000)), unless the value is not
-        		// improving after 2500 generations or after 6 minutes
-        		.limit(pred -> pred.worstFitness() < -99999)
         		.limit(Limits.bySteadyFitness(2500))
         		.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
         		.peek(statistics)
@@ -183,7 +178,6 @@ public class JeneticsRun extends Run {
 	        		logger.debug("No termination method detected. Default values will be used.");
 	            	result = RandomRegistry.with(new Random(randomNr), r ->
 		        		e.stream()
-						.limit(pred -> pred.worstFitness() < -99999)
 						.limit(Limits.bySteadyFitness(2500))
 						.limit(Limits.byExecutionTime(Duration.ofSeconds(180)))
 						.peek(statistics)
@@ -195,7 +189,6 @@ public class JeneticsRun extends Run {
     		logger.debug("No termination method detected. Default values will be used.");
         	result = RandomRegistry.with(new Random(randomNr), r ->
         		e.stream()
-				.limit(pred -> pred.worstFitness() < -99999)
 				.limit(Limits.bySteadyFitness(2500))
 				.limit(Limits.byExecutionTime(Duration.ofSeconds(180)))
 				.peek(statistics)

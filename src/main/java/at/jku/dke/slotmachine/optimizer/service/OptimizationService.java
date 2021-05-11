@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import at.jku.dke.slotmachine.optimizer.domain.*;
+import at.jku.dke.slotmachine.optimizer.frameworks.benchmark.BenchmarkRun;
 import at.jku.dke.slotmachine.optimizer.frameworks.jenetics.JeneticsRun;
 import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.OptaPlannerRun;
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
@@ -99,6 +100,9 @@ public class OptimizationService {
 		} else if (curOpt.getOptimization().getClass().equals(OptaPlannerRun.class)) {
 			logger.info("Optimization uses OptaPlannerRun framework.");
 			resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+		} else if (curOpt.getOptimization().getClass().equals(BenchmarkRun.class)) {
+			logger.info("Optimization uses BenchmarkRun framework (OptaPlanner).");
+			resultMap = BenchmarkRun.run(curOpt.getFlightList(), curOpt.getSlotList());
 		} else {
 			logger.info("No framework set, uses default Jenetics framework.");
 			resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
@@ -196,6 +200,10 @@ public class OptimizationService {
 			OptaPlannerRun classRun = new OptaPlannerRun();
 			logger.info("OptaPlanner Framework is chosen.");
 			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
+		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.BENCHMARK) {
+			BenchmarkRun classRun = new BenchmarkRun();
+			logger.info("Benchmark Framework is chosen (OptaPlanner).");
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
 		} else if (optdto.getOptimizationFramework() == null){
 			logger.info("Framework is not set for given UUID, therefore default Jenetics Framework is used.");
 			JeneticsRun classRun = new JeneticsRun();
@@ -224,9 +232,13 @@ public class OptimizationService {
 					currentFlight = f;
 				}
 			}
-			logger.debug("Weight at assigned slot for flight " + currentFlight.getFlightId() + ": " 
-					+ currentFlight.getWeightMap()[i]);
-			totalWeights = totalWeights + currentFlight.getWeightMap()[i];
+			if (currentFlight != null) {
+				logger.debug("Weight at assigned slot for flight " + currentFlight.getFlightId() + ": " 
+						+ currentFlight.getWeightMap()[i]);
+				totalWeights = totalWeights + currentFlight.getWeightMap()[i];
+			} else {
+				logger.info("No slot assigned for flight!");
+			}
 		}
 		logger.info("Total weights for complete flight sequence: " + totalWeights);
 	}

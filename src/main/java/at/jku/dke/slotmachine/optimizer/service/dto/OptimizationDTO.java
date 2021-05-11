@@ -11,7 +11,7 @@ public class OptimizationDTO {
 	private JeneticConfigDTO jenConfig;
 
 	public enum OptimizationFramework {
-		JENETICS, OPTAPLANNER
+		JENETICS, OPTAPLANNER, BENCHMARK
 	}
 
 	public UUID getOptId() {
