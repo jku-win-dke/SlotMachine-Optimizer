@@ -15,6 +15,10 @@ import org.optaplanner.core.api.domain.solution.ProblemFactCollectionProperty;
 import org.optaplanner.core.api.domain.valuerange.ValueRangeProvider;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 
+/**
+ *	Contains the current solutions for the planning (OptaPlanner), with the HardSoftScore 
+ *	and the current slot<->flight assignment.
+ */
 @PlanningSolution
 public class FlightPrioritization {
 
@@ -38,6 +42,8 @@ public class FlightPrioritization {
 	
 	public FlightPrioritization(List<Slot> slots, List<Flight> flightDomain) {
         this.slots = slots;
+        
+        // create FlightBenchmark (Flight data, including all slots for possibleSlots-Method)
         List<FlightBenchmark> flightList = new LinkedList<FlightBenchmark>();
         for (Flight f: flightDomain) {
         	flightList.add(new FlightBenchmark(f.getFlightId(), f.getScheduledTime(), f.getWeightMap(), slots));

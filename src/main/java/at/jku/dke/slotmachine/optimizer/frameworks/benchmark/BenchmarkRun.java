@@ -17,6 +17,13 @@ public class BenchmarkRun extends Run {
 
 	private static final Logger logger = LogManager.getLogger();
 	
+	/**
+	 * Runs the Benchmark with OptaPlanner framework, solver_config_benchmar.xml and given data.
+	 * 
+	 * @param flights available flights
+	 * @param slots available slots
+	 * @return map with flights assigned to slots
+	 */
 	public static Map<Flight,Slot> run(List<Flight> flights, List<Slot> slots) {
 		logger.info("Start optimization to determine benchmark (using OptaPlanner).");
 		SolverFactory<FlightPrioritization> solverFactory = SolverFactory.createFromXmlResource("solver_config_benchmark.xml");	
@@ -33,7 +40,11 @@ public class BenchmarkRun extends Run {
         logger.debug("Score Calculations applications for solved: " + solvedFlightPrioritization.getApplications());
         logger.info("print solved sequence:\n");
         for(FlightBenchmark f : solvedFlightPrioritization.getFlights()) {
-            logger.info(f.getFlightId() + " :" + f.getSlot().getTime());
+        	if (f.getSlot() != null) {
+        		logger.info(f.getFlightId() + " :" + f.getSlot().getTime());
+        	} else {
+        		logger.info(f.getFlightId() + " : no slot assigned!");
+        	}
         }
 
         logger.info("Score of solved Slotsequence: " + solvedFlightPrioritization.getScore());

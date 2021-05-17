@@ -10,6 +10,9 @@ import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Individual planning entity for Benchmark (OptaPlanner) framework.
+ */
 @PlanningEntity
 public class FlightBenchmark {
     private String flightId;
@@ -63,6 +66,10 @@ public class FlightBenchmark {
         this.slot = slot;
     }
     
+    /**
+     * Returns possible slots of the current flight.
+     * @return list of possible slots
+     */
     @ValueRangeProvider(id = "possibleSlots")
     public List<Slot> getPossibleSlots() {
     	List<Slot> possibleSlots = new LinkedList<Slot>();

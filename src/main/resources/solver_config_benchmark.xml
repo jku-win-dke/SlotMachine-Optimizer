@@ -2,18 +2,21 @@
 <solver>
     <solutionClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmark.FlightPrioritization</solutionClass>
     <entityClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmark.FlightBenchmark</entityClass>
-    <!-- exhaustive search for BRUTE FORCE 
+    <!-- exhaustive search for BRUTE FORCE
       <exhaustiveSearch>
 		<exhaustiveSearchType>BRUTE_FORCE</exhaustiveSearchType>
 	  </exhaustiveSearch>-->
-     <!-- exhaustive search for BRANCH AND BOUND-->
+     <!-- exhaustive search for BRANCH AND BOUND -->
        <exhaustiveSearch>
 	    <exhaustiveSearchType>BRANCH_AND_BOUND</exhaustiveSearchType>
 	  </exhaustiveSearch>
     <scoreDirectorFactory>
         <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmark.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
-    <termination>
-        <unimprovedSecondsSpentLimit>10</unimprovedSecondsSpentLimit>
-    </termination>
+    <!-- <termination>
+    	<terminationCompositionStyle>AND</terminationCompositionStyle>
+    	<bestScoreFeasible>true</bestScoreFeasible> looks only for a feasible solution	
+    	<unimprovedSecondsSpentLimit>300</unimprovedSecondsSpentLimit>
+    </termination>-->
+    <environmentMode>REPRODUCIBLE</environmentMode>
 </solver>

@@ -123,8 +123,11 @@ public class OptimizationService {
 		for(Map.Entry<Flight, Slot> entry: resultMap.entrySet()) {
 			Flight flight = entry.getKey();
 			Slot slot = entry.getValue();
-			int posOfSlot = sortedSlots.indexOf(slot.getTime());
-			assignedSequence[posOfSlot] = flight.getFlightId();
+			if (slot != null) {
+				// to prevent errors, if slot is not available for the current flight
+				int posOfSlot = sortedSlots.indexOf(slot.getTime());
+				assignedSequence[posOfSlot] = flight.getFlightId();
+			}
 		}
 		
 		OptimizationResultDTO optResult = new OptimizationResultDTO();

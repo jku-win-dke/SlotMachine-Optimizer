@@ -7,63 +7,46 @@ import java.util.List;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
+import ch.qos.logback.classic.Logger;
 
+import org.apache.logging.log4j.LogManager;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
 
 public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalculator<FlightPrioritization, HardSoftScore> {
 	
+	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
+	
+	/**
+	 * Calculates the score for FlightPrioritization.
+	 * 
+	 * If the suggested slot is before ScheduledTime, add -1 to hardScore. If two flights 
+	 * use the same slot for suggested slots, add -100 to hardScore. If a flight does not 
+	 * have a suggested slot, add -10 to hardScore. OptaPlanner tries to achieve a final 
+	 * hardScore of 0, therefore, the defined constraints should be fulfilled.
+	 * 
+	 * SoftScore is added according to the weight. OptaPlanner tries to maximize the 
+	 * softScore value.
+	 * 
+	 * @param flightPrioritization planning solution
+	 * @return HardSoftScore score according to given planning solution
+	 */
     @Override
     public HardSoftScore calculateScore(FlightPrioritization flightPrioritization) {
         int hardScore = 0;
         int softScore = 0;
-        if (flightPrioritization.getApplications() < 0) {									// used for logger
-			flightPrioritization.setApplications(0);
-		}
-        flightPrioritization.setApplications(flightPrioritization.getApplications() + 1); 
-        
-		List<Instant> sortedSlots = new LinkedList<Instant>();
-		for (Slot s: flightPrioritization.getSlots()) {
-			sortedSlots.add(s.getTime());
-		}
-		Collections.sort(sortedSlots);
-        
-        for (FlightBenchmark f: flightPrioritization.getFlights()) {
-        	// constraints
-        	if (f.getSlot() != null && f.getScheduledTime().isAfter(f.getSlot().getTime())) {
-        		hardScore--;
-        	}
-            for(FlightBenchmark e : flightPrioritization.getFlights()) {
-                if(!f.equals(e) && f.getSlot() != null && e.getSlot() != null && f.getSlot().equals(e.getSlot())) {
-                    hardScore--;
-                }
-            }
-            
-            int posOfSlot = -1;
-			if (posOfSlot >= 0) {
-				softScore += f.getWeightMap()[posOfSlot];
-			}
-            
-        }
-        
-        
-        
-		/*if (flightPrioritization.getApplications() < 0) {									// used for logger
+		if (flightPrioritization.getApplications() < 0) {									// used for logger
 			flightPrioritization.setApplications(0);
 		}
 		flightPrioritization.setApplications(flightPrioritization.getApplications() + 1); 	// used for logger
-        for(Flight f : flightPrioritization.getFlights()) {
+        for(FlightBenchmark f : flightPrioritization.getFlights()) {
             if(f.getSlot() != null && f.getScheduledTime().isAfter(f.getSlot().getTime())) {
                 hardScore--;
-            } else {
-            	//hardScore--;
             }
 
-            for(Flight e : flightPrioritization.getFlights()) {
-                if(f.getSlot() != null && !f.equals(e) && f.getSlot() != null && e.getSlot() != null && f.getSlot().equals(e.getSlot())) {
-                    hardScore--;
-                } else {
-                	//
+            for(FlightBenchmark e : flightPrioritization.getFlights()) {
+                if(!f.equals(e) && f.getSlot() != null && e.getSlot() != null && f.getSlot().equals(e.getSlot())) {
+                    hardScore -= 100;
                 }
             }
 
@@ -75,17 +58,17 @@ public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalcula
 			Collections.sort(sortedSlots);
             
 			// returns position of slot in weight array
-			int posOfSlot = -1;
 			if (f.getSlot() != null) {
-				posOfSlot = sortedSlots.indexOf(f.getSlot().getTime());
-			}
-			// adds weight at position of slot
-			if (posOfSlot >= 0) {
+				int posOfSlot = sortedSlots.indexOf(f.getSlot().getTime());
+				
+				// adds weight at position of slot
 				softScore += f.getWeightMap()[posOfSlot];
 			} else {
+				// if no slot is assigned here
 				softScore += 0;
+				hardScore -= 10;
 			}
-        }*/
+        }
 
         return HardSoftScore.of(hardScore, softScore);
     }
