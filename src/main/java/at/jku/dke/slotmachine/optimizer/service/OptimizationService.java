@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import at.jku.dke.slotmachine.optimizer.domain.*;
 import at.jku.dke.slotmachine.optimizer.frameworks.benchmark.BenchmarkRun;
+import at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.BenchmarkOptaPlannerRun;
 import at.jku.dke.slotmachine.optimizer.frameworks.jenetics.JeneticsRun;
 import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.OptaPlannerRun;
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
@@ -103,6 +104,10 @@ public class OptimizationService {
 		} else if (curOpt.getOptimization().getClass().equals(BenchmarkRun.class)) {
 			logger.info("Optimization uses BenchmarkRun framework (OptaPlanner).");
 			resultMap = BenchmarkRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+		} else if (curOpt.getOptimization().getClass().equals(BenchmarkOptaPlannerRun.class)) {
+			logger.info("Optimization uses Benchmark functionality of OptaPlanner.");
+			// TODO due to the nature of the Benchmark functionality of OptaPlanner, expect errors currently
+			resultMap = BenchmarkOptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
 		} else {
 			logger.info("No framework set, uses default Jenetics framework.");
 			resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
@@ -206,6 +211,10 @@ public class OptimizationService {
 		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.BENCHMARK) {
 			BenchmarkRun classRun = new BenchmarkRun();
 			logger.info("Benchmark Framework is chosen (OptaPlanner).");
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
+		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.BENCHMARKOPTAPLANNER) {
+			BenchmarkOptaPlannerRun classRun = new BenchmarkOptaPlannerRun();
+			logger.info("Benchmark functionality of OptaPlanner is chosen.");
 			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
 		} else if (optdto.getOptimizationFramework() == null){
 			logger.info("Framework is not set for given UUID, therefore default Jenetics Framework is used.");

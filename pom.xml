@@ -68,7 +68,12 @@
             <groupId>org.optaplanner</groupId>
             <artifactId>optaplanner-persistence-jpa</artifactId>
             <version>8.1.0.Final</version>
-        </dependency>        
+        </dependency>       
+        <dependency>
+	    	<groupId>org.optaplanner</groupId>
+	    	<artifactId>optaplanner-benchmark</artifactId>
+	    	<version>8.1.0.Final</version>
+	  	</dependency> 
     </dependencies>
 
     <build>

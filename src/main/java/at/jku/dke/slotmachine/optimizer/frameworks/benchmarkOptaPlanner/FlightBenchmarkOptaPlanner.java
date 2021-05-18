@@ -1,39 +1,32 @@
-package at.jku.dke.slotmachine.optimizer.frameworks.benchmark;
+package at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner;
 
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.lookup.PlanningId;
-import org.optaplanner.core.api.domain.valuerange.ValueRangeProvider;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 
 import java.time.Instant;
-import java.util.LinkedList;
-import java.util.List;
 
-/**
- * Individual planning entity for Benchmark (OptaPlanner) framework.
- */
-@PlanningEntity
-public class FlightBenchmark {
-	
+@PlanningEntity(difficultyComparatorClass = FlightDifficultyComparator.class)
+public class FlightBenchmarkOptaPlanner {
 	@PlanningId
     private String flightId;
     private Instant scheduledTime;
     private int[] weightMap;
-    private List<Slot> slots;
 
-    @PlanningVariable(valueRangeProviderRefs = "possibleSlots")
+    @PlanningVariable(valueRangeProviderRefs = "slotRange", 
+    		strengthComparatorClass = SlotStrengthComparator.class)
     private Slot slot;
 
-    public FlightBenchmark(String flightId, Instant scheduledTime, int[] weightMap, List<Slot> slots) {
+    public FlightBenchmarkOptaPlanner(String flightId, Instant scheduledTime, int[] weightMap, Slot slot) {
         this.flightId = flightId;
         this.scheduledTime = scheduledTime;
         this.weightMap = weightMap;
-        this.slots = slots;
+        this.slot = slot;
     }
 
-    public FlightBenchmark() {
+    public FlightBenchmarkOptaPlanner() {
     	// empty default constructor needed for OptaPlanner
     }
     
@@ -67,20 +60,5 @@ public class FlightBenchmark {
 
     public void setSlot(Slot slot) {
         this.slot = slot;
-    }
-    
-    /**
-     * Returns possible slots of the current flight.
-     * @return list of possible slots
-     */
-    @ValueRangeProvider(id = "possibleSlots")
-    public List<Slot> getPossibleSlots() {
-    	List<Slot> possibleSlots = new LinkedList<Slot>();
-    	for (Slot s: slots) {
-    		if (!s.getTime().isBefore(this.getScheduledTime())) {
-    			possibleSlots.add(s);
-    		}
-    	}
-    	return possibleSlots;
     }
 }

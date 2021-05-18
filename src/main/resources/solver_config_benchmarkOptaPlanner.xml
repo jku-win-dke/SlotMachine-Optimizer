@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plannerBenchmark xmlns="https://www.optaplanner.org/xsd/benchmark" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://www.optaplanner.org/xsd/benchmark https://www.optaplanner.org/xsd/benchmark/benchmark.xsd">
+	<benchmarkDirectory>local/data/slotMachine</benchmarkDirectory>
+	<warmUpSecondsSpentLimit>60</warmUpSecondsSpentLimit>
+	<inheritedSolverBenchmark>
+		<solver>
+		    <solutionClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightPrioritization</solutionClass>
+		    <entityClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightBenchmarkOptaPlanner</entityClass>
+		    <scoreDirectorFactory>
+		        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
+		    </scoreDirectorFactory>
+		    <termination>
+		        <unimprovedMillisecondsSpentLimit>850</unimprovedMillisecondsSpentLimit>
+		    </termination>	   
+		</solver>
+		<problemBenchmarks>
+			<problemStatisticType>BEST_SCORE</problemStatisticType>
+		</problemBenchmarks>
+	</inheritedSolverBenchmark>
+
+    <solverBenchmarkBluePrint>
+		<solverBenchmarkBluePrintType>EVERY_CONSTRUCTION_HEURISTIC_TYPE_WITH_EVERY_LOCAL_SEARCH_TYPE</solverBenchmarkBluePrintType>
+	</solverBenchmarkBluePrint>
+</plannerBenchmark>
