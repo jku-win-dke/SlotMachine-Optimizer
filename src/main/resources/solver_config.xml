@@ -6,6 +6,6 @@
         <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
     <termination>
-        <unimprovedMillisecondsSpentLimit>900</unimprovedMillisecondsSpentLimit>
+        <unimprovedSecondsSpentLimit>10</unimprovedSecondsSpentLimit>
     </termination>
 </solver>

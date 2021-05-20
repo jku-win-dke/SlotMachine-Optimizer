@@ -19,6 +19,7 @@ public class OptimizationService {
 	private List<OptimizationDTO> optimizationDTOs;
 	private List<OptimizationResultDTO> optimizationResults;
 	private List<Optimization> optimizations;
+	
 	private static final Logger logger = LogManager.getLogger();
 	
 	public OptimizationDTO createAndInitialize(OptimizationDTO optdto) {
@@ -253,5 +254,20 @@ public class OptimizationService {
 			}
 		}
 		logger.info("Total weights for complete flight sequence: " + totalWeights);
+	}
+
+	public void abortOptimization(UUID optId) {
+		// TODO improve method
+		/*for (SolverJob<FlightPrioritization, UUID> solverJob: currentSolvers) {
+			logger.info("Optimization session " + optId + " will be aborted or has already finished.");
+			if (solverJob.getProblemId().equals(optId)) {
+				solverJob.terminateEarly();
+				logger.info("Optimization session " + optId + " has been aborted or has already finished.");
+				return;
+			}
+		}
+		logger.info("No optimization session with the optId " + optId + " has been found or the session cannot be aborted.");
+		return;*/
+		return;
 	}
 }

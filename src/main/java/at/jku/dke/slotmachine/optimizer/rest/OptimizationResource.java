@@ -77,6 +77,9 @@ public class OptimizationResource {
 		}
 	)
 	public ResponseEntity<Void> abortOptimization(@PathVariable UUID optId) {
+    	if (optService != null) {
+    		optService.abortOptimization(optId);
+    	}
 		return null;
 	}
 

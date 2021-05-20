@@ -5,6 +5,7 @@
 	<warmUpSecondsSpentLimit>60</warmUpSecondsSpentLimit>
 	<inheritedSolverBenchmark>
 		<solver>
+			<environmentMode>REPRODUCIBLE</environmentMode> 
 		    <solutionClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightPrioritization</solutionClass>
 		    <entityClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightBenchmarkOptaPlanner</entityClass>
 		    <scoreDirectorFactory>
@@ -12,11 +13,14 @@
 		    </scoreDirectorFactory>
 		    <termination>
 		        <unimprovedMillisecondsSpentLimit>850</unimprovedMillisecondsSpentLimit>
-		    </termination>	   
+		    </termination>	  
 		</solver>
 		<problemBenchmarks>
 			<problemStatisticType>BEST_SCORE</problemStatisticType>
+			<problemStatisticType>STEP_SCORE</problemStatisticType>
+			<problemStatisticType>SCORE_CALCULATION_SPEED</problemStatisticType>
 		</problemBenchmarks>
+		<!--<subSingleCount>10</subSingleCount>-->
 	</inheritedSolverBenchmark>
 
     <solverBenchmarkBluePrint>
