@@ -15,6 +15,7 @@ import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.score.director.ScoreDirectorFactoryConfig;
+import org.optaplanner.core.config.solver.EnvironmentMode;
 import org.optaplanner.core.config.solver.SolverConfig;
 import org.optaplanner.core.config.solver.termination.TerminationConfig;
 
@@ -27,24 +28,35 @@ public class OptaPlannerRun extends Run {
 	public static Map<Flight,Slot> run(List<Flight> flights, List<Slot> slots) {
 		logger.info("Start optimization using OptaPlanner framework.");
 		SolverFactory<FlightPrioritization> solverFactory = SolverFactory.createFromXmlResource("solver_config.xml");
-		/*SolverConfig sc = new SolverConfig();
-		try {
-			sc.setSolutionClass(Class.forName("at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritization"));
-			List<Class<?>> classListEntity = new LinkedList<Class<?>>();
-			classListEntity.add(Class.forName("at.jku.dke.slotmachine.optimizer.domain.Flight"));
-			sc.setEntityClassList(classListEntity);
-			ScoreDirectorFactoryConfig sdfc = new ScoreDirectorFactoryConfig();
-			sdfc.setEasyScoreCalculatorClass((Class<? extends EasyScoreCalculator>) Class.forName("at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritizationEasyScoreCalculator"));
-			sc.setScoreDirectorFactoryConfig(sdfc);
-			TerminationConfig tc = new TerminationConfig();
-			tc.setSecondsSpentLimit((long) 10);
-			sc.setTerminationConfig(tc);
-			solverFactory = SolverFactory.create(sc);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			solverFactory = SolverFactory.createFromXmlResource("solver_config.xml");
-			
-		}*/
+		
+		/*// configured SolverConfig
+		SolverConfig sc = new SolverConfig();
+		
+		// move thread count (how many threads act in parallel)
+		sc.setMoveThreadCount("AUTO");
+		
+		// environment mode
+		sc.setEnvironmentMode(EnvironmentMode.REPRODUCIBLE);
+		
+		// solution class, etc.
+		sc.setSolutionClass(at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritization.class);
+		List<Class<?>> classListEntity = new LinkedList<Class<?>>();
+		classListEntity.add(at.jku.dke.slotmachine.optimizer.domain.Flight.class);
+		sc.setEntityClassList(classListEntity);
+		ScoreDirectorFactoryConfig sdfc = new ScoreDirectorFactoryConfig();
+		sdfc.setEasyScoreCalculatorClass(at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritizationEasyScoreCalculator.class);
+		sc.setScoreDirectorFactoryConfig(sdfc);
+		
+		// termination
+		TerminationConfig tc = new TerminationConfig();
+		tc.setSecondsSpentLimit((long) 10);
+		sc.setTerminationConfig(tc);
+		
+		// construction heuristics phase
+		
+		// local search phase
+
+		solverFactory = SolverFactory.create(sc);*/
 		
 
         Solver<FlightPrioritization> solver = solverFactory.buildSolver();

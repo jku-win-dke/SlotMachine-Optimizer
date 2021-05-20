@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <solver>
+	<moveThreadCount>AUTO</moveThreadCount> <!-- how many threads act parallel  -->
+	<environmentMode>REPRODUCIBLE</environmentMode>
     <solutionClass>at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritization</solutionClass>
     <entityClass>at.jku.dke.slotmachine.optimizer.domain.Flight</entityClass>
     <scoreDirectorFactory>
         <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
+    
+    <!-- Termination -->
     <termination>
         <unimprovedSecondsSpentLimit>10</unimprovedSecondsSpentLimit>
     </termination>
+    
+    <!-- Construction Heuristic Phase -->
+    
+    <!-- Local Search Phase -->
 </solver>
