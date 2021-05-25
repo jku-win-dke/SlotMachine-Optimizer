@@ -25,7 +25,7 @@ public class OptaPlannerConfigDTO {
 	/**
 	 * Sets the termination method/type for OptaPlanner.
 	 */
-	private TerminationDTO termination;
+	private TerminationOptaPlannerDTO termination;
 	
 	/**
 	 * Sets the construction heuristic phase for OptaPlanner.
@@ -68,11 +68,11 @@ public class OptaPlannerConfigDTO {
 		this.environmentMode = environmentMode;
 	}
 
-	public TerminationDTO getTermination() {
+	public TerminationOptaPlannerDTO getTermination() {
 		return termination;
 	}
 
-	public void setTermination(TerminationDTO termination) {
+	public void setTermination(TerminationOptaPlannerDTO termination) {
 		this.termination = termination;
 	}
 

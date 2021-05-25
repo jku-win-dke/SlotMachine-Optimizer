@@ -6,7 +6,7 @@ import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
  * Is used for OptaPlannerConfigDTO.
  * Contains information about which termination methods are used.
  */
-public class TerminationDTO {
+public class TerminationOptaPlannerDTO {
 
  	// class for Termination part of <solver></solver>
  	// with two TerminationEnums with two Values

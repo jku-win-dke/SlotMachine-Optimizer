@@ -1,10 +1,12 @@
-package at.jku.dke.slotmachine.optimizer.service.dto;
+package at.jku.dke.slotmachine.optimizer.domain;
+
+import at.jku.dke.slotmachine.optimizer.service.dto.ConstructionHeuristicPhaseDTO.ConstructionEnum;
 
 /**
- * Is used for OptaPlannerConfigDTO.
+ * Is used for OptaPlannerConfig.
  * Contains information how the construction heuristic phase is structured.
  */
-public class ConstructionHeuristicPhaseDTO {
+public class ConstructionHeuristicPhase {
 
 	// class for Construction Heuristic Phase of
 	// <solver></solver> with the type of construction
@@ -22,28 +24,28 @@ public class ConstructionHeuristicPhaseDTO {
 	/**
 	 * contains information about the termination (if applicable)
 	 */
-	private TerminationOptaPlannerDTO termination;
+	private TerminationOptaPlanner termination;
 	
-	/**
-	 * Possible values for the construction heuristic type.
-	 */
-	public enum ConstructionEnum {
-		FIRSTFIT, FIRSTFITDECREASING,
-		WEAKESTFIT, WEAKESTFITDECREASING,
-		STRONGESTFIT, STRONGESTFITDECREASING,
-		CHEAPESTFIT
+	public ConstructionHeuristicPhase(ConstructionEnum constructionEnum, TerminationOptaPlanner termination) {
+		super();
+		this.constructionEnum = constructionEnum;
+		this.termination = termination;
 	}
 	
+	public ConstructionHeuristicPhase() {
+		// TODO constructor with default values
+	}
+
 	public ConstructionEnum getConstructionEnum() {
 		return constructionEnum;
 	}
 	public void setConstructionEnum(ConstructionEnum constructionEnum) {
 		this.constructionEnum = constructionEnum;
 	}
-	public TerminationOptaPlannerDTO getTermination() {
+	public TerminationOptaPlanner getTermination() {
 		return termination;
 	}
-	public void setTermination(TerminationOptaPlannerDTO termination) {
+	public void setTermination(TerminationOptaPlanner termination) {
 		this.termination = termination;
 	}
 }

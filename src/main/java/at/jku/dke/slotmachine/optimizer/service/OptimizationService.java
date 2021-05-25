@@ -183,6 +183,7 @@ public class OptimizationService {
 			Slot s = new Slot(slotdto.getTime());
 			slotList.add(s);
 		}
+		// jenConfig
 		JeneticsConfig jenConfig = null;
 		if (optdto.getJenConfig() != null) {
 			jenConfig = new JeneticsConfig(
@@ -199,6 +200,43 @@ public class OptimizationService {
 					optdto.getJenConfig().getTerminationAttributes());
 		} else {
 			jenConfig = new JeneticsConfig();
+		}
+		// optaPlannerConfig
+		OptaPlannerConfig optaPlannerConfig = null;
+		TerminationOptaPlanner terminationOptaPlanner = null;
+		
+		if (optdto.getOptaPlannerConfig() != null) {
+			// termination
+			if (optdto.getOptaPlannerConfig().getTermination() != null) {
+				terminationOptaPlanner = new TerminationOptaPlanner(
+						optdto.getOptaPlannerConfig().getTermination().getTermination1(),
+						optdto.getOptaPlannerConfig().getTermination().getTermination2(),
+						optdto.getOptaPlannerConfig().getTermination().getTermComp(),
+						optdto.getOptaPlannerConfig().getTermination().getTerminationValue1(),
+						optdto.getOptaPlannerConfig().getTermination().getTerminationValue2(),
+						optdto.getOptaPlannerConfig().getTermination().getTerminationScore1(),
+						optdto.getOptaPlannerConfig().getTermination().getTerminationScore2(),
+						optdto.getOptaPlannerConfig().getTermination().isTerminationBoolean1(),
+						optdto.getOptaPlannerConfig().getTermination().isTerminationBoolean2()
+						);
+			} else {
+				terminationOptaPlanner = new TerminationOptaPlanner();
+			}
+			// construction heuristic
+			
+			// local search
+			
+			// optaPlannerConfig
+			
+			optaPlannerConfig = new OptaPlannerConfig(
+					optdto.getOptaPlannerConfig().getMoveThreadCount(),
+					optdto.getOptaPlannerConfig().getEnvironmentMode(),
+					terminationOptaPlanner,
+					new ConstructionHeuristicPhase(),
+					new LocalSearchPhase()
+					);
+		} else {
+			optaPlannerConfig = new OptaPlannerConfig();
 		}
 		// store object of chosen framework run-class, default is JeneticsRun
 		if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals(OptimizationFramework.JENETICS)) {

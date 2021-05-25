@@ -22,7 +22,7 @@ public class LocalSearchPhaseDTO {
 	/**
 	 * contains information about the termination
 	 */
-	private TerminationDTO termination;
+	private TerminationOptaPlannerDTO termination;
 	
 	/**
 	 * Possible values for Local Search algorithm types.
@@ -71,11 +71,11 @@ public class LocalSearchPhaseDTO {
 		this.selectionOrder = selectionOrder;
 	}
 
-	public TerminationDTO getTermination() {
+	public TerminationOptaPlannerDTO getTermination() {
 		return termination;
 	}
 
-	public void setTermination(TerminationDTO termination) {
+	public void setTermination(TerminationOptaPlannerDTO termination) {
 		this.termination = termination;
 	}
 }
