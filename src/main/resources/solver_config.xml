@@ -14,6 +14,11 @@
     </termination>
     
     <!-- Construction Heuristic Phase -->
-    
+    <!-- <constructionHeuristic>
+    	<constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType>
+    </constructionHeuristic> -->
     <!-- Local Search Phase -->
+    <!-- <localSearchPhase>
+    	<localSearchType>SIMULATED_ANNEALING</localSearchType>
+    </localSearchPhase> -->
 </solver>

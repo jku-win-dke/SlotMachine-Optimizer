@@ -9,6 +9,7 @@ public class OptimizationDTO {
 	private SlotDTO[] slots;
 	private OptimizationFramework optimizationFramework;
 	private JeneticConfigDTO jenConfig;
+	private OptaPlannerConfigDTO optaPlannerConfig;
 
 	public enum OptimizationFramework {
 		JENETICS, OPTAPLANNER, BENCHMARK, BENCHMARKOPTAPLANNER
@@ -61,4 +62,13 @@ public class OptimizationDTO {
 	public void setJenConfig(JeneticConfigDTO jenConfig) {
 		this.jenConfig = jenConfig;
 	}
+
+	public OptaPlannerConfigDTO getOptaPlannerConfig() {
+		return optaPlannerConfig;
+	}
+
+	public void setOptaPlannerConfig(OptaPlannerConfigDTO optaPlannerConfig) {
+		this.optaPlannerConfig = optaPlannerConfig;
+	}
+	
 }

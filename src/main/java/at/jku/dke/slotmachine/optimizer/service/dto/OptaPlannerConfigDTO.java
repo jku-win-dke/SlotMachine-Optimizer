@@ -22,75 +22,73 @@ public class OptaPlannerConfigDTO {
 	 */
 	private EnvironmentMode environmentMode;
 	
-	/*private Termination termination;
+	/**
+	 * Sets the termination method/type for OptaPlanner.
+	 */
+	private TerminationDTO termination;
 	
-	private ConstructionHeuristicPhase constructionHeuristic;
+	/**
+	 * Sets the construction heuristic phase for OptaPlanner.
+	 */
+	private ConstructionHeuristicPhaseDTO constructionHeuristic;
 	
-	private LocalSearchPhase localSearch;*/
+	/**
+	 * Sets the local search phase for OptaPlanner.
+	 */
+	private LocalSearchPhaseDTO localSearch;
 	
-	// Enums, Classes
+	/**
+	 * Possible values for move thread count.
+	 */
 	public enum MoveThreadCount {
 		NONE, AUTO, ONE, TWO, THREE, FOUR, FIVE,
 		SIX, SEVEN, EIGHT //more possible
 	}
-
+	/**
+	 * Possible values for environment mode.
+	 */
 	public enum EnvironmentMode {
 		FULL_ASSERT, NON_INTRUSIVE_FULL_ASSERT, 
 		FAST_ASSERT, REPRODUCIBLE, NON_REPRODUCIBLE
-	}
+	}	
 	
-	/*public class Termination {
-	 	// inner class for Termination part of <solver></solver>
-	 	// with two TerminationEnums with two Values
-
-		private TerminationEnum termination1;
-		private TerminationEnum termination2;
-		private TerminationComposition termComp
-		
-		public enum TerminationEnum {
-			MILLISECONDSSPENTLIMIT, SECONDSSPENTLIMIT, MINUTESSPENTLIMIT,
-			HOURSSPENTLIMIT, DAYSSPENTLIMIT,
-			UNIMPROVEDMILLISECONDSSPENTLIMIT, UNIMPROVEDSECONDSSPENTLIMIT, 
-			UNIMPROVEDMINUTESSPENTLIMIT, UNIMPROVEDHOURSSPENTLIMIT, 
-			UNIMPROVEDDAYSSPENTLIMIT,
-			UNIMPROVEDSCOREDIFFERENCETHRESHOLD,
-			BESTSCORELIMIT,
-			BESTSCOREFEASIBLE,
-			STEPCOUNTTERMINATION, UNIMPROVEDSTEPCOUNTTERMINATION,
-			SCORECALCULATIONCOUNTLIMIT
-		}
-		public enum TerminationComposition {
-			AND, OR
-		}
-	}
-	
-	public class ConstructionHeuristicPhase {
-		//
-		//
-		//
-		//
-		//
-	}
-	*/
-
 	public MoveThreadCount getMoveThreadCount() {
 		return moveThreadCount;
 	}
-
 
 	public void setMoveThreadCount(MoveThreadCount moveThreadCount) {
 		this.moveThreadCount = moveThreadCount;
 	}
 
-
 	public EnvironmentMode getEnvironmentMode() {
 		return environmentMode;
 	}
 
-
 	public void setEnvironmentMode(EnvironmentMode environmentMode) {
 		this.environmentMode = environmentMode;
 	}
-	
-	
+
+	public TerminationDTO getTermination() {
+		return termination;
+	}
+
+	public void setTermination(TerminationDTO termination) {
+		this.termination = termination;
+	}
+
+	public ConstructionHeuristicPhaseDTO getConstructionHeuristic() {
+		return constructionHeuristic;
+	}
+
+	public void setConstructionHeuristic(ConstructionHeuristicPhaseDTO constructionHeuristic) {
+		this.constructionHeuristic = constructionHeuristic;
+	}
+
+	public LocalSearchPhaseDTO getLocalSearch() {
+		return localSearch;
+	}
+
+	public void setLocalSearch(LocalSearchPhaseDTO localSearch) {
+		this.localSearch = localSearch;
+	}
 }
