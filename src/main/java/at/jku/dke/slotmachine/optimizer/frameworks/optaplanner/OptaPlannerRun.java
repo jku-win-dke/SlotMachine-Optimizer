@@ -8,10 +8,12 @@ import java.util.Map;
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.OptaPlannerConfig;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
+import at.jku.dke.slotmachine.optimizer.domain.TerminationOptaPlanner;
 import at.jku.dke.slotmachine.optimizer.frameworks.Run;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
@@ -21,6 +23,7 @@ import org.optaplanner.core.config.solver.SolverConfig;
 import org.optaplanner.core.config.solver.termination.TerminationConfig;
 
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
+import at.jku.dke.slotmachine.optimizer.service.dto.TerminationOptaPlannerDTO.TerminationEnum;
 
 public class OptaPlannerRun extends Run {
 
@@ -110,9 +113,25 @@ public class OptaPlannerRun extends Run {
 		
 		// termination
 		TerminationConfig tc = new TerminationConfig();
-		if (optConfig.getTermination() != null) {
-			// default values, currently (use set values from optaPlannerConfig)
-			tc.setUnimprovedSecondsSpentLimit((long) 10);
+		if (optConfig.getTermination() != null 
+				&& (
+						(optConfig.getTermination().getTermination1() == null && optConfig.getTermination().getTermination2() != null)
+						|| (optConfig.getTermination().getTermination1() != null && optConfig.getTermination().getTermination2() == null)
+						|| (optConfig.getTermination().getTermination1() != null && optConfig.getTermination().getTermination2() != null)
+				)
+			) {
+			// only Termination1 is set (or only Termination2 is set)
+			TerminationOptaPlanner term = optConfig.getTermination();
+			if (term.getTermination1() != null && term.getTermination2() == null) {
+				tc = getTerminationConfig(term.getTermination1(), term.getTerminationScore1(), term.getTerminationValue1(), term.isTerminationBoolean1(), 0);
+			} else if (term.getTermination1() == null && term.getTermination2() != null) {
+				tc = getTerminationConfig(term.getTermination2(), term.getTerminationScore2(), term.getTerminationValue2(), term.isTerminationBoolean2(), 0);
+			// Termination1 and Termination2 are set
+			} else if (term.getTermination1() != null && term.getTermination2() != null) {
+				tc = getTerminationConfig(term.getTermination1(), term.getTerminationScore1(), term.getTerminationValue1(), term.isTerminationBoolean1(), 0);
+				// TODO 2 Termination methods at the same time are not implemented currently
+				logger.info("Currently, only first termination method is used.");
+			}
 			sc.setTerminationConfig(tc);
 		} else {
 			logger.info("No Termination method has been set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (10 seconds) is used.");
@@ -121,6 +140,8 @@ public class OptaPlannerRun extends Run {
 		}
 		
 		// construction heuristics phase
+		
+		
 		
 		// local search phase
 
@@ -156,5 +177,126 @@ public class OptaPlannerRun extends Run {
        
        return solution;
         
+	}
+
+	/**
+	 * Converts TerminationEnum and used value to TerminationConfig
+	 * @param termination1
+	 * @param terminationScore1
+	 * @param terminationValue1
+	 * @param terminationBoolean1
+	 * @param phase (0 = solver; 1 = constructionHeuristic; 2 = localSearch)
+	 * @return TerminationConfig
+	 */
+	private static TerminationConfig getTerminationConfig(TerminationEnum term, HardSoftScore termScore,
+			double termValue, boolean termBoolean, int phase) {
+		TerminationConfig tc = new TerminationConfig();
+		switch (term) {
+		// ...SPENTLIMIT (Time) is suggested for use on localSearchPhase or Solver, not on 
+		// constructionHeuristicPhase
+		// (UNIMPROVED)STEPCOUNTTERMINATION can not be used on solver directly
+			case MILLISECONDSSPENTLIMIT: 
+				tc.setMillisecondsSpentLimit((long) termValue);
+				logger.info("Termination set to Milliseconds Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case SECONDSSPENTLIMIT:
+				tc.setSecondsSpentLimit((long) termValue);
+				logger.info("Termination set to Seconds Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case MINUTESSPENTLIMIT:
+				tc.setMinutesSpentLimit((long) termValue);
+				logger.info("Termination set to Minutes Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case HOURSSPENTLIMIT:
+				tc.setHoursSpentLimit((long) termValue);
+				logger.info("Termination set to Hours Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case DAYSSPENTLIMIT:
+				tc.setDaysSpentLimit((long) termValue);
+				logger.info("Termination set to Days Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case UNIMPROVEDMILLISECONDSSPENTLIMIT: 
+				tc.setUnimprovedMillisecondsSpentLimit((long) termValue);
+				logger.info("Termination set to Unimproved Milliseconds Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case UNIMPROVEDSECONDSSPENTLIMIT:
+				tc.setUnimprovedSecondsSpentLimit((long) termValue);
+				logger.info("Termination set to Unimproved Seconds Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case UNIMPROVEDMINUTESSPENTLIMIT:
+				tc.setUnimprovedMinutesSpentLimit((long) termValue);
+				logger.info("Termination set to Unimproved Minutes Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case UNIMPROVEDHOURSSPENTLIMIT:
+				tc.setUnimprovedHoursSpentLimit((long) termValue);
+				logger.info("Termination set to Unimproved Hours Spent Limit of " + (long) termValue + ".");
+				return tc;
+			case UNIMPROVEDDAYSSPENTLIMIT:
+				tc.setUnimprovedDaysSpentLimit((long) termValue);
+				logger.info("Termination set to Unimproved Days Spent Limit of " + (long) termValue + ".");
+				return tc;		
+			case BESTSCORELIMIT:
+				// if termScore is null, use default values of 0hard/0soft
+				String scoreString;
+				if (termScore != null) {
+					scoreString = termScore.getHardScore() + "";
+					scoreString = scoreString + "hard/";
+					scoreString = scoreString + termScore.getSoftScore();
+					scoreString = scoreString + "soft";
+				} else {
+					scoreString = "0hard/0soft";
+				}
+				tc.setBestScoreLimit(scoreString);
+				logger.info("Termination set to best score limit of " + scoreString + ".");
+				return tc;
+			case BESTSCOREFEASIBLE:
+				// termBoolean has to be true, to use setBestScoreFeasible
+				if (termBoolean == true) {
+					tc.setBestScoreFeasible(termBoolean);
+					logger.info("Termination set to best score feasible of " + termBoolean + ".");
+				} else {
+					// otherwise (if termBoolean is false), use default values
+					logger.info("Termination of best score feasible of false is not allowed.");
+					tc.setUnimprovedSecondsSpentLimit((long) 10);
+					logger.info("Termination set to default value of unimproved Seconds Spent " +
+					"Limit of 10.");
+				}
+				return tc;
+			case STEPCOUNTTERMINATION:
+				// can only be used on localSearchPhase/constructionHeuristicPhase
+				if (phase == 0) { //solver phase
+					logger.info("Step count limit for termination cannot be used on solver directly.");
+					tc.setUnimprovedSecondsSpentLimit((long) 10);
+					logger.info("Termination set to default value of unimproved Seconds Spent " +
+					"Limit of 10.");
+				} else { //localSearchPhase/constructionHeuristicPhase
+					tc.setStepCountLimit((int) termValue);
+					logger.info("Termination set to step count limit of " + (int) termValue + ".");
+				}
+				return tc;
+			case UNIMPROVEDSTEPCOUNTTERMINATION:
+				// can only be used on localSearchPhase/constructionHeuristicPhase
+				if (phase == 0) { //solver phase
+					logger.info("Unimproved step count limit for termination cannot be "
+							+ "used on solver directly.");
+					tc.setUnimprovedSecondsSpentLimit((long) 10);
+					logger.info("Termination set to default value of unimproved Seconds Spent " +
+					"Limit of 10.");
+				} else { //localSearchPhase/constructionHeuristicPhase
+					tc.setUnimprovedStepCountLimit((int) termValue);
+					logger.info("Termination set to unimproved step count limit of " + (int) termValue + ".");
+				}
+				return tc;
+			case SCORECALCULATIONCOUNTLIMIT:
+				tc.setScoreCalculationCountLimit((long) termValue);
+				logger.info("Termination set to score calculation count limit of " + (long) termValue + ".");
+				return tc;
+			default:
+				// default value (unimproved seconds spent limit of 10 seconds)
+				tc.setUnimprovedSecondsSpentLimit((long) 10);
+				logger.info("Termination set to default value of unimproved Seconds Spent " +
+				"Limit of 10.");
+				return tc;
+		}
 	}
 }
