@@ -59,6 +59,25 @@ public class OptaPlannerConfig {
 	public MoveThreadCount getMoveThreadCount() {
 		return moveThreadCount;
 	}
+	
+	public String getMoveThreadCountString() {
+		if (moveThreadCount == null) {
+			return "NONE";
+		}
+		switch (moveThreadCount) {
+			case AUTO: return "AUTO";
+			case NONE: return "NONE";
+			case ONE: return "1";
+			case TWO: return "2";
+			case THREE: return "3";
+			case FOUR: return "4";
+			case FIVE: return "5";
+			case SIX: return "6";
+			case SEVEN: return "7";
+			case EIGHT: return "8";
+			default: return "NONE";
+		}
+	}
 
 	public void setMoveThreadCount(MoveThreadCount moveThreadCount) {
 		this.moveThreadCount = moveThreadCount;
@@ -66,6 +85,20 @@ public class OptaPlannerConfig {
 
 	public EnvironmentMode getEnvironmentMode() {
 		return environmentMode;
+	}
+	
+	public org.optaplanner.core.config.solver.EnvironmentMode getEnvironmentModeSolver(){
+		if (environmentMode == null) {
+			return org.optaplanner.core.config.solver.EnvironmentMode.REPRODUCIBLE;
+		}
+		switch (environmentMode) {
+			case FULL_ASSERT: return org.optaplanner.core.config.solver.EnvironmentMode.FULL_ASSERT;
+			case NON_INTRUSIVE_FULL_ASSERT: return org.optaplanner.core.config.solver.EnvironmentMode.NON_INTRUSIVE_FULL_ASSERT;
+			case FAST_ASSERT: return org.optaplanner.core.config.solver.EnvironmentMode.FAST_ASSERT;
+			case REPRODUCIBLE: return org.optaplanner.core.config.solver.EnvironmentMode.REPRODUCIBLE;
+			case NON_REPRODUCIBLE: return org.optaplanner.core.config.solver.EnvironmentMode.NON_REPRODUCIBLE;
+			default: return org.optaplanner.core.config.solver.EnvironmentMode.REPRODUCIBLE;
+		}
 	}
 
 	public void setEnvironmentMode(EnvironmentMode environmentMode) {

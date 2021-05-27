@@ -1,12 +1,15 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
+import org.optaplanner.core.api.domain.lookup.PlanningId;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 import java.time.Instant;
 
 @PlanningEntity
 public class Flight {
+	// PlanningId is used for OptaPlanner (move thread count)
+	@PlanningId
     private String flightId;
     private Instant scheduledTime;
     private int[] weightMap;

@@ -12,6 +12,9 @@ import at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.Benchmar
 import at.jku.dke.slotmachine.optimizer.frameworks.jenetics.JeneticsRun;
 import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.OptaPlannerRun;
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
+import at.jku.dke.slotmachine.optimizer.service.dto.ConstructionHeuristicPhaseDTO.ConstructionEnum;
+import at.jku.dke.slotmachine.optimizer.service.dto.LocalSearchPhaseDTO.LocalSearchEnum;
+import at.jku.dke.slotmachine.optimizer.service.dto.LocalSearchPhaseDTO.SelectionOrderEnum;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO.OptimizationFramework;
 
 public class OptimizationService {
@@ -101,7 +104,11 @@ public class OptimizationService {
 			}
 		} else if (curOpt.getOptimization().getClass().equals(OptaPlannerRun.class)) {
 			logger.info("Optimization uses OptaPlannerRun framework.");
-			resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+			if (curOpt.getOptaPlannerConfig() != null) {
+				resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt.getOptaPlannerConfig());
+			} else {
+				resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+			}
 		} else if (curOpt.getOptimization().getClass().equals(BenchmarkRun.class)) {
 			logger.info("Optimization uses BenchmarkRun framework (OptaPlanner).");
 			resultMap = BenchmarkRun.run(curOpt.getFlightList(), curOpt.getSlotList());
@@ -201,70 +208,37 @@ public class OptimizationService {
 		} else {
 			jenConfig = new JeneticsConfig();
 		}
-		// optaPlannerConfig
-		OptaPlannerConfig optaPlannerConfig = null;
-		TerminationOptaPlanner terminationOptaPlanner = null;
-		
-		if (optdto.getOptaPlannerConfig() != null) {
-			// termination
-			if (optdto.getOptaPlannerConfig().getTermination() != null) {
-				terminationOptaPlanner = new TerminationOptaPlanner(
-						optdto.getOptaPlannerConfig().getTermination().getTermination1(),
-						optdto.getOptaPlannerConfig().getTermination().getTermination2(),
-						optdto.getOptaPlannerConfig().getTermination().getTermComp(),
-						optdto.getOptaPlannerConfig().getTermination().getTerminationValue1(),
-						optdto.getOptaPlannerConfig().getTermination().getTerminationValue2(),
-						optdto.getOptaPlannerConfig().getTermination().getTerminationScore1(),
-						optdto.getOptaPlannerConfig().getTermination().getTerminationScore2(),
-						optdto.getOptaPlannerConfig().getTermination().isTerminationBoolean1(),
-						optdto.getOptaPlannerConfig().getTermination().isTerminationBoolean2()
-						);
-			} else {
-				terminationOptaPlanner = new TerminationOptaPlanner();
-			}
-			// construction heuristic
-			
-			// local search
-			
-			// optaPlannerConfig
-			
-			optaPlannerConfig = new OptaPlannerConfig(
-					optdto.getOptaPlannerConfig().getMoveThreadCount(),
-					optdto.getOptaPlannerConfig().getEnvironmentMode(),
-					terminationOptaPlanner,
-					new ConstructionHeuristicPhase(),
-					new LocalSearchPhase()
-					);
-		} else {
-			optaPlannerConfig = new OptaPlannerConfig();
-		}
+		// optaPlannerConfig (see getOptaPlannerConfig method)
+		OptaPlannerConfig optaPlannerConfig = getOptaPlannerConfig(optdto.getOptaPlannerConfig());		
+
 		// store object of chosen framework run-class, default is JeneticsRun
 		if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals(OptimizationFramework.JENETICS)) {
 			JeneticsRun classRun = new JeneticsRun();
 			logger.info("Jenetics Framework is chosen.");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
 		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.OPTAPLANNER) {
 			OptaPlannerRun classRun = new OptaPlannerRun();
 			logger.info("OptaPlanner Framework is chosen.");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
 		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.BENCHMARK) {
 			BenchmarkRun classRun = new BenchmarkRun();
 			logger.info("Benchmark Framework is chosen (OptaPlanner).");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
 		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.BENCHMARKOPTAPLANNER) {
 			BenchmarkOptaPlannerRun classRun = new BenchmarkOptaPlannerRun();
 			logger.info("Benchmark functionality of OptaPlanner is chosen.");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
 		} else if (optdto.getOptimizationFramework() == null){
 			logger.info("Framework is not set for given UUID, therefore default Jenetics Framework is used.");
 			JeneticsRun classRun = new JeneticsRun();
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
 		} else {
 			logger.info("No recognizable framework is chosen, therefore default Jenetics Framework is used.");
 			JeneticsRun classRun = new JeneticsRun();
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
 		}	
 	}
+
 	private Optimization getOptimizationById(UUID optId) {
 		for (Optimization opt: optimizations) {
 			if (opt.getOptId().equals(optId)) {
@@ -307,5 +281,190 @@ public class OptimizationService {
 		logger.info("No optimization session with the optId " + optId + " has been found or the session cannot be aborted.");
 		return;*/
 		return;
+	}
+	
+	/**
+	 * Converts OptaPlannerConfigDTO to OptaPlannerConfig
+	 * @param optaPlannerConfigDTO
+	 * @return OptaPlannerConfig
+	 */
+	private static OptaPlannerConfig getOptaPlannerConfig(OptaPlannerConfigDTO optaPlannerConfigDTO) {
+		if (optaPlannerConfigDTO == null) {
+			return new OptaPlannerConfig();
+		}
+		
+		OptaPlannerConfig optaPlannerConfig = null;
+		
+		TerminationOptaPlanner terminationOptaPlanner = getTerminationOfConfig(optaPlannerConfigDTO.getTermination(), " for all phases ");
+		
+		ConstructionHeuristicPhase constructionHeuristic = null;
+		ConstructionHeuristicPhaseDTO constructionHeuristicDTO = optaPlannerConfigDTO.getConstructionHeuristic();
+		
+		LocalSearchPhase localSearch = null;
+		LocalSearchPhaseDTO localSearchDTO = optaPlannerConfigDTO.getLocalSearch();
+		
+		// construction heuristic
+		if (constructionHeuristicDTO != null) {
+			TerminationOptaPlanner constructionTermination = getTerminationOfConfig(optaPlannerConfigDTO.getConstructionHeuristic().getTermination(), 
+					" for construction heuristic phase ");;
+			ConstructionEnum constructionHeuristicType = constructionHeuristicDTO.getConstructionEnum();
+			constructionHeuristic = new ConstructionHeuristicPhase(
+					constructionHeuristicType,
+					constructionTermination);
+			logger.info("Construction Heuristic phase of type " + constructionHeuristicType + " is defined.");
+		} else {
+			logger.info("No construction heuristic phase is defined.");
+		}
+		
+		// local search
+		if (localSearchDTO != null) {
+			TerminationOptaPlanner localSearchTermination = getTerminationOfConfig(optaPlannerConfigDTO.getLocalSearch().getTermination(), 
+					" for local search phase ");
+			// acceptor
+			Acceptor acceptor = getAcceptor(optaPlannerConfigDTO.getLocalSearch().getAcceptor());
+			
+			// forager
+			Forager forager = getForager(optaPlannerConfigDTO.getLocalSearch().getForager());
+			
+			// local search type
+			LocalSearchEnum localSearchType = optaPlannerConfigDTO.getLocalSearch().getLocalSearchEnum();
+			// unionMoveSelector
+			SelectionOrderEnum selectionOrder = optaPlannerConfigDTO.getLocalSearch().getSelectionOrder();
+			
+			logger.info("Local Search phase has type " + localSearchType 
+					+ " and selection order of " + selectionOrder + ".");
+			
+			localSearch = new LocalSearchPhase(
+					localSearchType,
+					acceptor,
+					forager,
+					selectionOrder,
+					localSearchTermination);
+		} else {
+			logger.info("No local search phase is defined.");
+		}
+		
+		// optaPlannerConfig
+		logger.info("Move Thread Count is: " + optaPlannerConfigDTO.getMoveThreadCount() + " and EnvironmentMode is: "
+				+ optaPlannerConfigDTO.getEnvironmentMode() + ".");
+		optaPlannerConfig = new OptaPlannerConfig(
+				optaPlannerConfigDTO.getMoveThreadCount(),
+				optaPlannerConfigDTO.getEnvironmentMode(),
+				terminationOptaPlanner,
+				constructionHeuristic,
+				localSearch
+				);
+		
+		return optaPlannerConfig;
+	}
+
+	/**
+	 * Prints termination type and values to logger.
+	 * @param term TerminationOptaPlanner
+	 * @param part String textual value for logger
+	 */
+	private static void printTerminationToLogger(TerminationOptaPlanner term, String part) {
+		logger.info("Given termination" + part + "are (only the relevant value to the termination type are considered): \n"
+				+ term.getTermination1() + ": value = " + term.getTerminationValue1() + " score = " 
+				+ term.getTerminationScore1() + " boolean = " + term.isTerminationBoolean1() + " " 
+				+ term.getTermComp() + " \n" + term.getTermination2() + ": value = " 
+				+ term.getTerminationValue2() + " score = " + term.getTerminationScore2() 
+				+ " boolean = " + term.isTerminationBoolean2());
+	}
+	/**
+	 * Converts TerminationOptaPlannerDTO to TerminationOptaPlanner. Uses String textual value for logger output.
+	 * @param termDTO TerminationOptaPlannerDTO
+	 * @param part String textual value for logger.
+	 * @return TerminationOptaPlanner based on termDTO (or null, if termDTO is null)
+	 */
+	private static TerminationOptaPlanner getTerminationOfConfig(TerminationOptaPlannerDTO termDTO, String part) {
+		if (termDTO != null) {
+			TerminationOptaPlanner term = new TerminationOptaPlanner(
+					termDTO.getTermination1(),
+					termDTO.getTermination2(),
+					termDTO.getTermComp(),
+					termDTO.getTerminationValue1(),
+					termDTO.getTerminationValue2(),
+					termDTO.getTerminationScore1(),
+					termDTO.getTerminationScore2(),
+					termDTO.isTerminationBoolean1(),
+					termDTO.isTerminationBoolean2()
+					);
+			printTerminationToLogger(term, part);
+			return term;
+		} else {
+			logger.info("No given termination " + part);
+			return null;
+		}
+	}
+	
+	/**
+	 * Converts AcceptorDTO to Acceptor.
+	 * @param acceptorDTO AcceptorDTO
+	 * @return Acceptor based on acceptorDTO (or null, if acceptorDTO is null)
+	 */
+	private static Acceptor getAcceptor(AcceptorDTO acceptorDTO) {
+		if (acceptorDTO != null) {
+			Acceptor acceptor = new Acceptor(
+					acceptorDTO.getAcceptorType(),
+					acceptorDTO.getEntityTabuSize(),
+					acceptorDTO.getEntityTabuRatio(),
+					acceptorDTO.getValueTabuSize(),
+					acceptorDTO.getValueTabuRatio(),
+					acceptorDTO.getMoveTabuSize(),
+					acceptorDTO.getUndoMoveTabuSize(),
+					acceptorDTO.getSimulAnnealStartTemp(),
+					acceptorDTO.getLateAcceptanceSize(),
+					acceptorDTO.getGrDelInitWaterLevel(),
+					acceptorDTO.getGrDelWaterLevelIncrRatio(),
+					acceptorDTO.getGrDelWaterLevelIncrScore(),
+					acceptorDTO.getStepCountHillClimbSize()
+					);
+			logger.info("Acceptor for Local Search phase is: \n" 
+					+ "type: " + acceptor.getAcceptorType() + "\n"
+					+ "entity tabu size: " + acceptorDTO.getEntityTabuSize()
+					+ " | entity tabu ratio: " + acceptorDTO.getEntityTabuRatio()
+					+ " | value tabu size: " + acceptorDTO.getValueTabuSize()
+					+ " | value tabu ratio: " + acceptorDTO.getValueTabuRatio()
+					+ " | move tabu size: " + acceptorDTO.getMoveTabuSize() 
+					+ " | undo move tabu size: " + acceptorDTO.getUndoMoveTabuSize()
+					+ "\n simulated annealing starting temperature: " 
+					+ acceptor.getSimulAnnealStartTemp()
+					+ " | late acceptance size: " + acceptor.getLateAcceptanceSize()
+					+ "\n great deluge water level => initial: "
+					+ acceptor.getGrDelInitWaterLevel() + " | increment ratio: "
+					+ acceptor.getGrDelWaterLevelIncrRatio() + " | increment score: " 
+					+ acceptor.getGrDelWaterLevelIncrScore()
+					+ "\n step counting hill climbing size: "
+					+ acceptor.getStepCountHillClimbSize()
+					+ "\n" + "Only relevant values will be used!");
+			return acceptor;
+		} else {
+			logger.info("No Acceptor was defined.");
+			return null;
+		}
+	}
+	
+	/**
+	 * Converts ForagerDTO to Forager.
+	 * @param foragerDTO ForagerDTO
+	 * @return Forager based on foragerDTO (or null, if foragerDTO is null)
+	 */
+	private static Forager getForager(ForagerDTO foragerDTO) {
+		if (foragerDTO != null) {
+			Forager forager = new Forager(
+					foragerDTO.getAcceptedCountLimit(),
+					foragerDTO.getFinalistPodiumType(),
+					foragerDTO.getPickEarlyType());
+			logger.info("Forager for Local Search phase is: \n"
+					+ "accepted count limit: " + forager.getAcceptedCountLimit()
+					+ " | finalist podium type: " + forager.getFinalistPodiumType()
+					+ " | pick early type: " + forager.getPickEarlyType()
+					+ "\n" + "Only relevant values will be used!");
+			return forager;
+		} else {
+			logger.info("No Forager was defined.");
+			return null;
+		}
 	}
 }
