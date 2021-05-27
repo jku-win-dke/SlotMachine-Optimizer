@@ -17,6 +17,9 @@ import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
+import org.optaplanner.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
+import org.optaplanner.core.config.localsearch.LocalSearchPhaseConfig;
+import org.optaplanner.core.config.phase.PhaseConfig;
 import org.optaplanner.core.config.score.director.ScoreDirectorFactoryConfig;
 import org.optaplanner.core.config.solver.EnvironmentMode;
 import org.optaplanner.core.config.solver.SolverConfig;
@@ -139,12 +142,21 @@ public class OptaPlannerRun extends Run {
 			sc.setTerminationConfig(tc);
 		}
 		
+		List<PhaseConfig> phases = new LinkedList<PhaseConfig>();
 		// construction heuristics phase
-		
-		
-		
+		if (optConfig.getConstructionHeuristic() != null) {
+			ConstructionHeuristicPhaseConfig ch = new ConstructionHeuristicPhaseConfig();
+			ch.setConstructionHeuristicType(optConfig.getConstructionHeuristic().getConstructionHeuristicType());
+			// TODO integrate termination here (not suggested to use termination according to OptaPlanner user guide,
+			// as construction heuristic phase terminates automatically)
+			logger.info("No termination method is set here, as construction heuristic phase terminates automatically.");
+			logger.info("Construction heuristic type of " + ch.getConstructionHeuristicType() + " is used.");
+			phases.add(ch);	
+		}
 		// local search phase
-
+		//LocalSearchPhaseConfig ls = new LocalSearchPhaseConfig();
+		
+		sc.setPhaseConfigList(phases);
 		solverFactory = SolverFactory.create(sc);
 		
 

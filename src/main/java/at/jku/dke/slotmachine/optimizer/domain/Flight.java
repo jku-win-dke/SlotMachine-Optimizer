@@ -4,9 +4,12 @@ import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.lookup.PlanningId;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
+import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightDifficultyComparator;
+import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.SlotStrengthComparator;
+
 import java.time.Instant;
 
-@PlanningEntity
+@PlanningEntity(difficultyComparatorClass = FlightDifficultyComparator.class)
 public class Flight {
 	// PlanningId is used for OptaPlanner (move thread count)
 	@PlanningId
@@ -14,7 +17,8 @@ public class Flight {
     private Instant scheduledTime;
     private int[] weightMap;
 
-    @PlanningVariable(valueRangeProviderRefs = "slotRange")
+    @PlanningVariable(valueRangeProviderRefs = "slotRange",
+    		strengthComparatorClass = SlotStrengthComparator.class)
     private Slot slot;
 
     public Flight(String flightId, Instant scheduledTime, int[] weightMap) {

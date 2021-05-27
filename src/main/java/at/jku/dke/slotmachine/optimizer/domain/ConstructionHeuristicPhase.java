@@ -1,5 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
+import org.optaplanner.core.config.constructionheuristic.ConstructionHeuristicType;
+
 import at.jku.dke.slotmachine.optimizer.service.dto.ConstructionHeuristicPhaseDTO.ConstructionEnum;
 
 /**
@@ -38,6 +40,21 @@ public class ConstructionHeuristicPhase {
 
 	public ConstructionEnum getConstructionEnum() {
 		return constructionEnum;
+	}
+	public ConstructionHeuristicType getConstructionHeuristicType() {
+		if (constructionEnum == null) {
+			return ConstructionHeuristicType.FIRST_FIT;
+		}
+		switch (constructionEnum) {
+			case FIRSTFIT: return ConstructionHeuristicType.FIRST_FIT;
+			case FIRSTFITDECREASING: return ConstructionHeuristicType.FIRST_FIT_DECREASING;
+			case WEAKESTFIT: return ConstructionHeuristicType.WEAKEST_FIT;
+			case WEAKESTFITDECREASING: return ConstructionHeuristicType.WEAKEST_FIT_DECREASING;
+			case STRONGESTFIT: return ConstructionHeuristicType.STRONGEST_FIT;
+			case STRONGESTFITDECREASING: return ConstructionHeuristicType.STRONGEST_FIT_DECREASING;
+			case CHEAPESTINSERTION: return ConstructionHeuristicType.CHEAPEST_INSERTION;
+			default: return ConstructionHeuristicType.FIRST_FIT;
+		}
 	}
 	public void setConstructionEnum(ConstructionEnum constructionEnum) {
 		this.constructionEnum = constructionEnum;
