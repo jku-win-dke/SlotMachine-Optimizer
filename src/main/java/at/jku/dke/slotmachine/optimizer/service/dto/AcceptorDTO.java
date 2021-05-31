@@ -20,14 +20,14 @@ public class AcceptorDTO {
 	private int lateAcceptanceSize;
 	private HardSoftScore grDelInitWaterLevel; //greatDelugeInitialWaterLevel
 	private double grDelWaterLevelIncrRatio; //greatDelugeWaterLevelIncrementRatio
-	private double grDelWaterLevelIncrScore; //greatDelugeWaterLevelIncrementScore
+	private HardSoftScore grDelWaterLevelIncrScore; //greatDelugeWaterLevelIncrementScore
 	private int stepCountHillClimbSize; //stepCountingHillClimbingSize
 	
 	/**
 	 * Possible values for acceptor type.
 	 */
 	public enum AcceptorTypeEnum {
-		HILLCLIMBING
+		HILLCLIMBING, TABUSEARCH, GREATDELUGE
 	}
 
 	
@@ -97,10 +97,10 @@ public class AcceptorDTO {
 	public void setGrDelWaterLevelIncrRatio(double grDelWaterLevelIncrRatio) {
 		this.grDelWaterLevelIncrRatio = grDelWaterLevelIncrRatio;
 	}
-	public double getGrDelWaterLevelIncrScore() {
+	public HardSoftScore getGrDelWaterLevelIncrScore() {
 		return grDelWaterLevelIncrScore;
 	}
-	public void setGrDelWaterLevelIncrScore(double grDelWaterLevelIncrScore) {
+	public void setGrDelWaterLevelIncrScore(HardSoftScore grDelWaterLevelIncrScore) {
 		this.grDelWaterLevelIncrScore = grDelWaterLevelIncrScore;
 	}
 	public int getStepCountHillClimbSize() {

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import at.jku.dke.slotmachine.optimizer.domain.Acceptor;
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.LocalSearchPhase;
 import at.jku.dke.slotmachine.optimizer.domain.OptaPlannerConfig;
@@ -19,16 +20,26 @@ import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
+import org.optaplanner.core.config.heuristic.selector.common.SelectionOrder;
+import org.optaplanner.core.config.heuristic.selector.move.MoveSelectorConfig;
+import org.optaplanner.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
 import org.optaplanner.core.config.localsearch.LocalSearchPhaseConfig;
 import org.optaplanner.core.config.localsearch.LocalSearchType;
+import org.optaplanner.core.config.localsearch.decider.acceptor.AcceptorType;
 import org.optaplanner.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
+import org.optaplanner.core.config.localsearch.decider.forager.FinalistPodiumType;
+import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
+import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
 import org.optaplanner.core.config.phase.PhaseConfig;
 import org.optaplanner.core.config.score.director.ScoreDirectorFactoryConfig;
 import org.optaplanner.core.config.solver.EnvironmentMode;
 import org.optaplanner.core.config.solver.SolverConfig;
 import org.optaplanner.core.config.solver.termination.TerminationConfig;
+import org.optaplanner.core.impl.heuristic.selector.move.composite.UnionMoveSelector;
 
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
+import at.jku.dke.slotmachine.optimizer.service.dto.AcceptorDTO.AcceptorTypeEnum;
+import at.jku.dke.slotmachine.optimizer.service.dto.ForagerDTO.FinalistPodiumTypeEnum;
 import at.jku.dke.slotmachine.optimizer.service.dto.TerminationOptaPlannerDTO.TerminationEnum;
 
 public class OptaPlannerRun extends Run {
@@ -328,7 +339,14 @@ public class OptaPlannerRun extends Run {
 	 */
 	private static LocalSearchPhaseConfig getLocalSearchConfig(LocalSearchPhase localSearch) {
 		LocalSearchPhaseConfig localSearchConfig = new LocalSearchPhaseConfig();
-		if (localSearch.getLocalSearchType() != null) {
+		// integrate Termination
+		if (localSearch.getTermination()  != null) {
+			TerminationConfig tc = getTerminationConfig(localSearch.getTermination().getTermination1(),
+					localSearch.getTermination().getTerminationScore1(), localSearch.getTermination().getTerminationValue1(),
+					localSearch.getTermination().isTerminationBoolean1(), 2);
+			localSearchConfig.setTerminationConfig(tc);
+		}
+		if (localSearch.getLocalSearchEnum() != null) {
 			// ignore other settings, LocalSearchType is the default setting to use 
 			// (except for Simulated Annealing, uses simulated annealing starting temperature)
 			localSearchConfig.setLocalSearchType(localSearch.getLocalSearchType());
@@ -350,18 +368,202 @@ public class OptaPlannerRun extends Run {
 				localSearchConfig.setLocalSearchType(null);
 			}
 			
-			// integrate Termination
-			if (localSearch.getTermination()  != null) {
-				TerminationConfig tc = getTerminationConfig(localSearch.getTermination().getTermination1(),
-						localSearch.getTermination().getTerminationScore1(), localSearch.getTermination().getTerminationValue1(),
-						localSearch.getTermination().isTerminationBoolean1(), 2);
-				localSearchConfig.setTerminationConfig(tc);
-			}
 			return localSearchConfig;
 		}
 		// otherwise, used advanced settings
-		// 
-		logger.info("Local Search Type simple configuration is enabled, please use LocalSearchType.");
+		LocalSearchAcceptorConfig localSearchAcceptorConfig = new LocalSearchAcceptorConfig();
+		LocalSearchForagerConfig localSearchForagerConfig = new LocalSearchForagerConfig();
+		if (localSearch.getAcceptor() != null) {
+			Acceptor acceptorDomain = localSearch.getAcceptor();
+			int acceptedCountLimitDefault = 1; // default value if not set individually
+			
+			// HILL CLIMBING
+			if (acceptorDomain.getAcceptorType() != null && acceptorDomain.getAcceptorType().equals(AcceptorTypeEnum.HILLCLIMBING)) {
+				AcceptorType acceptorType = AcceptorType.HILL_CLIMBING;
+				List<AcceptorType> acceptorTypeList = new LinkedList<AcceptorType>();
+				acceptorTypeList.add(acceptorType);
+				localSearchAcceptorConfig.setAcceptorTypeList(acceptorTypeList);
+				logger.info("Local Search uses HILL CLIMBING (advanced settings).");
+				acceptedCountLimitDefault = 1;
+				
+				// VARIABLE NEIGHBORHOOD DESCENT (currently only implemented for Hill Climbing)
+				// throws potential error with the usage of OptaPlanner configuration
+				//		"Cannot invoke "java.util.List.stream()" because "innerMoveSelectorList" is null"
+//				if (localSearch.getSelectionOrder() != null) {
+//					UnionMoveSelectorConfig moveSelectorConfig = new UnionMoveSelectorConfig();
+//					moveSelectorConfig.setSelectionOrder(SelectionOrder.ORIGINAL);
+//					localSearchConfig.setMoveSelectorConfig(moveSelectorConfig);
+//					String loggertext = "Local Search uses VARIABLE NEIGHBORHOOD DESCENT with HILL CLIMBING";
+//					if (localSearch.getForager() != null && localSearch.getForager().getPickEarlyType() != null &&
+//							localSearch.getForager().getPickEarlyType().equals(LocalSearchPickEarlyType.FIRST_LAST_STEP_SCORE_IMPROVING)) {
+//						localSearchForagerConfig.setPickEarlyType(LocalSearchPickEarlyType.FIRST_LAST_STEP_SCORE_IMPROVING);
+//						loggertext = loggertext + " and PickEarlyType of FIRST_LAST_STEP_SCORE_IMPROVING";
+//					}
+//					loggertext = loggertext + ".";
+//					logger.info(loggertext);
+//				}
+			}
+			
+			// TABU SEARCH
+			if (acceptorDomain.getAcceptorType() != null && acceptorDomain.getAcceptorType().equals(AcceptorTypeEnum.TABUSEARCH)) {
+				// values with value == 0 are assumed to be not set
+				// entity ratio (default) or size
+				// can be reworked to allow other algorithm types to use tabu search parameters
+				// acceptor type has to be set as well
+				String loggertext = "Local Search uses TABU SEARCH (advanced settings) with ";
+				List<AcceptorType> acceptorTypeList = new LinkedList<AcceptorType>();
+				
+				localSearchAcceptorConfig.setAcceptorTypeList(acceptorTypeList);
+				if (acceptorDomain.getEntityTabuRatio() != 0) {
+					localSearchAcceptorConfig.setEntityTabuRatio(acceptorDomain.getEntityTabuRatio());
+					AcceptorType at = AcceptorType.ENTITY_TABU;
+					acceptorTypeList.add(at);
+					loggertext = loggertext + "entity tabu ratio of " + acceptorDomain.getEntityTabuRatio() + "; ";
+				}
+				if (acceptorDomain.getEntityTabuRatio() == 0 && acceptorDomain.getEntityTabuSize() != 0) {
+					localSearchAcceptorConfig.setEntityTabuSize(acceptorDomain.getEntityTabuSize());
+					AcceptorType at = AcceptorType.ENTITY_TABU;
+					acceptorTypeList.add(at);
+					loggertext = loggertext + "entity tabu size of " + acceptorDomain.getEntityTabuSize() + "; ";
+				}
+				
+				// value ratio (default) or size
+				if (acceptorDomain.getValueTabuRatio() != 0) { // NOT IMPLEMENTED BY OPTAPLANNER 
+					// (error message: getValueCount is not yet supported - this blocks ValueRatioTabuSizeStrategy)
+					//localSearchAcceptorConfig.setValueTabuRatio(acceptorDomain.getValueTabuRatio());
+					//AcceptorType at = AcceptorType.VALUE_TABU;
+					//acceptorTypeList.add(at);
+					loggertext = loggertext + "value tabu ratio of " + acceptorDomain.getValueTabuRatio() + " (will not be used " +
+							"as OptaPlanner has not implemented it yet!); ";
+					
+				}
+				if (/*acceptorDomain.getValueTabuRatio() == 0 && */acceptorDomain.getValueTabuSize() != 0) {
+					localSearchAcceptorConfig.setValueTabuSize(acceptorDomain.getValueTabuSize());
+					AcceptorType at = AcceptorType.VALUE_TABU;
+					acceptorTypeList.add(at);
+					loggertext = loggertext + "value tabu size of " + acceptorDomain.getValueTabuSize() + "; ";
+				}
+				
+				// move size
+				if (acceptorDomain.getMoveTabuSize() != 0) {
+					localSearchAcceptorConfig.setMoveTabuSize(acceptorDomain.getMoveTabuSize());
+					AcceptorType at = AcceptorType.MOVE_TABU;
+					acceptorTypeList.add(at);
+					loggertext = loggertext + "move tabu size of " + acceptorDomain.getMoveTabuSize() + "; ";
+				}
+				
+				// undo move size
+				if (acceptorDomain.getUndoMoveTabuSize() != 0) {
+					localSearchAcceptorConfig.setUndoMoveTabuSize(acceptorDomain.getUndoMoveTabuSize());
+					AcceptorType at = AcceptorType.UNDO_MOVE_TABU;
+					acceptorTypeList.add(at);
+					loggertext = loggertext + "undo move tabu size of " + acceptorDomain.getUndoMoveTabuSize() + "; ";
+				}
+				
+				logger.info(loggertext);
+				//localSearchAcceptorConfig.setAcceptorTypeList(acceptorTypeList); //not necessary for TABU SEARCH
+				acceptedCountLimitDefault = 1000;
+			}
+			
+			// SIMULATED ANNEALING
+			if (acceptorDomain.getSimulAnnealStartTemp() != null) {
+				localSearchAcceptorConfig.setSimulatedAnnealingStartingTemperature(acceptorDomain.getSimulAnnealStartTempString());
+				logger.info("Local Search uses SIMULATED ANNEALING (advanced settings) with starting temperature of " 
+						+ acceptorDomain.getSimulAnnealStartTempString() + ".");
+				acceptedCountLimitDefault = 1;
+			}
+			
+			// LATE ACCEPTANCE (as value may be set with default value (0), 
+			// late acceptance will only work with values != 0
+			if (acceptorDomain.getLateAcceptanceSize() != 0) {
+				localSearchAcceptorConfig.setLateAcceptanceSize(acceptorDomain.getLateAcceptanceSize());
+				logger.info("Local Search uses LATE ACCEPTANCE (advanced settings) with late acceptance size of "
+						+ acceptorDomain.getLateAcceptanceSize() + ".");
+				acceptedCountLimitDefault = 4;
+			}
+			
+			// GREAT DELUGE
+			if (acceptorDomain.getAcceptorType() != null && acceptorDomain.getAcceptorType().equals(AcceptorTypeEnum.GREATDELUGE)) {
+				AcceptorType acceptorType = AcceptorType.GREAT_DELUGE;
+				List<AcceptorType> acceptorTypeList = new LinkedList<AcceptorType>();
+				acceptorTypeList.add(acceptorType);
+				localSearchAcceptorConfig.setAcceptorTypeList(acceptorTypeList);
+				if (acceptorDomain.getGrDelInitWaterLevel() != null) {
+					// great deluge initial water level cannot be set within localSearchAcceptorConfig
+					logger.info("Great Deluge Initial Water Level will not be used, as recommended.");
+				}
+				if (acceptorDomain.getGrDelWaterLevelIncrRatio() != 0) {
+					logger.info("Local Search uses GREAT DELUGE (advanced settings) with water level increment ratio of "
+							+ acceptorDomain.getGrDelWaterLevelIncrRatio());
+					localSearchAcceptorConfig.setGreatDelugeWaterLevelIncrementRatio(acceptorDomain.getGrDelWaterLevelIncrRatio());
+				} else {
+					String scoreString;
+					if (acceptorDomain.getGrDelWaterLevelIncrScore() != null) {
+						scoreString = acceptorDomain.getGrDelWaterLevelIncrScore().getHardScore() + "";
+						scoreString = scoreString + "hard/";
+						scoreString = scoreString + acceptorDomain.getGrDelWaterLevelIncrScore().getSoftScore();
+						scoreString = scoreString + "soft";
+					} else {
+						scoreString = "0hard/100soft";
+					}
+					logger.info("Local Search uses GREAT DELUGE (advanced settings) with water level increment score of "
+							+ scoreString);
+					localSearchAcceptorConfig.setGreatDelugeWaterLevelIncrementScore(scoreString);
+				}
+				
+				acceptedCountLimitDefault = 1;
+			}
+			
+			// Step Counting Hill Climbing
+			if (acceptorDomain.getStepCountHillClimbSize() != 0) {
+				localSearchAcceptorConfig.setStepCountingHillClimbingSize(acceptorDomain.getStepCountHillClimbSize());
+				logger.info("Local Search uses STEP COUNTING HILL CLIMBING (advanced settings) with size of "
+						+ acceptorDomain.getStepCountHillClimbSize() + ".");
+				acceptedCountLimitDefault = 1;
+			}
+
+			// check for Strategic Oscillation
+			// currently only enabled for TABU SEARCH
+			if (acceptorDomain.getAcceptorType() != null && acceptorDomain.getAcceptorType().equals(AcceptorTypeEnum.TABUSEARCH)) {
+				if (localSearch.getForager() != null && localSearch.getForager().getFinalistPodiumType() != null) {
+					switch (localSearch.getForager().getFinalistPodiumType()) {
+						case HIGHESTSCORE: 
+							localSearchForagerConfig.setFinalistPodiumType(FinalistPodiumType.HIGHEST_SCORE);
+							break;
+						case STRATEGICOSCILLATION: 
+							localSearchForagerConfig.setFinalistPodiumType(FinalistPodiumType.STRATEGIC_OSCILLATION);
+							break;
+						case STRATEGICOSCILLATIONBYLEVEL:
+							localSearchForagerConfig.setFinalistPodiumType(FinalistPodiumType.STRATEGIC_OSCILLATION_BY_LEVEL);
+							break;
+						case STRATEGICOSCILLATIONBYLEVELONBESTSCORE:
+							localSearchForagerConfig.setFinalistPodiumType(FinalistPodiumType.STRATEGIC_OSCILLATION_BY_LEVEL_ON_BEST_SCORE);
+							break;
+						default:
+							localSearchForagerConfig.setFinalistPodiumType(FinalistPodiumType.HIGHEST_SCORE);
+							break;
+					}
+					logger.info("For TABU SEARCH, Strategic Oscillation is enabled (" + localSearchForagerConfig.getFinalistPodiumType() + ").");
+				}
+			}
+			
+			// set acceptedCountLimit value (cannot be negative or zero)
+			if (localSearch.getForager() != null && localSearch.getForager().getAcceptedCountLimit() > 0) {
+				localSearchForagerConfig.setAcceptedCountLimit(localSearch.getForager().getAcceptedCountLimit());
+				logger.info("Accepted Count Limit of " + localSearchForagerConfig.getAcceptedCountLimit() + " will be used.");
+			} else {
+				localSearchForagerConfig.setAcceptedCountLimit(acceptedCountLimitDefault);
+				logger.info("Accepted Count Limit of " + localSearchForagerConfig.getAcceptedCountLimit() + " (default value) will be used.");
+			}
+			
+			localSearchConfig.setAcceptorConfig(localSearchAcceptorConfig);
+			localSearchConfig.setForagerConfig(localSearchForagerConfig);
+			
+		} else {
+			logger.info("Advanced Settings require Acceptor Configuration. Default Value of HILL CLIMBING will be used.");
+			localSearchConfig.setLocalSearchType(LocalSearchType.HILL_CLIMBING);
+		}
+
 		return localSearchConfig;
 	}
 }

@@ -20,13 +20,13 @@ public class Acceptor {
 	private int lateAcceptanceSize;
 	private HardSoftScore grDelInitWaterLevel; //greatDelugeInitialWaterLevel
 	private double grDelWaterLevelIncrRatio; //greatDelugeWaterLevelIncrementRatio
-	private double grDelWaterLevelIncrScore; //greatDelugeWaterLevelIncrementScore
+	private HardSoftScore grDelWaterLevelIncrScore; //greatDelugeWaterLevelIncrementScore
 	private int stepCountHillClimbSize; //stepCountingHillClimbingSize
 	
 	public Acceptor(AcceptorTypeEnum acceptorType, int entityTabuSize, double entityTabuRatio, int valueTabuSize,
 			double valueTabuRatio, int moveTabuSize, int undoMoveTabuSize, HardSoftScore simulAnnealStartTemp,
 			int lateAcceptanceSize, HardSoftScore grDelInitWaterLevel, double grDelWaterLevelIncrRatio,
-			double grDelWaterLevelIncrScore, int stepCountHillClimbSize) {
+			HardSoftScore grDelWaterLevelIncrScore, int stepCountHillClimbSize) {
 		super();
 		this.acceptorType = acceptorType;
 		this.entityTabuSize = entityTabuSize;
@@ -115,6 +115,21 @@ public class Acceptor {
 	public HardSoftScore getGrDelInitWaterLevel() {
 		return grDelInitWaterLevel;
 	}
+	/**
+	 * Returns great deluge initial water level as a string
+	 * in the correct format for HardSoftScore.
+	 */
+	public String getDrDelInitWaterLevelString() {
+		if (grDelInitWaterLevel == null) {
+			return "0hard/100soft";
+		}
+		String scoreString;
+		scoreString = grDelInitWaterLevel.getHardScore() + "";
+		scoreString = scoreString + "hard/";
+		scoreString = scoreString + grDelInitWaterLevel.getSoftScore();
+		scoreString = scoreString + "soft";
+		return scoreString;
+	}
 	public void setGrDelInitWaterLevel(HardSoftScore grDelInitWaterLevel) {
 		this.grDelInitWaterLevel = grDelInitWaterLevel;
 	}
@@ -124,10 +139,10 @@ public class Acceptor {
 	public void setGrDelWaterLevelIncrRatio(double grDelWaterLevelIncrRatio) {
 		this.grDelWaterLevelIncrRatio = grDelWaterLevelIncrRatio;
 	}
-	public double getGrDelWaterLevelIncrScore() {
+	public HardSoftScore getGrDelWaterLevelIncrScore() {
 		return grDelWaterLevelIncrScore;
 	}
-	public void setGrDelWaterLevelIncrScore(double grDelWaterLevelIncrScore) {
+	public void setGrDelWaterLevelIncrScore(HardSoftScore grDelWaterLevelIncrScore) {
 		this.grDelWaterLevelIncrScore = grDelWaterLevelIncrScore;
 	}
 	public int getStepCountHillClimbSize() {
