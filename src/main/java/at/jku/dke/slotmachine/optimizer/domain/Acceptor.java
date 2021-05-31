@@ -88,6 +88,21 @@ public class Acceptor {
 	public HardSoftScore getSimulAnnealStartTemp() {
 		return simulAnnealStartTemp;
 	}
+	/**
+	 * Returns simulated annealing starting temperature as a string
+	 * in the correct format for HardSoftScore.
+	 */
+	public String getSimulAnnealStartTempString() {
+		if (simulAnnealStartTemp == null) {
+			return "0hard/100soft";
+		}
+		String scoreString;
+		scoreString = simulAnnealStartTemp.getHardScore() + "";
+		scoreString = scoreString + "hard/";
+		scoreString = scoreString + simulAnnealStartTemp.getSoftScore();
+		scoreString = scoreString + "soft";
+		return scoreString;
+	}
 	public void setSimulAnnealStartTemp(HardSoftScore simulAnnealStartTemp) {
 		this.simulAnnealStartTemp = simulAnnealStartTemp;
 	}

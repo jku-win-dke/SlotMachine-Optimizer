@@ -1,5 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
+import org.optaplanner.core.config.localsearch.LocalSearchType;
+
 import at.jku.dke.slotmachine.optimizer.service.dto.LocalSearchPhaseDTO.LocalSearchEnum;
 import at.jku.dke.slotmachine.optimizer.service.dto.LocalSearchPhaseDTO.SelectionOrderEnum;
 
@@ -43,6 +45,24 @@ public class LocalSearchPhase {
 
 	public LocalSearchEnum getLocalSearchEnum() {
 		return localSearchEnum;
+	}
+	/**
+	 * Return LocalSearchType instead of Enum LocalSearchEnum.
+	 * Default value of HILL_CLIMBING is used.
+	 */
+	public LocalSearchType getLocalSearchType() {
+		if (localSearchEnum == null) {
+			return LocalSearchType.HILL_CLIMBING;
+		}
+		switch (localSearchEnum) {
+			case HILLCLIMBING: return LocalSearchType.HILL_CLIMBING;
+			case TABUSEARCH: return LocalSearchType.TABU_SEARCH;
+			case SIMULATEDANNEALING: return LocalSearchType.SIMULATED_ANNEALING;
+			case LATEACCEPTANCE: return LocalSearchType.LATE_ACCEPTANCE;
+			case GREATDELUGE: return LocalSearchType.GREAT_DELUGE;
+			case VARIABLENEIGHBORHOODDESCENT: return LocalSearchType.VARIABLE_NEIGHBORHOOD_DESCENT;
+			default: return LocalSearchType.HILL_CLIMBING;
+		}
 	}
 
 	public void setLocalSearchEnum(LocalSearchEnum localSearchEnum) {

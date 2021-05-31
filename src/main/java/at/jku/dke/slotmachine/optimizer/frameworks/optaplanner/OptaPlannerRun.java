@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
+import at.jku.dke.slotmachine.optimizer.domain.LocalSearchPhase;
 import at.jku.dke.slotmachine.optimizer.domain.OptaPlannerConfig;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.domain.TerminationOptaPlanner;
@@ -19,6 +20,8 @@ import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import org.optaplanner.core.config.localsearch.LocalSearchPhaseConfig;
+import org.optaplanner.core.config.localsearch.LocalSearchType;
+import org.optaplanner.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
 import org.optaplanner.core.config.phase.PhaseConfig;
 import org.optaplanner.core.config.score.director.ScoreDirectorFactoryConfig;
 import org.optaplanner.core.config.solver.EnvironmentMode;
@@ -154,7 +157,11 @@ public class OptaPlannerRun extends Run {
 			phases.add(ch);	
 		}
 		// local search phase
-		//LocalSearchPhaseConfig ls = new LocalSearchPhaseConfig();
+		if (optConfig.getLocalSearch() != null) {
+			LocalSearchPhaseConfig ls = getLocalSearchConfig(optConfig.getLocalSearch());
+			
+			phases.add(ls);
+		}
 		
 		sc.setPhaseConfigList(phases);
 		solverFactory = SolverFactory.create(sc);
@@ -310,5 +317,51 @@ public class OptaPlannerRun extends Run {
 				"Limit of 10.");
 				return tc;
 		}
+	}
+
+	/**
+	 * Converts LocalSearchPhase to LocalSearchPhaseConfig with two options to configure the 
+	 * local search phase: simple (usage of localSearchType) or advanced (usage of the other 
+	 * parameters, such as acceptor, forager, ...). Simple configuration is used as default.
+	 * @param localSearch Parameters of LocalSearch, as given by the user
+	 * @return LocalSearchPhaseConfig for OptaPlanner configuration
+	 */
+	private static LocalSearchPhaseConfig getLocalSearchConfig(LocalSearchPhase localSearch) {
+		LocalSearchPhaseConfig localSearchConfig = new LocalSearchPhaseConfig();
+		if (localSearch.getLocalSearchType() != null) {
+			// ignore other settings, LocalSearchType is the default setting to use 
+			// (except for Simulated Annealing, uses simulated annealing starting temperature)
+			localSearchConfig.setLocalSearchType(localSearch.getLocalSearchType());
+			logger.info("Local Search Type is set to " + localSearch.getLocalSearchType() 
+				+ ", therefore simple configuration is used.");
+			// if LocalSearchType == Simulated Annealing, Simulated Annealing Starting Temperature is required
+			if (localSearchConfig.getLocalSearchType().equals(LocalSearchType.SIMULATED_ANNEALING)) {
+				LocalSearchAcceptorConfig localSearchAcceptorConfig = new LocalSearchAcceptorConfig();
+				if (localSearch.getAcceptor() != null) {
+					localSearchAcceptorConfig.setSimulatedAnnealingStartingTemperature(localSearch.getAcceptor().getSimulAnnealStartTempString());
+				} else {
+					localSearchAcceptorConfig.setSimulatedAnnealingStartingTemperature("0hard/100soft");
+					logger.info("As no starting temperature for simulated annealing has been found, the default value will be used.");
+				}
+				logger.info("As Local Search Type Simulated Annealing is used, Starting Temperature has been set to "
+						+ localSearchAcceptorConfig.getSimulatedAnnealingStartingTemperature() + ".");
+				localSearchConfig.setAcceptorConfig(localSearchAcceptorConfig);
+				// local search type is not allowed to be set for Simulated Annealing, therefore it is removed
+				localSearchConfig.setLocalSearchType(null);
+			}
+			
+			// integrate Termination
+			if (localSearch.getTermination()  != null) {
+				TerminationConfig tc = getTerminationConfig(localSearch.getTermination().getTermination1(),
+						localSearch.getTermination().getTerminationScore1(), localSearch.getTermination().getTerminationValue1(),
+						localSearch.getTermination().isTerminationBoolean1(), 2);
+				localSearchConfig.setTerminationConfig(tc);
+			}
+			return localSearchConfig;
+		}
+		// otherwise, used advanced settings
+		// 
+		logger.info("Local Search Type simple configuration is enabled, please use LocalSearchType.");
+		return localSearchConfig;
 	}
 }
