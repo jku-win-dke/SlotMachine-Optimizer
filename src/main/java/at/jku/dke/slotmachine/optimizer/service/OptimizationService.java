@@ -178,6 +178,10 @@ public class OptimizationService {
 					result.setMargins(optRes.getMargins());
 					if (margins == false) {
 						result.setMargins(null);
+					} else {
+						if (result.getMargins() == null) {
+							logger.info("No margins have been set.");
+						}
 					}
 					return result;
 				}
@@ -524,16 +528,20 @@ public class OptimizationService {
 	 * @return OptimizationResultDTO with margins
 	 */
 	private OptimizationResultMarginsDTO setMargins(OptimizationResultMarginsDTO optResult, Margin[] margins) {
-		MarginDTO[] marginsDTO = new MarginDTO[margins.length];
-		for (int i = 0; i < margins.length; i++) {
-			marginsDTO[i] = new MarginDTO(
-					margins[i].getFlightId(),
-					margins[i].getScheduledTime(),
-					margins[i].getTimeNotBefore(),
-					margins[i].getTimeWished(),
-					margins[i].getTimeNotAfter());
+		if (margins != null) {
+			MarginDTO[] marginsDTO = new MarginDTO[margins.length];
+			for (int i = 0; i < margins.length; i++) {
+				marginsDTO[i] = new MarginDTO(
+						margins[i].getFlightId(),
+						margins[i].getScheduledTime(),
+						margins[i].getTimeNotBefore(),
+						margins[i].getTimeWished(),
+						margins[i].getTimeNotAfter());
+			}
+			optResult.setMargins(marginsDTO);
+			return optResult;
 		}
-		optResult.setMargins(marginsDTO);
+		optResult.setMargins(null);
 		return optResult;
 	}
 }
