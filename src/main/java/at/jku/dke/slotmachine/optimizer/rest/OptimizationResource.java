@@ -7,6 +7,7 @@ import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
+import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultMarginsDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.SlotDTO;
 
@@ -83,9 +84,31 @@ public class OptimizationResource {
 		return null;
 	}
 
-
+    // can be used if margins could be shown and margin-parameter (pathVariable) is given
+	@ApiOperation(value = "Get the result of an optimization (with margins, if selected); returns intermediate result if not finished.", response = OptimizationResultMarginsDTO.class)
+	@GetMapping(path = {"/optimizations/{optId}/result/{margins}"} , produces = "application/json")
+	@ApiResponses(
+	    value = {
+	        @ApiResponse(code = 200, message = "OK"),
+	    	@ApiResponse(code = 404, message = "Not Found")
+		}
+	)
+    public ResponseEntity<OptimizationResultMarginsDTO> getOptimizationResultMargins(@PathVariable UUID optId, 
+    		@PathVariable boolean margins) {
+		if(optService == null) optService = new OptimizationService();
+		// if margins == true, return margins as well
+		OptimizationResultMarginsDTO optRes = optService.getOptimizationResult(optId, margins);
+		if (optRes != null) {
+			ResponseEntity<OptimizationResultMarginsDTO> response = new ResponseEntity<OptimizationResultMarginsDTO>(optRes, HttpStatus.OK);
+			return response;
+		}
+		ResponseEntity<OptimizationResultMarginsDTO> response = new ResponseEntity<OptimizationResultMarginsDTO>(HttpStatus.NOT_FOUND);
+		return response;
+    }  
+    
+	// to be used if no margins should be shown and no margin-parameter (pathVariable) is given
 	@ApiOperation(value = "Get the result of an optimization; returns intermediate result if not finished.", response = OptimizationResultDTO.class)
-	@GetMapping(path = "/optimizations/{optId}/result", produces = "application/json")
+	@GetMapping(path = {"/optimizations/{optId}/result"} , produces = "application/json")
 	@ApiResponses(
 	    value = {
 	        @ApiResponse(code = 200, message = "OK"),
@@ -94,6 +117,7 @@ public class OptimizationResource {
 	)
     public ResponseEntity<OptimizationResultDTO> getOptimizationResult(@PathVariable UUID optId) {
 		if(optService == null) optService = new OptimizationService();
+		// because margins = false, margins will not be returned
 		OptimizationResultDTO optRes = optService.getOptimizationResult(optId);
 		if (optRes != null) {
 			ResponseEntity<OptimizationResultDTO> response = new ResponseEntity<OptimizationResultDTO>(optRes, HttpStatus.OK);

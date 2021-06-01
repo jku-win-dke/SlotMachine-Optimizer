@@ -3,17 +3,12 @@ package at.jku.dke.slotmachine.optimizer.service.dto;
 import java.util.UUID;
 
 
-public class OptimizationResultDTO {
+public class OptimizationResultMarginsDTO {
     private UUID optId;
     private String[] flightSequence;
-    
-    public OptimizationResultDTO(UUID optId, String[] flightSequence) {
-		super();
-		this.optId = optId;
-		this.flightSequence = flightSequence;
-	}
+    private MarginDTO[] margins;
 
-	public UUID getOptId() {
+    public UUID getOptId() {
         return optId;
     }
 
@@ -28,4 +23,12 @@ public class OptimizationResultDTO {
     public void setFlightSequence(String[] flightSequence) {
         this.flightSequence = flightSequence;
     }
+    
+	public MarginDTO[] getMargins() {
+		return margins;
+	}
+
+	public void setMargins(MarginDTO[] margins) {
+		this.margins = margins;
+	}
 }

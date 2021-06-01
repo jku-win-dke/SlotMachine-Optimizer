@@ -20,7 +20,7 @@ import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO.Optimization
 public class OptimizationService {
 
 	private List<OptimizationDTO> optimizationDTOs;
-	private List<OptimizationResultDTO> optimizationResults;
+	private List<OptimizationResultMarginsDTO> optimizationResults;
 	private List<Optimization> optimizations;
 	
 	private static final Logger logger = LogManager.getLogger();
@@ -37,9 +37,9 @@ public class OptimizationService {
 				optimizationDTOs.add(optdto);
 				Optimization optNew = toOptimization(optdto);
 				optimizations.add(optNew);
-				OptimizationResultDTO optResToBeDeleted = null;
+				OptimizationResultMarginsDTO optResToBeDeleted = null;
 				if (optimizationResults != null) {
-					for (OptimizationResultDTO optRes: optimizationResults) {
+					for (OptimizationResultMarginsDTO optRes: optimizationResults) {
 						if (optNew.getOptId().equals(optRes.getOptId())) {
 							logger.info("Found old result entry according to UUID, delete old entry.");
 							optResToBeDeleted = optRes;
@@ -54,7 +54,7 @@ public class OptimizationService {
 				for(Optimization o: optimizations) {
 					boolean availableResult = false;
 					if(optimizationResults != null) {
-						for(OptimizationResultDTO optRes: optimizationResults) {
+						for(OptimizationResultMarginsDTO optRes: optimizationResults) {
 							if (optRes.getOptId().equals(optdto.getOptId())) {
 								availableResult = true;
 							}
@@ -73,7 +73,7 @@ public class OptimizationService {
 		for(Optimization o: optimizations) {
 			boolean availableResult = false;
 			if(optimizationResults != null) {
-				for(OptimizationResultDTO optRes: optimizationResults) {
+				for(OptimizationResultMarginsDTO optRes: optimizationResults) {
 					if (optRes.getOptId().equals(optdto.getOptId())) {
 						availableResult = true;
 					}
@@ -87,7 +87,7 @@ public class OptimizationService {
 	
 	public void startOptimization(UUID optId) {
 		logger.info("Starting optimization and running optimization algorithm.");
-		if(optimizationResults == null) optimizationResults = new LinkedList<OptimizationResultDTO>();
+		if(optimizationResults == null) optimizationResults = new LinkedList<OptimizationResultMarginsDTO>();
 		// search for optId
 		Optimization curOpt = getOptimizationById(optId);
 		
@@ -143,13 +143,14 @@ public class OptimizationService {
 			}
 		}
 		
-		OptimizationResultDTO optResult = new OptimizationResultDTO();
+		OptimizationResultMarginsDTO optResult = new OptimizationResultMarginsDTO();
 		optResult.setOptId(optId);
 		optResult.setFlightSequence(assignedSequence);
+		optResult = setMargins(optResult, curOpt.getMargins());
 		logger.info("Storing results.");
 		//if optId already has a result remove the old result
-		OptimizationResultDTO oldOptResult = null;
-		for (OptimizationResultDTO optResDTO: optimizationResults) {
+		OptimizationResultMarginsDTO oldOptResult = null;
+		for (OptimizationResultMarginsDTO optResDTO: optimizationResults) {
 			if (optResDTO.getOptId().equals(optResult.getOptId())) {
 				oldOptResult = optResDTO;
 			}
@@ -160,18 +161,44 @@ public class OptimizationService {
 		}
 		optimizationResults.add(optResult);
 	}
-	
-	public OptimizationResultDTO getOptimizationResult(UUID optId) {
+
+	public OptimizationResultMarginsDTO getOptimizationResult(UUID optId, boolean margins) {
 		if (optimizationResults != null) {
 			
-			for (OptimizationResultDTO optRes: optimizationResults) {
+			for (OptimizationResultMarginsDTO optRes: optimizationResults) {
 				if (optId.equals(optRes.getOptId())) {
 					logger.info("Returning results for this UUID.");
 					if(logger.isInfoEnabled()) {
 						//calculate and print how good the result is
 						printMarginResultComparison(optRes);
 					}
-					return optRes;
+					OptimizationResultMarginsDTO result = new OptimizationResultMarginsDTO();
+					result.setFlightSequence(optRes.getFlightSequence());
+					result.setOptId(optRes.getOptId());
+					result.setMargins(optRes.getMargins());
+					if (margins == false) {
+						result.setMargins(null);
+					}
+					return result;
+				}
+			}
+		}
+		logger.info("No results to return for this UUID.");
+		return null;
+	}
+	
+	public OptimizationResultDTO getOptimizationResult(UUID optId) {
+		if (optimizationResults != null) {
+			
+			for (OptimizationResultMarginsDTO optRes: optimizationResults) {
+				if (optId.equals(optRes.getOptId())) {
+					logger.info("Returning results for this UUID.");
+					if(logger.isInfoEnabled()) {
+						//calculate and print how good the result is
+						printMarginResultComparison(optRes);
+					}
+					
+					return new OptimizationResultDTO(optRes.getOptId(),optRes.getFlightSequence());
 				}
 			}
 		}
@@ -179,6 +206,12 @@ public class OptimizationService {
 		return null;
 	}
 
+	/**
+	 * Converts OptimizationDTO to Optimization.
+	 * 
+	 * @param optdto OptimizationDTO
+	 * @return Optimization
+	 */
 	private static Optimization toOptimization(OptimizationDTO optdto) {
 		List<Flight> flightList = new LinkedList<Flight>();
 		for (FlightDTO flightdto: optdto.getFlights()) {
@@ -210,32 +243,47 @@ public class OptimizationService {
 		}
 		// optaPlannerConfig (see getOptaPlannerConfig method)
 		OptaPlannerConfig optaPlannerConfig = getOptaPlannerConfig(optdto.getOptaPlannerConfig());		
+		
+		// margins (is not null only when optdto.getMargins() contains data)
+		Margin[] margins = null;
+		if (optdto.getMargins() != null) {
+			logger.info("Margins have been detected and will be converted as well to Optimization (from OptimizationDTO)");
+			margins = new Margin[optdto.getMargins().length];
+			for (int i = 0; i < optdto.getMargins().length; i++) {
+				margins[i] = new Margin(
+						optdto.getMargins()[i].getFlightId(),
+						optdto.getMargins()[i].getScheduledTime(),
+						optdto.getMargins()[i].getTimeNotBefore(),
+						optdto.getMargins()[i].getTimeWished(),
+						optdto.getMargins()[i].getTimeNotAfter());
+			}
+		} 
 
 		// store object of chosen framework run-class, default is JeneticsRun
 		if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework().equals(OptimizationFramework.JENETICS)) {
 			JeneticsRun classRun = new JeneticsRun();
 			logger.info("Jenetics Framework is chosen.");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig, margins);
 		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.OPTAPLANNER) {
 			OptaPlannerRun classRun = new OptaPlannerRun();
 			logger.info("OptaPlanner Framework is chosen.");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig, margins);
 		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.BENCHMARK) {
 			BenchmarkRun classRun = new BenchmarkRun();
 			logger.info("Benchmark Framework is chosen (OptaPlanner).");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig, margins);
 		} else if (optdto.getOptimizationFramework() != null && optdto.getOptimizationFramework() == OptimizationFramework.BENCHMARKOPTAPLANNER) {
 			BenchmarkOptaPlannerRun classRun = new BenchmarkOptaPlannerRun();
 			logger.info("Benchmark functionality of OptaPlanner is chosen.");
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig, margins);
 		} else if (optdto.getOptimizationFramework() == null){
 			logger.info("Framework is not set for given UUID, therefore default Jenetics Framework is used.");
 			JeneticsRun classRun = new JeneticsRun();
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig, margins);
 		} else {
 			logger.info("No recognizable framework is chosen, therefore default Jenetics Framework is used.");
 			JeneticsRun classRun = new JeneticsRun();
-			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig);
+			return new Optimization(flightList, slotList, classRun, optdto.getOptId(), jenConfig, optaPlannerConfig, margins);
 		}	
 	}
 
@@ -247,7 +295,7 @@ public class OptimizationService {
 		}
 		return null;
 	}
-	private void printMarginResultComparison(OptimizationResultDTO optRes) {
+	private void printMarginResultComparison(OptimizationResultMarginsDTO optRes) {
 		Optimization opt = getOptimizationById(optRes.getOptId());
 		int totalWeights = 0;
 		for (int i = 0; i < optRes.getFlightSequence().length; i++) {
@@ -466,5 +514,26 @@ public class OptimizationService {
 			logger.info("No Forager was defined.");
 			return null;
 		}
+	}
+	
+	/**
+	 * Integrates Margins to OptimizationResultDTO
+	 * 
+	 * @param optResult current optimization result
+	 * @param margins current margins
+	 * @return OptimizationResultDTO with margins
+	 */
+	private OptimizationResultMarginsDTO setMargins(OptimizationResultMarginsDTO optResult, Margin[] margins) {
+		MarginDTO[] marginsDTO = new MarginDTO[margins.length];
+		for (int i = 0; i < margins.length; i++) {
+			marginsDTO[i] = new MarginDTO(
+					margins[i].getFlightId(),
+					margins[i].getScheduledTime(),
+					margins[i].getTimeNotBefore(),
+					margins[i].getTimeWished(),
+					margins[i].getTimeNotAfter());
+		}
+		optResult.setMargins(marginsDTO);
+		return optResult;
 	}
 }

@@ -10,6 +10,7 @@ public class OptimizationDTO {
 	private OptimizationFramework optimizationFramework;
 	private JeneticConfigDTO jenConfig;
 	private OptaPlannerConfigDTO optaPlannerConfig;
+	private MarginDTO[] margins;
 
 	public enum OptimizationFramework {
 		JENETICS, OPTAPLANNER, BENCHMARK, BENCHMARKOPTAPLANNER
@@ -69,6 +70,14 @@ public class OptimizationDTO {
 
 	public void setOptaPlannerConfig(OptaPlannerConfigDTO optaPlannerConfig) {
 		this.optaPlannerConfig = optaPlannerConfig;
+	}
+
+	public MarginDTO[] getMargins() {
+		return margins;
+	}
+
+	public void setMargins(MarginDTO[] margins) {
+		this.margins = margins;
 	}
 	
 }

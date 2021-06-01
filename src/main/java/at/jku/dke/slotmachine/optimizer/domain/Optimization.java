@@ -15,14 +15,17 @@ public class Optimization {
     private Run optimization; // specify the application used to run the optimization.
     private JeneticsConfig jenConfig; // specially for jenetics configuration
     private OptaPlannerConfig optaPlannerConfig; // specially for OptaPlanner configuration
+    private Margin[] margins;
     
-    public Optimization(List<Flight> flightList, List<Slot> slotList, Run optimization, UUID optId, JeneticsConfig jenConfig, OptaPlannerConfig optaPlannerConfig) {
+    public Optimization(List<Flight> flightList, List<Slot> slotList, Run optimization, UUID optId, JeneticsConfig jenConfig, 
+    		OptaPlannerConfig optaPlannerConfig, Margin[] margins) {
 		this.flightList = flightList;
 		this.slotList = slotList;
 		this.optimization = optimization;
 		this.setOptId(optId);
 		this.setJenConfig(jenConfig);
 		this.setOptaPlannerConfig(optaPlannerConfig);
+		this.setMargins(margins);
 	}
 
 	public List<Flight> getFlightList() {
@@ -71,6 +74,14 @@ public class Optimization {
 
 	public void setOptaPlannerConfig(OptaPlannerConfig optaPlannerConfig) {
 		this.optaPlannerConfig = optaPlannerConfig;
+	}
+
+	public Margin[] getMargins() {
+		return margins;
+	}
+
+	public void setMargins(Margin[] margins) {
+		this.margins = margins;
 	}
     
 }
