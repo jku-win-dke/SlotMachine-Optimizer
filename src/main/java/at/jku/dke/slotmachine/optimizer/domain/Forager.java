@@ -1,5 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
+import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
+
 import at.jku.dke.slotmachine.optimizer.service.dto.ForagerDTO.FinalistPodiumTypeEnum;
 import at.jku.dke.slotmachine.optimizer.service.dto.ForagerDTO.PickEarlyTypeEnum;
 /**
@@ -34,6 +36,12 @@ public class Forager {
 	}
 	public PickEarlyTypeEnum getPickEarlyType() {
 		return pickEarlyType;
+	}
+	public LocalSearchPickEarlyType getPickEarlyLocalSearchType() {
+		if (pickEarlyType.equals(PickEarlyTypeEnum.FIRSTLASTSTEPSCOREIMPROVING)) {
+			return LocalSearchPickEarlyType.FIRST_LAST_STEP_SCORE_IMPROVING;
+		}
+		return LocalSearchPickEarlyType.NEVER;
 	}
 	public void setPickEarlyType(PickEarlyTypeEnum pickEarlyType) {
 		this.pickEarlyType = pickEarlyType;

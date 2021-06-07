@@ -40,7 +40,12 @@ public class LocalSearchPhase {
 	}
 
 	public LocalSearchPhase() {
-		// TODO constructor with default values
+		// constructor with default values, should usually not be used
+		this.localSearchEnum = LocalSearchEnum.HILLCLIMBING;
+		this.acceptor = null;
+		this.forager = null;
+		this.selectionOrder = null;
+		this.termination = new TerminationOptaPlanner();
 	}
 
 	public LocalSearchEnum getLocalSearchEnum() {

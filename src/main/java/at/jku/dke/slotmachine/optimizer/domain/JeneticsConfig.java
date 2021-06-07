@@ -75,6 +75,7 @@ public class JeneticsConfig {
 	}
 
 	public JeneticsConfig() {
+		// constructor with default values
 		super();
 		this.alterer = new Alterer[2];
 		this.alterer[0] = Alterer.SWAPMUTATOR;
@@ -82,9 +83,17 @@ public class JeneticsConfig {
 		this.altererAttributes = new double[2][2];
 		this.altererAttributes[0][0] = 0.2;
 		this.altererAttributes[1][0] = 0.35;
-		
-		// TODO constructor with default values
-		
+		this.offspringSelector = Selector.TOURNAMENTSELECTOR;
+		this.offspringSelectorAttributes = null;
+		this.survivorSelector = Selector.TOURNAMENTSELECTOR;
+		this.survivorSelectorAttributes = null;
+		this.offspringFraction = 0.6;
+		this.maximalPhenotypeAge = 70;
+		this.populationSize = 50;
+		this.termination = new Termination[1];
+		this.termination[0] = Termination.BYEXECUTIONTIME;
+		this.terminationAttributes = new double[1][1];
+		this.terminationAttributes[0][0] = 10;		
 	}
 
 	public Alterer[] getAlterer() {

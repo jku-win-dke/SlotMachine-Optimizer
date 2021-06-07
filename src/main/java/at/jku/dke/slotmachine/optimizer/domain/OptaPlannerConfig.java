@@ -53,7 +53,12 @@ public class OptaPlannerConfig {
 	}
 	
 	public OptaPlannerConfig() {
-		// TODO constructor with default values
+		// constructor with default values
+		this.moveThreadCount = MoveThreadCount.NONE;
+		this.environmentMode = EnvironmentMode.REPRODUCIBLE;
+		this.termination = new TerminationOptaPlanner();
+		this.constructionHeuristic = new ConstructionHeuristicPhase();
+		this.localSearch = new LocalSearchPhase();
 	}
 
 	public MoveThreadCount getMoveThreadCount() {

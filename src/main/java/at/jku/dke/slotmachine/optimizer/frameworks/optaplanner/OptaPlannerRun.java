@@ -16,30 +16,25 @@ import at.jku.dke.slotmachine.optimizer.frameworks.Run;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
-import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
-import org.optaplanner.core.config.heuristic.selector.common.SelectionOrder;
-import org.optaplanner.core.config.heuristic.selector.move.MoveSelectorConfig;
-import org.optaplanner.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
 import org.optaplanner.core.config.localsearch.LocalSearchPhaseConfig;
 import org.optaplanner.core.config.localsearch.LocalSearchType;
 import org.optaplanner.core.config.localsearch.decider.acceptor.AcceptorType;
 import org.optaplanner.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
 import org.optaplanner.core.config.localsearch.decider.forager.FinalistPodiumType;
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
-import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
 import org.optaplanner.core.config.phase.PhaseConfig;
 import org.optaplanner.core.config.score.director.ScoreDirectorFactoryConfig;
 import org.optaplanner.core.config.solver.EnvironmentMode;
 import org.optaplanner.core.config.solver.SolverConfig;
+import org.optaplanner.core.config.solver.termination.TerminationCompositionStyle;
 import org.optaplanner.core.config.solver.termination.TerminationConfig;
-import org.optaplanner.core.impl.heuristic.selector.move.composite.UnionMoveSelector;
 
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
 import at.jku.dke.slotmachine.optimizer.service.dto.AcceptorDTO.AcceptorTypeEnum;
-import at.jku.dke.slotmachine.optimizer.service.dto.ForagerDTO.FinalistPodiumTypeEnum;
+import at.jku.dke.slotmachine.optimizer.service.dto.TerminationOptaPlannerDTO.TerminationComposition;
 import at.jku.dke.slotmachine.optimizer.service.dto.TerminationOptaPlannerDTO.TerminationEnum;
 
 public class OptaPlannerRun extends Run {
@@ -130,31 +125,8 @@ public class OptaPlannerRun extends Run {
 		
 		// termination
 		TerminationConfig tc = new TerminationConfig();
-		if (optConfig.getTermination() != null 
-				&& (
-						(optConfig.getTermination().getTermination1() == null && optConfig.getTermination().getTermination2() != null)
-						|| (optConfig.getTermination().getTermination1() != null && optConfig.getTermination().getTermination2() == null)
-						|| (optConfig.getTermination().getTermination1() != null && optConfig.getTermination().getTermination2() != null)
-				)
-			) {
-			// only Termination1 is set (or only Termination2 is set)
-			TerminationOptaPlanner term = optConfig.getTermination();
-			if (term.getTermination1() != null && term.getTermination2() == null) {
-				tc = getTerminationConfig(term.getTermination1(), term.getTerminationScore1(), term.getTerminationValue1(), term.isTerminationBoolean1(), 0);
-			} else if (term.getTermination1() == null && term.getTermination2() != null) {
-				tc = getTerminationConfig(term.getTermination2(), term.getTerminationScore2(), term.getTerminationValue2(), term.isTerminationBoolean2(), 0);
-			// Termination1 and Termination2 are set
-			} else if (term.getTermination1() != null && term.getTermination2() != null) {
-				tc = getTerminationConfig(term.getTermination1(), term.getTerminationScore1(), term.getTerminationValue1(), term.isTerminationBoolean1(), 0);
-				// TODO 2 Termination methods at the same time are not implemented currently
-				logger.info("Currently, only first termination method is used.");
-			}
-			sc.setTerminationConfig(tc);
-		} else {
-			logger.info("No Termination method has been set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (10 seconds) is used.");
-			tc.setUnimprovedSecondsSpentLimit((long) 10);
-			sc.setTerminationConfig(tc);
-		}
+		tc = getTerminationsConfig(optConfig.getTermination(), 0);
+		sc.setTerminationConfig(tc);
 		
 		List<PhaseConfig> phases = new LinkedList<PhaseConfig>();
 		// construction heuristics phase
@@ -329,6 +301,72 @@ public class OptaPlannerRun extends Run {
 				return tc;
 		}
 	}
+	
+	/**
+	 * Used to convert TerminationComposition to TerminationCompositionStyle with 
+	 * default value of AND (for usage with termination method 1 and 2)
+	 * 
+	 * @param termComp TerminationsComposition (AND or OR)
+	 * @return TerminationCompositionStyle (AND or OR)
+	 */
+	private static TerminationCompositionStyle getTerminationComposition(TerminationComposition termComp) {
+		// set termination composition
+		TerminationCompositionStyle tcStyle = TerminationCompositionStyle.AND;
+		switch (termComp) {
+			case AND:
+				tcStyle = TerminationCompositionStyle.AND;
+				break;
+			case OR:
+				tcStyle = TerminationCompositionStyle.OR;
+				break;
+			default:
+				tcStyle = TerminationCompositionStyle.AND;
+				break;
+		}
+		logger.info("Termination and Termination 2 have composition style of " + tcStyle);
+		return tcStyle;
+	}
+	
+	/**
+	 * Converts TerminationEnum and used value to TerminationConfig for one or two termination methods
+	 * methods (using getTerminationConfig() and getTerminationComposition().
+	 * 
+	 * Default value is UNIMPROVED_SECONDS_SPENT_LIMIT (10 seconds)
+	 * @param term TerminationOptaPlanner (containing all relevant information for the termination methods)
+	 * @param phase current phase (0 = solver, 1 = construction heuristic, 2 = local search)
+	 * @return TerminationConfig
+	 */
+	private static TerminationConfig getTerminationsConfig(TerminationOptaPlanner term, int phase) {
+		TerminationConfig tc = new TerminationConfig();
+		if (term == null) {
+			logger.info("No Termination method has been set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (10 seconds) is used.");
+			tc.setUnimprovedSecondsSpentLimit((long) 10);
+			return tc;
+		}
+		if ((term.getTermination1() == null && term.getTermination2() != null)
+			|| (term.getTermination1() != null && term.getTermination2() == null)
+			|| (term.getTermination1() != null && term.getTermination2() != null)) {
+			// only Termination1 is set (or only Termination2 is set)
+			if (term.getTermination1() != null && term.getTermination2() == null) {
+				tc = getTerminationConfig(term.getTermination1(), term.getTerminationScore1(), term.getTerminationValue1(), term.isTerminationBoolean1(), phase);
+			} else if (term.getTermination1() == null && term.getTermination2() != null) {
+				tc = getTerminationConfig(term.getTermination2(), term.getTerminationScore2(), term.getTerminationValue2(), term.isTerminationBoolean2(), phase);
+			// Termination1 and Termination2 are set
+			} else if (term.getTermination1() != null && term.getTermination2() != null) {
+				List<TerminationConfig> tcs = new LinkedList<TerminationConfig>();
+				tcs.add(getTerminationConfig(term.getTermination1(), term.getTerminationScore1(), term.getTerminationValue1(), term.isTerminationBoolean1(), phase));
+				tcs.add(getTerminationConfig(term.getTermination2(), term.getTerminationScore2(), term.getTerminationValue2(), term.isTerminationBoolean2(), phase));
+				tc.setTerminationConfigList(tcs);
+				tc.setTerminationCompositionStyle(getTerminationComposition(term.getTermComp()));
+			}
+			return tc;
+		} else {
+			logger.info("No Termination method has been properly set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (10 seconds) is used.");
+			tc.setUnimprovedSecondsSpentLimit((long) 10);
+			return tc;
+		}
+		
+	}
 
 	/**
 	 * Converts LocalSearchPhase to LocalSearchPhaseConfig with two options to configure the 
@@ -341,9 +379,7 @@ public class OptaPlannerRun extends Run {
 		LocalSearchPhaseConfig localSearchConfig = new LocalSearchPhaseConfig();
 		// integrate Termination
 		if (localSearch.getTermination()  != null) {
-			TerminationConfig tc = getTerminationConfig(localSearch.getTermination().getTermination1(),
-					localSearch.getTermination().getTerminationScore1(), localSearch.getTermination().getTerminationValue1(),
-					localSearch.getTermination().isTerminationBoolean1(), 2);
+			TerminationConfig tc = getTerminationsConfig(localSearch.getTermination(), 2);
 			localSearchConfig.setTerminationConfig(tc);
 		}
 		if (localSearch.getLocalSearchEnum() != null) {
@@ -395,7 +431,7 @@ public class OptaPlannerRun extends Run {
 //					localSearchConfig.setMoveSelectorConfig(moveSelectorConfig);
 //					String loggertext = "Local Search uses VARIABLE NEIGHBORHOOD DESCENT with HILL CLIMBING";
 //					if (localSearch.getForager() != null && localSearch.getForager().getPickEarlyType() != null &&
-//							localSearch.getForager().getPickEarlyType().equals(LocalSearchPickEarlyType.FIRST_LAST_STEP_SCORE_IMPROVING)) {
+//							localSearch.getForager().getPickEarlyLocalSearchType().equals(LocalSearchPickEarlyType.FIRST_LAST_STEP_SCORE_IMPROVING)) {
 //						localSearchForagerConfig.setPickEarlyType(LocalSearchPickEarlyType.FIRST_LAST_STEP_SCORE_IMPROVING);
 //						loggertext = loggertext + " and PickEarlyType of FIRST_LAST_STEP_SCORE_IMPROVING";
 //					}

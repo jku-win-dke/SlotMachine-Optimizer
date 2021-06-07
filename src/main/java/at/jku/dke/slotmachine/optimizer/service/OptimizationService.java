@@ -363,7 +363,7 @@ public class OptimizationService {
 			constructionHeuristic = new ConstructionHeuristicPhase(
 					constructionHeuristicType,
 					constructionTermination);
-			logger.info("Construction Heuristic phase of type " + constructionHeuristicType + " is defined.");
+			logger.debug("Construction Heuristic phase of type " + constructionHeuristicType + " is defined.");
 		} else {
 			logger.info("No construction heuristic phase is defined.");
 		}
@@ -383,7 +383,7 @@ public class OptimizationService {
 			// unionMoveSelector
 			SelectionOrderEnum selectionOrder = optaPlannerConfigDTO.getLocalSearch().getSelectionOrder();
 			
-			logger.info("Local Search phase has type " + localSearchType 
+			logger.debug("Local Search phase has type " + localSearchType 
 					+ " and selection order of " + selectionOrder + ".");
 			
 			localSearch = new LocalSearchPhase(
@@ -397,7 +397,7 @@ public class OptimizationService {
 		}
 		
 		// optaPlannerConfig
-		logger.info("Move Thread Count is: " + optaPlannerConfigDTO.getMoveThreadCount() + " and EnvironmentMode is: "
+		logger.debug("Move Thread Count is: " + optaPlannerConfigDTO.getMoveThreadCount() + " and EnvironmentMode is: "
 				+ optaPlannerConfigDTO.getEnvironmentMode() + ".");
 		optaPlannerConfig = new OptaPlannerConfig(
 				optaPlannerConfigDTO.getMoveThreadCount(),
@@ -416,7 +416,7 @@ public class OptimizationService {
 	 * @param part String textual value for logger
 	 */
 	private static void printTerminationToLogger(TerminationOptaPlanner term, String part) {
-		logger.info("Given termination" + part + "are (only the relevant value to the termination type are considered): \n"
+		logger.debug("Given termination" + part + "are (only the relevant value to the termination type are considered): \n"
 				+ term.getTermination1() + ": value = " + term.getTerminationValue1() + " score = " 
 				+ term.getTerminationScore1() + " boolean = " + term.isTerminationBoolean1() + " " 
 				+ term.getTermComp() + " \n" + term.getTermination2() + ": value = " 
@@ -472,7 +472,7 @@ public class OptimizationService {
 					acceptorDTO.getGrDelWaterLevelIncrScore(),
 					acceptorDTO.getStepCountHillClimbSize()
 					);
-			logger.info("Acceptor for Local Search phase is: \n" 
+			logger.debug("Acceptor for Local Search phase is: \n" 
 					+ "type: " + acceptor.getAcceptorType() + "\n"
 					+ "entity tabu size: " + acceptorDTO.getEntityTabuSize()
 					+ " | entity tabu ratio: " + acceptorDTO.getEntityTabuRatio()
@@ -508,7 +508,7 @@ public class OptimizationService {
 					foragerDTO.getAcceptedCountLimit(),
 					foragerDTO.getFinalistPodiumType(),
 					foragerDTO.getPickEarlyType());
-			logger.info("Forager for Local Search phase is: \n"
+			logger.debug("Forager for Local Search phase is: \n"
 					+ "accepted count limit: " + forager.getAcceptedCountLimit()
 					+ " | finalist podium type: " + forager.getFinalistPodiumType()
 					+ " | pick early type: " + forager.getPickEarlyType()

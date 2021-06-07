@@ -35,7 +35,10 @@ public class ConstructionHeuristicPhase {
 	}
 	
 	public ConstructionHeuristicPhase() {
-		// TODO constructor with default values
+		// default values, should usually not be used
+		this.constructionEnum = ConstructionEnum.FIRSTFIT;
+		this.termination = new TerminationOptaPlanner();
+		
 	}
 
 	public ConstructionEnum getConstructionEnum() {

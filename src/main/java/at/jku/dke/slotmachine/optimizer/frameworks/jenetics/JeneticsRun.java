@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -26,26 +25,19 @@ import io.jenetics.Genotype;
 import io.jenetics.LinearRankSelector;
 import io.jenetics.Mutator;
 import io.jenetics.PartiallyMatchedCrossover;
-import io.jenetics.PermutationChromosome;
-import io.jenetics.Phenotype;
-import io.jenetics.ProbabilitySelector;
 import io.jenetics.RouletteWheelSelector;
 import io.jenetics.Selector;
 import io.jenetics.StochasticUniversalSelector;
 import io.jenetics.SwapMutator;
 import io.jenetics.TournamentSelector;
 import io.jenetics.TruncationSelector;
-import io.jenetics.engine.Codecs;
 import io.jenetics.engine.Constraint;
 import io.jenetics.engine.Engine;
 import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.EvolutionStatistics;
-import io.jenetics.engine.InvertibleCodec;
 import io.jenetics.engine.Limits;
-import io.jenetics.engine.RetryConstraint;
 import io.jenetics.util.ISeq;
 import io.jenetics.util.RandomRegistry;
-import io.jenetics.util.Seq;
 
 public class JeneticsRun extends Run {
 
@@ -76,9 +68,7 @@ public class JeneticsRun extends Run {
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
         Genotype<EnumGene<Integer>> result = e.stream()
-        		//.limit(Limits.bySteadyFitness(250))
-        		//.limit(Limits.byFitnessThreshold(1))
-        		.limit(Limits.bySteadyFitness(2500))
+        		.limit(Limits.byFitnessConvergence(5, 10, 10E-4))
         		.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
         		.peek(statistics)
         		.collect(EvolutionResult.toBestGenotype());
@@ -107,7 +97,9 @@ public class JeneticsRun extends Run {
 	 * @return
 	 */
 	public static Map<Flight, Slot> run(List<Flight> flights, List<Slot> slots, JeneticsConfig jenConfig) {
+		logger.info("Start optimization using Jenetics framework with advanced settings.");
 		if (jenConfig == null) {
+			logger.info("No advanced settings were found, therefore default settings will be used.");
 			return run(flights, slots);
 		}
 		
@@ -127,12 +119,12 @@ public class JeneticsRun extends Run {
 				.offspringFraction(getOffspringFraction(jenConfig))
 				.constraint(constraint)
 				.build();
-		logger.debug("Alterer used by the engine: " + e.alterer().toString());
-		logger.debug("Constraints used by the engine: " + e.constraint().toString());
-		logger.debug("Problem used by the engine: " + e.toString() + ": " + p.toString());
-		logger.debug("Offspring Selector used by the engine: " + e.offspringSelector().toString());
-		logger.debug("Survivors Selector used by the engine: " + e.survivorsSelector().toString());
-		logger.debug("Maximal phenotype age: " + e.maximalPhenotypeAge() + " | offspring fraction: " + (double) e.offspringSize()/e.populationSize() 
+		logger.info("Alterer used by the engine: " + e.alterer().toString());
+		logger.info("Constraints used by the engine: " + e.constraint().toString());
+		logger.info("Problem used by the engine: " + e.toString() + ": " + p.toString());
+		logger.info("Offspring Selector used by the engine: " + e.offspringSelector().toString());
+		logger.info("Survivors Selector used by the engine: " + e.survivorsSelector().toString());
+		logger.info("Maximal phenotype age: " + e.maximalPhenotypeAge() + " | offspring fraction: " + (double) e.offspringSize()/e.populationSize() 
 				+ " | population size: " + e.populationSize());
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
@@ -142,7 +134,7 @@ public class JeneticsRun extends Run {
         if (limits != null) {
 	        switch (limits.size()) {
 	        	case 1:
-	        		logger.debug("1 termination method detected: " + limits.get(0).toString());
+	        		logger.info("1 termination method detected: " + limits.get(0).toString());
 	            	result = RandomRegistry.with(new Random(randomNr), r ->
 		        		e.stream()
 						.limit(limits.get(0))
@@ -151,7 +143,7 @@ public class JeneticsRun extends Run {
 		        	);
 	            	break;
 	        	case 2:
-	        		logger.debug("2 termination method detected: " + limits.get(0).toString()
+	        		logger.info("2 termination method detected: " + limits.get(0).toString()
 	        				+ " | " + limits.get(1).toString());
 	            	result = RandomRegistry.with(new Random(randomNr), r ->
 		        		e.stream()
@@ -162,7 +154,7 @@ public class JeneticsRun extends Run {
 		        	);
 	            	break;
 	        	case 3:
-	        		logger.debug("3 termination method detected: " + limits.get(0).toString()
+	        		logger.info("3 termination method detected: " + limits.get(0).toString()
 	        				+ " | " + limits.get(1).toString() 
 	        				+ " | " + limits.get(2).toString());
 	        		result = RandomRegistry.with(new Random(randomNr), r ->
@@ -175,22 +167,22 @@ public class JeneticsRun extends Run {
 		        	);
 	        		break;
 	        	default:
-	        		logger.debug("No termination method detected. Default values will be used.");
+	        		logger.info("No termination method detected. Default values will be used.");
 	            	result = RandomRegistry.with(new Random(randomNr), r ->
 		        		e.stream()
-						.limit(Limits.bySteadyFitness(2500))
-						.limit(Limits.byExecutionTime(Duration.ofSeconds(180)))
+		        		.limit(Limits.byFitnessConvergence(5, 10, 10E-4))
+		        		.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
 						.peek(statistics)
 						.collect(EvolutionResult.toBestGenotype())
 		        	);
 	            	break;
 	        }
         } else {
-    		logger.debug("No termination method detected. Default values will be used.");
+    		logger.info("No termination method detected. Default values will be used.");
         	result = RandomRegistry.with(new Random(randomNr), r ->
         		e.stream()
-				.limit(Limits.bySteadyFitness(2500))
-				.limit(Limits.byExecutionTime(Duration.ofSeconds(180)))
+        		.limit(Limits.byFitnessConvergence(5, 10, 10E-4))
+        		.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
 				.peek(statistics)
 				.collect(EvolutionResult.toBestGenotype())
         	);
@@ -619,6 +611,12 @@ public class JeneticsRun extends Run {
 					return Limits.byPopulationConvergence(attributes[0]);
 				}
 				return Limits.byPopulationConvergence(0.5);
+			case BYFITNESSCONVERGENCE:
+				if (attributes != null && attributes.length > 2 && attributes[0] > 0 && attributes[1] >= attributes[0] 
+						&& attributes[2] <= 1 && attributes[2] >= 0) {
+					return Limits.byFitnessConvergence((int) attributes[0], (int) attributes[1], attributes[2]);
+				}
+				return Limits.byFitnessConvergence(5, 15, 10E-4);
 			default:
 				return Limits.byExecutionTime(Duration.ofSeconds(10));
 		}

@@ -76,7 +76,16 @@ public class TerminationOptaPlanner {
 	}
 	
 	public TerminationOptaPlanner() {
-		// TODO constructor with default values
+		// constructor with default values
+		this.termination1 = TerminationEnum.UNIMPROVEDSECONDSSPENTLIMIT;
+		this.termination2 = null;
+		this.termComp = null;
+		this.terminationValue1 = 10;
+		this.terminationValue2 = 0;
+		this.terminationScore1 = null;
+		this.terminationScore2 = null;
+		this.terminationBoolean1 = false;
+		this.terminationBoolean2 = false;
 	}
 	
 	public TerminationEnum getTermination1() {
