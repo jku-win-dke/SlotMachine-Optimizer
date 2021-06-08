@@ -25,6 +25,11 @@ public class OptimizationService {
 	
 	private static final Logger logger = LogManager.getLogger();
 	
+	/**
+	 * Creates the optimization session and initializes it with the given data.
+	 * @param optdto data for the optimization session
+	 * @return given optimization session data
+	 */
 	public OptimizationDTO createAndInitialize(OptimizationDTO optdto) {
 		logger.info("Started process to initialize optimization session.");
 		if(optimizationDTOs == null) optimizationDTOs = new LinkedList<OptimizationDTO>();
@@ -50,7 +55,7 @@ public class OptimizationService {
 				if(optResToBeDeleted != null) {
 					optimizationResults.remove(optResToBeDeleted);
 				}
-				logger.info("current list of optimiziation sessions: ");
+				logger.info("Current list of optimization sessions: ");
 				for(Optimization o: optimizations) {
 					boolean availableResult = false;
 					if(optimizationResults != null) {
@@ -61,7 +66,7 @@ public class OptimizationService {
 						}
 					}
 					logger.info("optId: " + o.getOptId());
-					logger.debug("Result is available? " + availableResult);
+					logger.debug("Is the result available? " + availableResult);
 				}
 				return optdto;
 			}
@@ -69,7 +74,7 @@ public class OptimizationService {
 		optimizationDTOs.add(optdto);
 		Optimization opt = toOptimization(optdto);
 		optimizations.add(opt);	
-		logger.info("current list of optimiziation sessions: ");
+		logger.info("Current list of optimization sessions: ");
 		for(Optimization o: optimizations) {
 			boolean availableResult = false;
 			if(optimizationResults != null) {
@@ -80,11 +85,15 @@ public class OptimizationService {
 				}
 			}
 			logger.info("optId: " + o.getOptId());
-			logger.debug("Result is available? " + availableResult);
+			logger.debug("Is the result available? " + availableResult);
 		}
 		return optdto;
 	}
 	
+	/**
+	 * Starts the optimization sessions, finishes after the optimization has finished
+	 * @param optId optId of the optimization session
+	 */
 	public void startOptimization(UUID optId) {
 		logger.info("Starting optimization and running optimization algorithm.");
 		if(optimizationResults == null) optimizationResults = new LinkedList<OptimizationResultMarginsDTO>();
@@ -291,6 +300,11 @@ public class OptimizationService {
 		}	
 	}
 
+	/**
+	 * Return Optimization, if existing, otherwise return null.
+	 * @param optId
+	 * @return Optimization (if existing, otherwise null)
+	 */
 	private Optimization getOptimizationById(UUID optId) {
 		for (Optimization opt: optimizations) {
 			if (opt.getOptId().equals(optId)) {
@@ -543,5 +557,17 @@ public class OptimizationService {
 		}
 		optResult.setMargins(null);
 		return optResult;
+	}
+	
+	/**
+	 * Check if optId is currently initialized or not to prevent errors
+	 * @param optId optId to be checked
+	 * @return true, if optId is already initialized, otherwise false
+	 */
+	public boolean findCurOptId(UUID optId) {
+		if (getOptimizationById(optId) == null) {
+			return false;
+		}
+		return true;
 	}
 }

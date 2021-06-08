@@ -84,7 +84,7 @@ public class JeneticsRun extends Run {
         for(Flight f : resultMap.keySet()) {
             logger.info(f.getFlightId() + " " + resultMap.get(f).getTime());
         }
-        logger.info("Fitness Function applications: " + p.getFitnessIterations());
+        logger.debug("Fitness Function applications: " + p.getFitnessIterations());
         return resultMap;
 	}
 	

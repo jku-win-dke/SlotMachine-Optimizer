@@ -1,15 +1,10 @@
 package at.jku.dke.slotmachine.optimizer.rest;
 
-import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.OptaPlannerRun;
-import at.jku.dke.slotmachine.optimizer.domain.*;
-import at.jku.dke.slotmachine.optimizer.frameworks.jenetics.JeneticsRun;
 import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
-import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultMarginsDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
-import at.jku.dke.slotmachine.optimizer.service.dto.SlotDTO;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,10 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import io.jenetics.util.ISeq;
 import io.swagger.annotations.*;
 
-import java.time.Instant;
 import java.util.*;
 
 @Api(value = "SlotMachine Optimization")
@@ -64,8 +57,13 @@ public class OptimizationResource {
 	)
 	public ResponseEntity<Void> startOptimization(@PathVariable UUID optId) {
 		if(optService == null) optService = new OptimizationService();
-		optService.startOptimization(optId);	
-		return null;
+		if(optService.findCurOptId(optId) == false) {
+			ResponseEntity<Void> optimizationResponse = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
+			return optimizationResponse;
+		}
+		optService.startOptimization(optId);
+		ResponseEntity<Void> optimizationResponse = new ResponseEntity<Void>(HttpStatus.OK);
+		return optimizationResponse;
     }
 
     @ApiOperation(value = "Abort a previously started optimization.")
@@ -79,6 +77,7 @@ public class OptimizationResource {
 	)
 	public ResponseEntity<Void> abortOptimization(@PathVariable UUID optId) {
     	if (optService != null) {
+    		// TODO not correctly implemented currently
     		optService.abortOptimization(optId);
     	}
 		return null;
