@@ -192,6 +192,7 @@ public class OptimizationService {
 							logger.info("No margins have been set.");
 						}
 					}
+					result.setSumOfWeights(getTotalWeights(optRes));
 					return result;
 				}
 			}
@@ -312,6 +313,22 @@ public class OptimizationService {
 			}
 		}
 		return null;
+	}
+	private int getTotalWeights(OptimizationResultMarginsDTO optRes) {
+		Optimization opt = getOptimizationById(optRes.getOptId());
+		int totalWeights = 0;
+		for (int i = 0; i < optRes.getFlightSequence().length; i++) {
+			Flight currentFlight = null;
+			for (Flight f: opt.getFlightList()) {
+				if (f.getFlightId().equals(optRes.getFlightSequence()[i])) {
+					currentFlight = f;
+				}
+			}
+			if (currentFlight != null) {
+				totalWeights = totalWeights + currentFlight.getWeightMap()[i];
+			}
+		}
+		return totalWeights;
 	}
 	private void printMarginResultComparison(OptimizationResultMarginsDTO optRes) {
 		Optimization opt = getOptimizationById(optRes.getOptId());

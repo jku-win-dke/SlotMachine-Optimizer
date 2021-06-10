@@ -295,9 +295,9 @@ public class OptaPlannerRun extends Run {
 				return tc;
 			default:
 				// default value (unimproved seconds spent limit of 10 seconds)
-				tc.setUnimprovedSecondsSpentLimit((long) 10);
-				logger.info("Termination set to default value of unimproved Seconds Spent " +
-				"Limit of 10.");
+				tc.setUnimprovedSecondsSpentLimit((long) 360);
+				logger.info("No Termination method has been properly set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (" + tc.getUnimprovedSecondsSpentLimit() 
+					+ " seconds) is used.");
 				return tc;
 		}
 	}
@@ -339,8 +339,9 @@ public class OptaPlannerRun extends Run {
 	private static TerminationConfig getTerminationsConfig(TerminationOptaPlanner term, int phase) {
 		TerminationConfig tc = new TerminationConfig();
 		if (term == null) {
-			logger.info("No Termination method has been set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (10 seconds) is used.");
-			tc.setUnimprovedSecondsSpentLimit((long) 10);
+			tc.setUnimprovedSecondsSpentLimit((long) 360);
+			logger.info("No Termination method has been properly set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (" + tc.getUnimprovedSecondsSpentLimit() 
+				+ " seconds) is used.");
 			return tc;
 		}
 		if ((term.getTermination1() == null && term.getTermination2() != null)
@@ -361,8 +362,9 @@ public class OptaPlannerRun extends Run {
 			}
 			return tc;
 		} else {
-			logger.info("No Termination method has been properly set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (10 seconds) is used.");
-			tc.setUnimprovedSecondsSpentLimit((long) 10);
+			tc.setUnimprovedSecondsSpentLimit((long) 360);
+			logger.info("No Termination method has been properly set. Default of UNIMPROVED_SECONDS_SPENT_LIMIT (" + tc.getUnimprovedSecondsSpentLimit() 
+				+ " seconds) is used.");
 			return tc;
 		}
 		
