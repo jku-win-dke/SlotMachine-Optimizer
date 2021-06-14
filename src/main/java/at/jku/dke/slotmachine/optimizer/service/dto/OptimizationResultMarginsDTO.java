@@ -8,6 +8,7 @@ public class OptimizationResultMarginsDTO {
     private String[] flightSequence;
     private MarginDTO[] margins;
     private int sumOfWeights;
+    private SlotDTO[] slots;
 
     public UUID getOptId() {
         return optId;
@@ -39,5 +40,13 @@ public class OptimizationResultMarginsDTO {
 
 	public void setSumOfWeights(int sumOfWeights) {
 		this.sumOfWeights = sumOfWeights;
+	}
+
+	public SlotDTO[] getSlots() {
+		return slots;
+	}
+
+	public void setSlots(SlotDTO[] slots) {
+		this.slots = slots;
 	}
 }

@@ -156,6 +156,7 @@ public class OptimizationService {
 		optResult.setOptId(optId);
 		optResult.setFlightSequence(assignedSequence);
 		optResult = setMargins(optResult, curOpt.getMargins());
+		optResult = setSlots(optResult, curOpt.getSlotList());
 		logger.info("Storing results.");
 		//if optId already has a result remove the old result
 		OptimizationResultMarginsDTO oldOptResult = null;
@@ -185,6 +186,7 @@ public class OptimizationService {
 					result.setFlightSequence(optRes.getFlightSequence());
 					result.setOptId(optRes.getOptId());
 					result.setMargins(optRes.getMargins());
+					result.setSlots(optRes.getSlots());
 					if (margins == false) {
 						result.setMargins(null);
 					} else {
@@ -233,10 +235,11 @@ public class OptimizationService {
 			flightList.add(f);
 		}
 		List<Slot> slotList = new LinkedList<Slot>();
-		for (SlotDTO slotdto: optdto.getSlots()) {
-			Slot s = new Slot(slotdto.getTime());
+		for (int i = 0; i < optdto.getSlots().length; i++) {
+			Slot s = new Slot(optdto.getSlots()[i].getTime());
 			slotList.add(s);
 		}
+
 		// jenConfig
 		JeneticsConfig jenConfig = null;
 		if (optdto.getJenConfig() != null) {
@@ -573,6 +576,26 @@ public class OptimizationService {
 			return optResult;
 		}
 		optResult.setMargins(null);
+		return optResult;
+	}
+	
+	/**
+	 * Integrates Slots to OptimizationResultDTO
+	 * 
+	 * @param optResult current optimization result
+	 * @param slots current slots
+	 * @return OptimizationResultDTO with slots
+	 */
+	private OptimizationResultMarginsDTO setSlots(OptimizationResultMarginsDTO optResult, List<Slot> slots) {
+		if (slots != null) {
+			SlotDTO[] slotsDTO = new SlotDTO[slots.size()];
+			for (int i = 0; i < slots.size(); i++) {
+				slotsDTO[i] = new SlotDTO(slots.get(i).getTime());
+			}
+			optResult.setSlots(slotsDTO);
+			return optResult;
+		}
+		optResult.setSlots(null);
 		return optResult;
 	}
 	
