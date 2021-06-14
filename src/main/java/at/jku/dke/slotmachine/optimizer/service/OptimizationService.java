@@ -580,7 +580,7 @@ public class OptimizationService {
 	}
 	
 	/**
-	 * Integrates Slots to OptimizationResultDTO
+	 * Integrates Slots to OptimizationResultDTO as a list of Instants
 	 * 
 	 * @param optResult current optimization result
 	 * @param slots current slots
@@ -588,11 +588,11 @@ public class OptimizationService {
 	 */
 	private OptimizationResultMarginsDTO setSlots(OptimizationResultMarginsDTO optResult, List<Slot> slots) {
 		if (slots != null) {
-			SlotDTO[] slotsDTO = new SlotDTO[slots.size()];
+			Instant[] slotList = new Instant[slots.size()];
 			for (int i = 0; i < slots.size(); i++) {
-				slotsDTO[i] = new SlotDTO(slots.get(i).getTime());
+				slotList[i] = slots.get(i).getTime();
 			}
-			optResult.setSlots(slotsDTO);
+			optResult.setSlots(slotList);
 			return optResult;
 		}
 		optResult.setSlots(null);

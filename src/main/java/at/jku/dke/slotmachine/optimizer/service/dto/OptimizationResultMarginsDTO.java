@@ -1,5 +1,6 @@
 package at.jku.dke.slotmachine.optimizer.service.dto;
 
+import java.time.Instant;
 import java.util.UUID;
 
 
@@ -8,7 +9,7 @@ public class OptimizationResultMarginsDTO {
     private String[] flightSequence;
     private MarginDTO[] margins;
     private int sumOfWeights;
-    private SlotDTO[] slots;
+    private Instant[] slots;
 
     public UUID getOptId() {
         return optId;
@@ -42,11 +43,11 @@ public class OptimizationResultMarginsDTO {
 		this.sumOfWeights = sumOfWeights;
 	}
 
-	public SlotDTO[] getSlots() {
+	public Instant[] getSlots() {
 		return slots;
 	}
 
-	public void setSlots(SlotDTO[] slots) {
+	public void setSlots(Instant[] slots) {
 		this.slots = slots;
 	}
 }
