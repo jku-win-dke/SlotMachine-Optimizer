@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.JeneticsConfig;
+import at.jku.dke.slotmachine.optimizer.domain.Optimization;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.frameworks.Run;
 import at.jku.dke.slotmachine.optimizer.service.dto.JeneticConfigDTO.Alterer;
@@ -50,7 +51,7 @@ public class JeneticsRun extends Run {
 	 * @param slots list of possible slots
 	 * @return
 	 */
-	public static Map<Flight, Slot> run(List<Flight> flights, List<Slot> slots) {
+	public static Map<Flight, Slot> run(List<Flight> flights, List<Slot> slots, Optimization opt) {
 		logger.info("Start optimization using Jenetics framework");
 		
 		SlotAllocationProblem p = new SlotAllocationProblem(
@@ -68,8 +69,8 @@ public class JeneticsRun extends Run {
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
         Genotype<EnumGene<Integer>> result = e.stream()
-        		.limit(Limits.byFitnessConvergence(5, 10, 10E-4))
-        		.limit(Limits.byExecutionTime(Duration.ofSeconds(360)))
+        		//.limit(Limits.byFitnessConvergence(5, 10, 10E-4))
+        		.limit(Limits.byExecutionTime(Duration.ofSeconds(20)))
         		.peek(statistics)
         		.collect(EvolutionResult.toBestGenotype());
         
@@ -85,6 +86,7 @@ public class JeneticsRun extends Run {
             logger.info(f.getFlightId() + " " + resultMap.get(f).getTime());
         }
         logger.debug("Fitness Function applications: " + p.getFitnessIterations());
+        opt.setFitnessApplications(p.getFitnessIterations());
         return resultMap;
 	}
 	
@@ -96,7 +98,7 @@ public class JeneticsRun extends Run {
 	 * @param jenConfig parameters, to change the configuration of Jenetics for this run
 	 * @return
 	 */
-	public static Map<Flight, Slot> run(List<Flight> flights, List<Slot> slots, JeneticsConfig jenConfig) {
+	public static Map<Flight, Slot> run(List<Flight> flights, List<Slot> slots, JeneticsConfig jenConfig, Optimization opt) {
 		logger.info("Start optimization using Jenetics framework with advanced settings.");
 		if (jenConfig == null) {
 			logger.info("No advanced settings were found, therefore default settings will be used.");
@@ -216,6 +218,7 @@ public class JeneticsRun extends Run {
             logger.info(f.getFlightId() + " " + resultMap.get(f).getTime());
         }
         logger.info("Fitness Function applications: " + p.getFitnessIterations());
+        opt.setFitnessApplications(p.getFitnessIterations());
         return resultMap;	
 	}
 

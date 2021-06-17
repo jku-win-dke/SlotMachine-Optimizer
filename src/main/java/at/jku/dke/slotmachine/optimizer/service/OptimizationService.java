@@ -107,16 +107,16 @@ public class OptimizationService {
 			
 			// use jenetics configuration, if jenConfig is not null
 			if (curOpt.getJenConfig()!=null) {
-				resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt.getJenConfig());
+				resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt.getJenConfig(), curOpt);
 			} else {
-				resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+				resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt);
 			}
 		} else if (curOpt.getOptimization().getClass().equals(OptaPlannerRun.class)) {
 			logger.info("Optimization uses OptaPlannerRun framework.");
 			if (curOpt.getOptaPlannerConfig() != null) {
-				resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt.getOptaPlannerConfig());
+				resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt.getOptaPlannerConfig(), curOpt);
 			} else {
-				resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+				resultMap = OptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt);
 			}
 		} else if (curOpt.getOptimization().getClass().equals(BenchmarkRun.class)) {
 			logger.info("Optimization uses BenchmarkRun framework (OptaPlanner).");
@@ -127,7 +127,7 @@ public class OptimizationService {
 			resultMap = BenchmarkOptaPlannerRun.run(curOpt.getFlightList(), curOpt.getSlotList());
 		} else {
 			logger.info("No framework set, uses default Jenetics framework.");
-			resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList());
+			resultMap = JeneticsRun.run(curOpt.getFlightList(), curOpt.getSlotList(), curOpt);
 		}
 		
 		logger.info("Preparing results.");
@@ -157,6 +157,7 @@ public class OptimizationService {
 		optResult.setFlightSequence(assignedSequence);
 		optResult = setMargins(optResult, curOpt.getMargins());
 		optResult = setSlots(optResult, curOpt.getSlotList());
+		optResult.setFitnessFunctionApplications(curOpt.getFitnessApplications());
 		logger.info("Storing results.");
 		//if optId already has a result remove the old result
 		OptimizationResultMarginsDTO oldOptResult = null;
@@ -195,6 +196,7 @@ public class OptimizationService {
 						}
 					}
 					result.setSumOfWeights(getTotalWeights(optRes));
+					result.setFitnessFunctionApplications(optRes.getFitnessFunctionApplications());
 					return result;
 				}
 			}

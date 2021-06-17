@@ -10,7 +10,7 @@
     
     <!-- Termination -->
     <termination>
-        <unimprovedSecondsSpentLimit>420</unimprovedSecondsSpentLimit>
+        <unimprovedSecondsSpentLimit>20</unimprovedSecondsSpentLimit>
     </termination>
     
     <!-- Construction Heuristic Phase -->

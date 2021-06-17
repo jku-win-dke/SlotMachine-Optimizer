@@ -16,6 +16,7 @@ public class Optimization {
     private JeneticsConfig jenConfig; // specially for jenetics configuration
     private OptaPlannerConfig optaPlannerConfig; // specially for OptaPlanner configuration
     private Margin[] margins;
+    private int fitnessApplications; // to count how often fitness function / score calculation is used
     
     public Optimization(List<Flight> flightList, List<Slot> slotList, Run optimization, UUID optId, JeneticsConfig jenConfig, 
     		OptaPlannerConfig optaPlannerConfig, Margin[] margins) {
@@ -82,6 +83,14 @@ public class Optimization {
 
 	public void setMargins(Margin[] margins) {
 		this.margins = margins;
+	}
+
+	public int getFitnessApplications() {
+		return fitnessApplications;
+	}
+
+	public void setFitnessApplications(int fitnessApplications) {
+		this.fitnessApplications = fitnessApplications;
 	}
     
 }

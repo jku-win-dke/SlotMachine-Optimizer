@@ -10,6 +10,7 @@ public class OptimizationResultMarginsDTO {
     private MarginDTO[] margins;
     private int sumOfWeights;
     private Instant[] slots;
+    private int fitnessApplications;
 
     public UUID getOptId() {
         return optId;
@@ -49,5 +50,13 @@ public class OptimizationResultMarginsDTO {
 
 	public void setSlots(Instant[] slots) {
 		this.slots = slots;
+	}
+
+	public int getFitnessFunctionApplications() {
+		return fitnessApplications;
+	}
+
+	public void setFitnessFunctionApplications(int fitnessFunctionApplications) {
+		this.fitnessApplications = fitnessFunctionApplications;
 	}
 }

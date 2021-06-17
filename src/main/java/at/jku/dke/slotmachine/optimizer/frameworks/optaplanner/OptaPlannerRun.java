@@ -9,6 +9,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Acceptor;
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.LocalSearchPhase;
 import at.jku.dke.slotmachine.optimizer.domain.OptaPlannerConfig;
+import at.jku.dke.slotmachine.optimizer.domain.Optimization;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.domain.TerminationOptaPlanner;
 import at.jku.dke.slotmachine.optimizer.frameworks.Run;
@@ -47,7 +48,7 @@ public class OptaPlannerRun extends Run {
 	 * @param slots
 	 * @return Map (solution)
 	 */
-	public static Map<Flight,Slot> run(List<Flight> flights, List<Slot> slots) {
+	public static Map<Flight,Slot> run(List<Flight> flights, List<Slot> slots, Optimization opt) {
 		logger.info("Start optimization using OptaPlanner framework.");
 		SolverFactory<FlightPrioritization> solverFactory = SolverFactory.createFromXmlResource("solver_config.xml");
 
@@ -77,7 +78,7 @@ public class OptaPlannerRun extends Run {
         }
        
        logger.info("Size: " + solution.keySet().size());
-       
+       opt.setFitnessApplications(solvedFlightPrioritization.getApplications());
        return solution;
         
 	}
@@ -89,7 +90,7 @@ public class OptaPlannerRun extends Run {
 	 * @param optConfig configuration of OptaPlanner
 	 * @return Map (solution)
 	 */
-	public static Map<Flight,Slot> run(List<Flight> flights, List<Slot> slots, OptaPlannerConfig optConfig) {
+	public static Map<Flight,Slot> run(List<Flight> flights, List<Slot> slots, OptaPlannerConfig optConfig, Optimization opt) {
 		logger.info("Start optimization using OptaPlanner framework - with configuration due to optaPlannerConfig.");
 		SolverFactory<FlightPrioritization> solverFactory = null;
 		
@@ -176,7 +177,7 @@ public class OptaPlannerRun extends Run {
         }
        
        logger.info("Size: " + solution.keySet().size());
-       
+       opt.setFitnessApplications(solvedFlightPrioritization.getApplications());
        return solution;
         
 	}
