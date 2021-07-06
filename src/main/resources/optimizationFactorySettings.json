@@ -1,0 +1,4 @@
+{
+  "JENETICS":"at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimizationFactory",
+  "OPTAPLANNER":"at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaPlannerOptimizationFactory"
+}

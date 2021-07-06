@@ -6,10 +6,10 @@
 	<inheritedSolverBenchmark>
 		<solver>
 			<environmentMode>REPRODUCIBLE</environmentMode> 
-		    <solutionClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightPrioritization</solutionClass>
-		    <entityClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightBenchmarkOptaPlanner</entityClass>
+		    <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.benchmarkOptaPlanner.FlightPrioritization</solutionClass>
+		    <entityClass>at.jku.dke.slotmachine.optimizer.optimization.benchmarkOptaPlanner.FlightBenchmarkOptaPlanner</entityClass>
 		    <scoreDirectorFactory>
-		        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
+		        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.benchmarkOptaPlanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
 		    </scoreDirectorFactory>
 		    <termination>
 		        <unimprovedMillisecondsSpentLimit>850</unimprovedMillisecondsSpentLimit>

@@ -4,11 +4,12 @@ import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.lookup.PlanningId;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
-import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightDifficultyComparator;
-import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.SlotStrengthComparator;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightDifficultyComparator;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.SlotStrengthComparator;
 
 import java.time.Instant;
 
+// TODO make this class agnostic to optimization framework
 @PlanningEntity(difficultyComparatorClass = FlightDifficultyComparator.class)
 public class Flight {
 	// PlanningId is used for OptaPlanner (move thread count)
@@ -16,9 +17,10 @@ public class Flight {
     private String flightId;
     private Instant scheduledTime;
     private int[] weightMap;
+    private Margins margins;
 
     @PlanningVariable(valueRangeProviderRefs = "slotRange",
-    		strengthComparatorClass = SlotStrengthComparator.class)
+                      strengthComparatorClass = SlotStrengthComparator.class)
     private Slot slot;
 
     public Flight(String flightId, Instant scheduledTime, int[] weightMap) {
@@ -62,4 +64,8 @@ public class Flight {
     public void setSlot(Slot slot) {
         this.slot = slot;
     }
+
+    public Margins getMargins() { return margins; }
+
+    public void setMargins(Margins margins) { this.margins = margins; }
 }
