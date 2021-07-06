@@ -17,33 +17,37 @@ public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalcula
     public HardSoftScore calculateScore(FlightPrioritization flightPrioritization) {
         int hardScore = 0;
         int softScore = 0;
-		if (flightPrioritization.getApplications() < 0) {									// used for logger
-			flightPrioritization.setApplications(0);
+
+		if (flightPrioritization.getFitnessFunctionInvocations() < 0) {	// used for logger
+			flightPrioritization.setFitnessFunctionInvocations(0);
 		}
-		flightPrioritization.setApplications(flightPrioritization.getApplications() + 1); 	// used for logger
-        for(Flight f : flightPrioritization.getFlights()) {
-            if(f.getScheduledTime().isAfter(f.getSlot().getTime())) {
+
+		flightPrioritization.setFitnessFunctionInvocations(flightPrioritization.getFitnessFunctionInvocations() + 1); // used for logger
+
+        for(FlightPlanningEntity f : flightPrioritization.getFlights()) {
+            if(f.getWrappedFlight().getScheduledTime().isAfter(f.getSlot().getTime())) {
                 hardScore--;
             }
 
-            for(Flight e : flightPrioritization.getFlights()) {
+            for(FlightPlanningEntity e : flightPrioritization.getFlights()) {
                 if(!f.equals(e) && f.getSlot() != null && e.getSlot() != null && f.getSlot().equals(e.getSlot())) {
                     hardScore--;
                 }
             }
 
 			// sorted list of instants (needed to get positions of slots accurately)
-			List<Instant> sortedSlots = new LinkedList<Instant>();
-			for (Slot s: flightPrioritization.getSlots()) {
+			List<Instant> sortedSlots = new LinkedList<>();
+			for (SlotProblemFact s: flightPrioritization.getSlots()) {
 				sortedSlots.add(s.getTime());
 			}
+
 			Collections.sort(sortedSlots);
             
 			// returns position of slot in weight array
 			int posOfSlot = sortedSlots.indexOf(f.getSlot().getTime());
 			
 			// adds weight at position of slot
-			softScore += f.getWeightMap()[posOfSlot];
+			softScore += f.getWrappedFlight().getWeightMap()[posOfSlot];
         }
 
         return HardSoftScore.of(hardScore, softScore);

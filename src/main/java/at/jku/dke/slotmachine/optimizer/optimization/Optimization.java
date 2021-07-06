@@ -2,7 +2,6 @@ package at.jku.dke.slotmachine.optimizer.optimization;
 
 import at.jku.dke.slotmachine.optimizer.domain.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -53,9 +52,7 @@ public abstract class Optimization {
 
 	public abstract OptimizationConfiguration getConfiguration();
 
-	public abstract void newConfiguration(Map<String, Object> parameters);
+	public abstract void newConfiguration(Map<String, Object> parameters) throws InvalidOptimizationParameterTypeException;
 
 	public abstract OptimizationStatistics getStatistics();
-
-	public abstract void setStatistics(OptimizationStatistics statistics);
 }

@@ -81,7 +81,7 @@ public class OptimizationResource {
         return optimizationResponse;
     }
 
-    @ApiOperation(value = "Abort a previously started optimization.")
+    @ApiOperation(value = "Abort a previously started optimization; if available, an intermediate result can be obtained.")
     @PutMapping(path = "/optimizations/{optId}/abort", produces = "application/json")
     @ApiResponses(
             value = {
@@ -95,7 +95,7 @@ public class OptimizationResource {
         return null;
     }
 
-    @ApiOperation(value = "Get the result of an optimization; returns intermediate result if not finished.", response = OptimizationResultDTO.class)
+    @ApiOperation(value = "Get the result of an optimization, if available.", response = OptimizationResultDTO.class)
     @GetMapping(path = {"/optimizations/{optId}/result"}, produces = "application/json")
     @ApiResponses(
             value = {

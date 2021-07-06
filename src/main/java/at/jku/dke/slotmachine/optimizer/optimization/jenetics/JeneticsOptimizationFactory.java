@@ -2,15 +2,11 @@ package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
-import at.jku.dke.slotmachine.optimizer.optimization.InvalidParameterTypeException;
-import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
-import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
+import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationFactory;
-import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.List;
 import java.util.Map;
 
 public class JeneticsOptimizationFactory extends OptimizationFactory {
@@ -22,10 +18,15 @@ public class JeneticsOptimizationFactory extends OptimizationFactory {
     }
 
     @Override
-    public JeneticsOptimization createOptimization(Flight[] flights, Slot[] slots, Map<String, Object> parameters) {
+    public JeneticsOptimization createOptimization(Flight[] flights, Slot[] slots, Map<String, Object> parameters) throws InvalidOptimizationParameterTypeException {
         JeneticsOptimization optimization = this.createOptimization(flights, slots);
 
-        optimization.newConfiguration(parameters);
+        try {
+            optimization.newConfiguration(parameters);
+        } catch (InvalidOptimizationParameterTypeException e) {
+            logger.error("Wrong parameter for Jenetics configuration.", e);
+            throw e;
+        }
 
         return optimization;
     }

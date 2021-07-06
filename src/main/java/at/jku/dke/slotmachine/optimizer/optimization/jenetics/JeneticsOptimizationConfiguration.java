@@ -1,9 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
-import at.jku.dke.slotmachine.optimizer.optimization.InvalidParameterTypeException;
+import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
-
-import java.util.Map;
 
 public class JeneticsOptimizationConfiguration extends OptimizationConfiguration {
 
@@ -20,9 +18,9 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     }
 
 
-    public void setMaximumPhenotypeAge(Object maximumPhenotypeAge) throws InvalidParameterTypeException {
+    public void setMaximumPhenotypeAge(Object maximumPhenotypeAge) throws InvalidOptimizationParameterTypeException {
         if (!(maximumPhenotypeAge instanceof Integer)) {
-            throw new InvalidParameterTypeException("maximumPhenotypeAge", Integer.class, maximumPhenotypeAge.getClass());
+            throw new InvalidOptimizationParameterTypeException("maximumPhenotypeAge", Integer.class, maximumPhenotypeAge.getClass());
         }
 
         this.setMaximumPhenotypeAge(maximumPhenotypeAge);
@@ -37,9 +35,9 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         this.setParameter("populationSize", populationSize);
     }
 
-    public void setPopulationSize(Object populationSize) throws InvalidParameterTypeException {
+    public void setPopulationSize(Object populationSize) throws InvalidOptimizationParameterTypeException {
         if (!(populationSize instanceof Integer)) {
-            throw new InvalidParameterTypeException("populationSize", Integer.class, populationSize.getClass());
+            throw new InvalidOptimizationParameterTypeException("populationSize", Integer.class, populationSize.getClass());
         }
 
         this.setPopulationSize(populationSize);

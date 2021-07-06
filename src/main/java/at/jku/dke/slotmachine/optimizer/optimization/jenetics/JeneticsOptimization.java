@@ -2,19 +2,14 @@ package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
-import at.jku.dke.slotmachine.optimizer.optimization.InvalidParameterTypeException;
+import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationStatistics;
-import io.jenetics.Alterer;
-import io.jenetics.EnumGene;
-import io.jenetics.engine.*;
-import io.jenetics.util.ISeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class JeneticsOptimization extends Optimization {
@@ -38,17 +33,19 @@ public class JeneticsOptimization extends Optimization {
     }
 
     @Override
-    public OptimizationConfiguration getDefaultConfiguration() {
+    public JeneticsOptimizationConfiguration getDefaultConfiguration() {
+        // TODO create default configuration that can be returned
+
         return null;
     }
 
     @Override
-    public OptimizationConfiguration getConfiguration() {
-        return null;
+    public JeneticsOptimizationConfiguration getConfiguration() {
+        return this.configuration;
     }
 
     @Override
-    public void newConfiguration(Map<String, Object> parameters) {
+    public void newConfiguration(Map<String, Object> parameters) throws InvalidOptimizationParameterTypeException {
         JeneticsOptimizationConfiguration newConfiguration =
             new JeneticsOptimizationConfiguration();
 
@@ -58,28 +55,27 @@ public class JeneticsOptimization extends Optimization {
         // set the parameters
         try {
             if (maximumPhenotypeAge != null) {
-                newConfiguration.setMaximumPhenotypeAge(maximumPhenotypeAge);
+                newConfiguration.setMaximumPhenotypeAge(Integer.parseInt((String) maximumPhenotypeAge));
             }
-
-            if (populationSize != null) {
-                newConfiguration.setPopulationSize(populationSize);
-            }
-        } catch (InvalidParameterTypeException e) {
-            logger.error("Wrong parameter type", e);
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("maximumPhenotypeAge", Integer.class);
         }
 
-        // replace the configuration if no error occurred
+        try {
+            if (populationSize != null) {
+                newConfiguration.setMaximumPhenotypeAge(Integer.parseInt((String) populationSize));
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("populationSize", Integer.class);
+        }
+
+        // replace the configuration if no error was thrown
         this.configuration = newConfiguration;
     }
 
     @Override
-    public OptimizationStatistics getStatistics() {
+    public JeneticsOptimizationStatistics getStatistics() {
         return null;
-    }
-
-    @Override
-    public void setStatistics(OptimizationStatistics statistics) {
-
     }
 
 

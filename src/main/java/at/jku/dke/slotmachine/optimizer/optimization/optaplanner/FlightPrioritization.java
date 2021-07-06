@@ -3,6 +3,7 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
@@ -17,16 +18,14 @@ import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 @PlanningSolution
 public class FlightPrioritization {
 
-	private int applications; // applications of score calculations, used for logger
-	
-	private Map<Flight,Slot> sequence = null;
+	private int fitnessFunctionInvocations; // applications of score calculations, used for logger
 	
     @ValueRangeProvider(id = "slotRange")
     @ProblemFactCollectionProperty
-    private List<Slot> slots;
+    private List<SlotProblemFact> slots;
 
     @PlanningEntityCollectionProperty
-    private List<Flight> flights;
+    private List<FlightPlanningEntity> flights;
 
     @PlanningScore
     private HardSoftScore score;
@@ -35,17 +34,17 @@ public class FlightPrioritization {
 
     }
 	
-	public FlightPrioritization(List<Slot> slots, List<Flight> flights) {
+	public FlightPrioritization(List<SlotProblemFact> slots, List<FlightPlanningEntity> flights) {
         this.slots = slots;
         this.flights = flights;
-        this.applications = 0;
+        this.fitnessFunctionInvocations = 0;
     }
 
-    public List<Slot> getSlots() {
+    public List<SlotProblemFact> getSlots() {
         return slots;
     }
 
-    public List<Flight> getFlights() {
+    public List<FlightPlanningEntity> getFlights() {
         return flights;
     }
 
@@ -53,23 +52,20 @@ public class FlightPrioritization {
         return score;
     }
 
-    public Map<Flight, Slot> getSequence() {
-        if(this.sequence == null) {
-            this.sequence = new HashMap<Flight, Slot>();
-
-            for (Flight f : flights) {
-                this.sequence.put(f, f.getSlot());
-            }
-        }
-
-        return this.sequence;
+    /**
+     * Get the optimization result in terms of the domain classes.
+     * @return a mapping of flights to slots
+     */
+    public Map<Flight, Slot> getResultMap() {
+        return this.flights.stream()
+                .collect(Collectors.toMap(f -> f.getWrappedFlight(), f -> f.getSlot().getWrappedSlot()));
     }
 
-	public int getApplications() {
-		return applications;
+	public int getFitnessFunctionInvocations() {
+        return fitnessFunctionInvocations;
 	}
 
-	public void setApplications(int applications) {
-		this.applications = applications;
+	public void setFitnessFunctionInvocations(int fitnessFunctionInvocations) {
+		this.fitnessFunctionInvocations = fitnessFunctionInvocations;
 	}
 }
