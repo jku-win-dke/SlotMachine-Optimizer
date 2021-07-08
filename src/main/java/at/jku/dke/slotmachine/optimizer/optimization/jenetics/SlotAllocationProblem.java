@@ -44,10 +44,12 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 				}
 				setFitnessIterations(getFitnessIterations() + 1); 	// used for logger
 				// sorted list of instants (needed to get positions of slots accurately)
-				List<Instant> sortedSlots = new LinkedList<Instant>();
+				List<Instant> sortedSlots = new LinkedList<>();
+
 				for (Slot s: availableSlots) {
 					sortedSlots.add(s.getTime());
 				}
+
 				Collections.sort(sortedSlots);
 				
 				// can be used to print which slot number is assigned to which time in sortedSlots

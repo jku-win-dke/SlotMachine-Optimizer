@@ -4,12 +4,13 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
-import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
-import at.jku.dke.slotmachine.optimizer.optimization.OptimizationStatistics;
+import io.jenetics.*;
+import io.jenetics.engine.Engine;
+import io.jenetics.engine.EvolutionResult;
+import io.jenetics.util.ISeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class JeneticsOptimization extends Optimization {
@@ -23,13 +24,55 @@ public class JeneticsOptimization extends Optimization {
 
     @Override
     public Map<Flight, Slot> run() {
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            logger.error("Thread interrupted.", e);
-        }
+        logger.info("Running optimization using Jenetics framework as slot allocation problem ...");
 
-        return new HashMap<Flight, Slot>();
+        SlotAllocationProblem problem = new SlotAllocationProblem(
+            ISeq.of(this.getFlights()),
+            ISeq.of(this.getSlots())
+        );
+
+        int populationSize = this.getConfiguration().getPopulationSize();
+        if(populationSize == -1) { populationSize = this.getDefaultConfiguration().getPopulationSize(); }
+
+        Mutator<EnumGene<Integer>, Integer> mutator = this.getConfiguration().getMutator();
+        if(mutator == null) { mutator = this.getDefaultConfiguration().getMutator(); }
+
+        Crossover<EnumGene<Integer>, Integer> crossover = this.getConfiguration().getCrossover();
+        if(crossover == null) { crossover = this.getDefaultConfiguration().getCrossover(); }
+
+        Selector<EnumGene<Integer>, Integer> offspringSelector = this.getConfiguration().getOffspringSelector();
+        if(offspringSelector == null) { offspringSelector = this.getDefaultConfiguration().getOffspringSelector(); }
+
+        Selector<EnumGene<Integer>, Integer> survivorsSelector = this.getConfiguration().getSurvivorsSelector();
+        if(survivorsSelector == null) { survivorsSelector = this.getDefaultConfiguration().getSurvivorsSelector(); }
+
+        int maximalPhenotypeAge = this.getConfiguration().getMaximalPhenotypeAge();
+        if(maximalPhenotypeAge == -1) { maximalPhenotypeAge = this.getDefaultConfiguration().getMaximalPhenotypeAge(); }
+
+        double offspringFraction = this.getConfiguration().getOffspringFraction();
+        if(offspringFraction == -1.0) { offspringFraction = this.getDefaultConfiguration().getOffspringFraction(); }
+
+        Engine<EnumGene<Integer>, Integer> engine = Engine.builder(problem)
+                .populationSize(populationSize)
+                .alterers(mutator, crossover)
+                .offspringSelector(offspringSelector)
+                .survivorsSelector(survivorsSelector)
+                .maximalPhenotypeAge(maximalPhenotypeAge)
+                .offspringFraction(offspringFraction)
+                .constraint(problem.constraint().get())
+                .build();
+
+        ISeq<Phenotype<EnumGene<Integer>, Integer>> initialPopulation = this.getConfiguration().getInitialPopulation();
+
+        Genotype<EnumGene<Integer>> result = engine.stream(initialPopulation).collect(EvolutionResult.toBestGenotype());
+
+
+        // TODO obtain the result
+
+
+        Map<Flight, Slot> resultMap = problem.decode(result);
+
+        return null;
     }
 
     @Override
