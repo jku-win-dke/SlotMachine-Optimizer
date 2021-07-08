@@ -14,7 +14,7 @@
     <name>Slotmachine-Optimizer</name>
     <description>The Heuristic Optimizer of the SlotMachine system</description>
     <properties>
-        <java.version>15</java.version>
+        <java.version>16</java.version>
     </properties>
     <dependencies>
         <dependency>

@@ -12,7 +12,7 @@
 		        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmarkOptaPlanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
 		    </scoreDirectorFactory>
 		    <termination>
-		        <unimprovedMillisecondsSpentLimit>850</unimprovedMillisecondsSpentLimit>
+		        <unimprovedSecondsSpentLimit>20</unimprovedSecondsSpentLimit>
 		    </termination>	  
 		</solver>
 		<problemBenchmarks>
@@ -20,10 +20,79 @@
 			<problemStatisticType>STEP_SCORE</problemStatisticType>
 			<problemStatisticType>SCORE_CALCULATION_SPEED</problemStatisticType>
 		</problemBenchmarks>
-		<!--<subSingleCount>10</subSingleCount>-->
+		<subSingleCount>2</subSingleCount>
 	</inheritedSolverBenchmark>
+	
+	<solverBenchmark>
+		<name>Hill Climbing</name>
+		<solver>
+		  <localSearch>
+		    <localSearchType>HILL_CLIMBING</localSearchType>
+		  </localSearch>
+		</solver>
+	</solverBenchmark>
+	<solverBenchmark>
+		<name>Tabu Search</name>
+		<solver>
+		  <localSearch>
+		    <localSearchType>TABU_SEARCH</localSearchType>
+		  </localSearch>
+		</solver>
+	</solverBenchmark>
+	<solverBenchmark>
+		<name>Late Acceptance</name>
+		<solver>
+		  <localSearch>
+		    <localSearchType>LATE_ACCEPTANCE</localSearchType>
+		  </localSearch>
+		</solver>
+	</solverBenchmark>
+	<solverBenchmark>
+		<name>Great Deluge</name>
+		<solver>
+		  <localSearch>
+		    <localSearchType>GREAT_DELUGE</localSearchType>
+		  </localSearch>
+		</solver>
+	</solverBenchmark>
+	<solverBenchmark>
+		<name>Variable Neighborhood Descent</name>
+		<solver>
+		  <localSearch>
+		    <localSearchType>VARIABLE_NEIGHBORHOOD_DESCENT</localSearchType>
+		  </localSearch>
+		</solver>
+	</solverBenchmark>
+	<solverBenchmark>
+		<name>Simulated Annealing</name>
+		<solver>
+			<localSearch>
+				<acceptor>
+					<simulatedAnnealingStartingTemperature>0hard/100soft</simulatedAnnealingStartingTemperature>
+				</acceptor>
+				<forager>
+					<acceptedCountLimit>4</acceptedCountLimit>
+				</forager>
+			</localSearch>
+		</solver>
+	</solverBenchmark>
+	<solverBenchmark>
+		<name>Strategic Oscillation</name>
+		<solver>
+		    <localSearch>
+				<acceptor>
+					<entityTabuSize>7</entityTabuSize>
+				</acceptor>
+				<forager>
+					<acceptedCountLimit>1000</acceptedCountLimit>
+					<finalistPodiumType>STRATEGIC_OSCILLATION</finalistPodiumType>
+				</forager>
+	  		</localSearch>
+  		</solver>
+	</solverBenchmark>
 
-    <solverBenchmarkBluePrint>
+    <!--<solverBenchmarkBluePrint>
 		<solverBenchmarkBluePrintType>EVERY_CONSTRUCTION_HEURISTIC_TYPE_WITH_EVERY_LOCAL_SEARCH_TYPE</solverBenchmarkBluePrintType>
-	</solverBenchmarkBluePrint>
+		<solverBenchmarkBluePrintType>EVERY_LOCAL_SEARCH_TYPE</solverBenchmarkBluePrintType>
+	</solverBenchmarkBluePrint>-->
 </plannerBenchmark>

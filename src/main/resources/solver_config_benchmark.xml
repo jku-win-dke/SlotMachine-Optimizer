@@ -10,14 +10,15 @@
      <!-- exhaustive search for BRANCH AND BOUND -->
        <exhaustiveSearch>
 	    <exhaustiveSearchType>BRANCH_AND_BOUND</exhaustiveSearchType>
+	    <nodeExplorationType>DEPTH_FIRST</nodeExplorationType>
 	  </exhaustiveSearch>
     <scoreDirectorFactory>
         <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmark.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
-    <!-- <termination>
-    	<terminationCompositionStyle>AND</terminationCompositionStyle>
-    	<bestScoreFeasible>true</bestScoreFeasible> looks only for a feasible solution	
+    <termination>
+    	<!-- <terminationCompositionStyle>AND</terminationCompositionStyle>
+    	<bestScoreFeasible>true</bestScoreFeasible> looks only for a feasible solution	-->
     	<unimprovedSecondsSpentLimit>300</unimprovedSecondsSpentLimit>
-    </termination>-->
+    </termination>
     <environmentMode>REPRODUCIBLE</environmentMode>
 </solver>
