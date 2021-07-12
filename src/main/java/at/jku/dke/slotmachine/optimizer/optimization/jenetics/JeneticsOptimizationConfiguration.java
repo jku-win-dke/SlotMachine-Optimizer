@@ -5,26 +5,16 @@ import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
 import io.jenetics.*;
+import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.Problem;
 import io.jenetics.util.ISeq;
 
+import java.util.function.Predicate;
+
 public class JeneticsOptimizationConfiguration extends OptimizationConfiguration {
-
-    public void setProblemClassName(String problemClassName) {
-        this.setParameter("problemClassName", problemClassName);
-    }
-
-    public String getProblemClassName() {
-        return (String) this.getParameter("problemClassName");
-    }
-
-    public Problem getProblem(ISeq<Flight> flights, ISeq<Slot> slots) {
-        return null;
-    }
-
     /**
-     * Returns the maximum phenotype age, or -1 if the parameter is not set.
-     * @return the maximum phenotype age
+     * Returns the maximal phenotype age, or -1 if the parameter is not set.
+     * @return the maximal phenotype age
      */
     public int getMaximalPhenotypeAge() {
         return this.getIntegerParameter("maximalPhenotypeAge");
@@ -70,8 +60,36 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     }
 
     public Mutator<EnumGene<Integer>, Integer> getMutator() {
+        String mutatorType = this.getStringParameter("mutator");
 
-        return null;
+        Mutator<EnumGene<Integer>, Integer> mutator = null;
+
+        if(mutatorType != null) {
+            switch (mutatorType) {
+                case "SWAP_MUTATOR":
+                    double alterProbability = this.getMutatorAlterProbability();
+
+                    if(alterProbability >= 0) {
+                        mutator = new SwapMutator<>(alterProbability);
+                    } else {
+                        mutator = new SwapMutator<>();
+                    }
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + mutatorType);
+            }
+        }
+
+        return mutator;
+    }
+
+    private double getMutatorAlterProbability() {
+        return this.getDoubleParameter("mutatorAlterProbability");
+    }
+
+
+    private String getStringParameter(String param) {
+        return (String) this.getParameter(param);
     }
 
 
@@ -91,7 +109,6 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     }
 
     public double getOffspringFraction() {
-
         return this.getDoubleParameter("offspringFraction");
     }
 
@@ -107,4 +124,27 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     public ISeq<Phenotype<EnumGene<Integer>, Integer>> getInitialPopulation() {
         return null;
     }
+
+    public Predicate<EvolutionResult<EnumGene<Integer>, Integer>> getTerminationCondition() {
+        Predicate<EvolutionResult<EnumGene<Integer>, Integer>> predicate = null;
+
+        return predicate;
+    }
+
+    public void setOffspringFraction(double offspringFraction) {
+        this.setParameter("offspringFraction", offspringFraction);
+    }
+
+    public void setMutator(String mutator) {
+        this.setParameter("mutator", mutator);
+    }
+
+    public void setCrossover(String crossover) {
+        this.setParameter("crossover", crossover);
+    }
+
+    public void setMutatorAlterProbability(double mutatorAlterProbability) {
+        this.setParameter("mutatorAlterProbability", mutatorAlterProbability);
+    }
+
 }

@@ -7,11 +7,13 @@ import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import io.jenetics.*;
 import io.jenetics.engine.Engine;
 import io.jenetics.engine.EvolutionResult;
+import io.jenetics.engine.EvolutionStatistics;
 import io.jenetics.util.ISeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class JeneticsOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
@@ -63,14 +65,24 @@ public class JeneticsOptimization extends Optimization {
                 .build();
 
         ISeq<Phenotype<EnumGene<Integer>, Integer>> initialPopulation = this.getConfiguration().getInitialPopulation();
+        if(initialPopulation == null) { initialPopulation = this.getDefaultConfiguration().getInitialPopulation(); }
 
-        Genotype<EnumGene<Integer>> result = engine.stream(initialPopulation).collect(EvolutionResult.toBestGenotype());
+        Predicate<EvolutionResult<EnumGene<Integer>, Integer>> terminationCondition =
+            this.getConfiguration().getTerminationCondition();
+        if(terminationCondition == null) {
+            terminationCondition = this.getConfiguration().getTerminationCondition();
+        }
 
+        EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
-        // TODO obtain the result
-
+        Genotype<EnumGene<Integer>> result = engine.stream(initialPopulation)
+                .limit(terminationCondition)
+                .peek(statistics)
+                .collect(EvolutionResult.toBestGenotype());
 
         Map<Flight, Slot> resultMap = problem.decode(result);
+
+        this.updateStatistics(statistics);
 
         return null;
     }
@@ -92,16 +104,21 @@ public class JeneticsOptimization extends Optimization {
         JeneticsOptimizationConfiguration newConfiguration =
             new JeneticsOptimizationConfiguration();
 
-        Object maximumPhenotypeAge = parameters.get("maximumPhenotypeAge");
+        Object maximalPhenotypeAge = parameters.get("maximalPhenotypeAge");
         Object populationSize = parameters.get("populationSize");
+        Object offspringFraction = parameters.get("offspringFraction");
+        Object mutator = parameters.get("mutator");
+        Object mutatorAlterProbability = parameters.get("mutatorAlterProbability");
+        Object crossover = parameters.get("crossover");
+        Object crossoverAlterProbability = parameters.get("crossoverAlterProbability");
 
         // set the parameters
         try {
-            if (maximumPhenotypeAge != null) {
-                newConfiguration.setMaximumPhenotypeAge(Integer.parseInt((String) maximumPhenotypeAge));
+            if (maximalPhenotypeAge != null) {
+                newConfiguration.setMaximumPhenotypeAge(Integer.parseInt((String) maximalPhenotypeAge));
             }
         } catch (Exception e) {
-            throw new InvalidOptimizationParameterTypeException("maximumPhenotypeAge", Integer.class);
+            throw new InvalidOptimizationParameterTypeException("maximalPhenotypeAge", Integer.class);
         }
 
         try {
@@ -112,6 +129,40 @@ public class JeneticsOptimization extends Optimization {
             throw new InvalidOptimizationParameterTypeException("populationSize", Integer.class);
         }
 
+        try {
+            if (offspringFraction != null) {
+                newConfiguration.setOffspringFraction(Double.parseDouble((String) offspringFraction));
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("offspringFraction", Double.class);
+        }
+
+        try {
+            if (mutator != null) {
+                newConfiguration.setMutator((String) mutator);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("mutator", String.class);
+        }
+
+        try {
+            if (mutatorAlterProbability != null) {
+                newConfiguration.setMutatorAlterProbability(Double.parseDouble((String) mutatorAlterProbability));
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("mutatorAlterProbability", Double.class);
+        }
+
+        try {
+            if (crossover != null) {
+                newConfiguration.setCrossover((String) crossover);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("crossover", String.class);
+        }
+
+
+
         // replace the configuration if no error was thrown
         this.configuration = newConfiguration;
     }
@@ -121,5 +172,8 @@ public class JeneticsOptimization extends Optimization {
         return null;
     }
 
+    private void updateStatistics(EvolutionStatistics<Integer,?> statistics) {
+
+    }
 
 }

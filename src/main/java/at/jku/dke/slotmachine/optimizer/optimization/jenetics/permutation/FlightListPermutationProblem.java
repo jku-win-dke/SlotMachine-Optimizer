@@ -1,4 +1,4 @@
-package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
+package at.jku.dke.slotmachine.optimizer.optimization.jenetics.permutation;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
@@ -21,7 +21,7 @@ public class FlightListPermutationProblem implements Problem<ISeq<Flight>, EnumG
     public FlightListPermutationProblem(ISeq<Flight> availableFlights, ISeq<Slot> availableSlots) {
         this.availableFlights = availableFlights;
 
-        // order the slots by their time (maybe not needed)
+        // order the slots by their time
         this.availableSlots = ISeq.of(availableSlots.stream().sorted().toList());
     }
 
@@ -34,7 +34,7 @@ public class FlightListPermutationProblem implements Problem<ISeq<Flight>, EnumG
 
                 for(Flight f: flights) {
                     int pos = flights.indexOf(f);
-                    int weight = f.getWeightMap()[pos];
+                    int weight = f.getWeights()[pos];
                     sum += weight;
                 }
 
