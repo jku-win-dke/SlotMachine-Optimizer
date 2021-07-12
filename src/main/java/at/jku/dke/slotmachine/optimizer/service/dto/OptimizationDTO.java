@@ -1,20 +1,24 @@
 package at.jku.dke.slotmachine.optimizer.service.dto;
 
+import org.springframework.lang.Nullable;
+
+import java.util.Map;
 import java.util.UUID;
 
 public class OptimizationDTO {
     private UUID optId;
-	private String[] initialFlightSequence;
 	private FlightDTO[] flights;
 	private SlotDTO[] slots;
-	private OptimizationFramework optimizationFramework;
-	private JeneticConfigDTO jenConfig;
-	private OptaPlannerConfigDTO optaPlannerConfig;
-	private MarginDTO[] margins;
 
-	public enum OptimizationFramework {
-		JENETICS, OPTAPLANNER, BENCHMARK, BENCHMARKOPTAPLANNER
-	}
+	@Nullable
+	private String[] initialFlightSequence;
+
+	private String optimizationFramework;
+
+	private Map<String,Object> parameters;
+
+	private MarginsDTO[] margins;
+
 
 	public UUID getOptId() {
 		return optId;
@@ -48,36 +52,28 @@ public class OptimizationDTO {
 		this.slots = slots;
 	}
 
-	public OptimizationFramework getOptimizationFramework() {
+	public String getOptimizationFramework() {
 		return optimizationFramework;
 	}
 
-	public void setOptimizationFramework(OptimizationFramework optimizationFramework) {
+	public void setOptimizationFramework(String optimizationFramework) {
 		this.optimizationFramework = optimizationFramework;
 	}
 
-	public JeneticConfigDTO getJenConfig() {
-		return jenConfig;
-	}
-
-	public void setJenConfig(JeneticConfigDTO jenConfig) {
-		this.jenConfig = jenConfig;
-	}
-
-	public OptaPlannerConfigDTO getOptaPlannerConfig() {
-		return optaPlannerConfig;
-	}
-
-	public void setOptaPlannerConfig(OptaPlannerConfigDTO optaPlannerConfig) {
-		this.optaPlannerConfig = optaPlannerConfig;
-	}
-
-	public MarginDTO[] getMargins() {
+	public MarginsDTO[] getMargins() {
 		return margins;
 	}
 
-	public void setMargins(MarginDTO[] margins) {
+	public void setMargins(MarginsDTO[] margins) {
 		this.margins = margins;
 	}
-	
+
+
+	public Map<String, Object> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(Map<String, Object> parameters) {
+		this.parameters = parameters;
+	}
 }

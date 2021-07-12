@@ -2,10 +2,10 @@
 <solver>
 	<!-- <moveThreadCount>AUTO</moveThreadCount> --> <!-- how many threads act parallel  -->
 	<environmentMode>REPRODUCIBLE</environmentMode>
-    <solutionClass>at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritization</solutionClass>
+    <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization</solutionClass>
     <entityClass>at.jku.dke.slotmachine.optimizer.domain.Flight</entityClass>
     <scoreDirectorFactory>
-        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
+        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
     
     <!-- Termination -->

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <solver>
 	<moveThreadCount>AUTO</moveThreadCount>
-    <solutionClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmark.FlightPrioritization</solutionClass>
-    <entityClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmark.FlightBenchmark</entityClass>
+    <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.benchmark.FlightPrioritization</solutionClass>
+    <entityClass>at.jku.dke.slotmachine.optimizer.optimization.benchmark.FlightBenchmark</entityClass>
     <!-- exhaustive search for BRUTE FORCE
       <exhaustiveSearch>
 		<exhaustiveSearchType>BRUTE_FORCE</exhaustiveSearchType>
@@ -13,7 +13,7 @@
 	    <nodeExplorationType>DEPTH_FIRST</nodeExplorationType>
 	  </exhaustiveSearch>
     <scoreDirectorFactory>
-        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.frameworks.benchmark.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
+        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.benchmark.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
     <termination>
     	<!-- <terminationCompositionStyle>AND</terminationCompositionStyle>

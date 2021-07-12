@@ -3,151 +3,157 @@ package at.jku.dke.slotmachine.optimizer.rest;
 import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
-import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultMarginsDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
-
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import io.swagger.annotations.*;
+import java.util.UUID;
 
-import java.util.*;
-
+/***
+ * The OptimizationResource relays the REST calls to the {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
+ * in order to to initiate and manage an optimization.
+ */
 @Api(value = "SlotMachine Optimization")
 @RestController
-/***
- * The OptimizationResource relays the REST calls to {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
- * to initiate and manage an optimization.
- */
 public class OptimizationResource {
-	// variable to store information
-	//private List<OptimizationDTO> optimizationDTOs;
-	//private List<OptimizationResultDTO> optimizationResults;
-	//private List<Optimization> optimizations;
-	private OptimizationService optService;
-	
-	private static final Logger logger = LogManager.getLogger();
-	
-	@ApiOperation(value = "Create and initialize a heuristic optimization with flights and preferences.", response = OptimizationDTO.class)
-	@PostMapping(path = "/optimizations", consumes = "application/json")
-	@ApiResponses(
-		value = {
-			@ApiResponse(code = 201, message = "Created"),
-			@ApiResponse(code = 400, message = "Bad Request")
-		}
-	)
-	public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization){
-		logger.debug("Given parameter to initialize optimization: " + optimization.toString());
-		if(optService == null) optService = new OptimizationService();
-		ResponseEntity<OptimizationDTO> optimizationResponse = new ResponseEntity<OptimizationDTO>(optService.createAndInitialize(optimization), HttpStatus.OK);	
-		return optimizationResponse;
+    private static final Logger logger = LogManager.getLogger();
+
+    private final OptimizationService optimizationService;
+
+    public OptimizationResource(OptimizationService optimizationService) {
+        this.optimizationService = optimizationService;
     }
 
-	@ApiOperation(value = "Start a specific optimization that was previously created and initialized.")
-	@PutMapping(path = "/optimizations/{optId}/start")
-	@ApiResponses(
-		value = {
-			@ApiResponse(code = 200, message = "OK"),
-			@ApiResponse(code = 404, message = "Not Found"),
-			@ApiResponse(code = 409, message = "Conflict")
-		}
-	)
-	public ResponseEntity<Void> startOptimization(@PathVariable UUID optId) {
-		if(optService == null) optService = new OptimizationService();
-		if(optService.findCurOptId(optId) == false) {
-			ResponseEntity<Void> optimizationResponse = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
-			return optimizationResponse;
-		}
-		optService.startOptimization(optId);
-		ResponseEntity<Void> optimizationResponse = new ResponseEntity<Void>(HttpStatus.OK);
-		return optimizationResponse;
+    @ApiOperation(value = "Create and initialize a (heuristic) optimization with flights and preferences.", response = OptimizationDTO.class)
+    @PostMapping(path = "/optimizations", consumes = "application/json")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 201, message = "Created"),
+                    @ApiResponse(code = 400, message = "Bad Request")
+            }
+    )
+    public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization) {
+        logger.debug("Given parameter to initialize optimization: " + optimization.toString());
+
+        ResponseEntity<OptimizationDTO> optimizationResponse;
+
+        try {
+            OptimizationDTO optimizationDto =
+                optimizationService.createAndInitializeOptimization(optimization);
+
+            optimizationResponse = new ResponseEntity<>(optimizationDto, HttpStatus.OK);
+        } catch (Exception e) {
+            optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.BAD_REQUEST);
+        }
+
+        return optimizationResponse;
     }
 
-    @ApiOperation(value = "Abort a previously started optimization.")
+    @ApiOperation(value = "Start a specific optimization that was previously created and initialized.")
+    @PutMapping(path = "/optimizations/{optId}/start")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 202, message = "Accepted"),
+                    @ApiResponse(code = 404, message = "Not Found")
+            }
+    )
+    public ResponseEntity<Void> startOptimization(@PathVariable UUID optId) {
+        ResponseEntity<Void> optimizationResponse;
+
+        if (!optimizationService.existsOptimizationWithId(optId)) {
+            logger.info("Optimization with id " + optId + " not found.");
+            optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else {
+            optimizationService.runOptimizationAsynchronously(optId);
+
+            optimizationResponse = new ResponseEntity<>(HttpStatus.ACCEPTED);
+
+            logger.info("Optimization with id " + optId + " has successfully started.");
+        }
+
+        return optimizationResponse;
+    }
+
+    @ApiOperation(value = "Abort a previously started optimization; if available, an intermediate result can be obtained.")
     @PutMapping(path = "/optimizations/{optId}/abort", produces = "application/json")
-	@ApiResponses(
-		value = {
-			@ApiResponse(code = 200, message = "OK"),
-			@ApiResponse(code = 404, message = "Not Found"),
-			@ApiResponse(code = 409, message = "Conflict")
-		}
-	)
-	public ResponseEntity<Void> abortOptimization(@PathVariable UUID optId) {
-    	if (optService != null) {
-    		// TODO not correctly implemented currently
-    		optService.abortOptimization(optId);
-    	}
-		return null;
-	}
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "OK"),
+                    @ApiResponse(code = 404, message = "Not Found"),
+                    @ApiResponse(code = 409, message = "Conflict")
+            }
+    )
+    public ResponseEntity<Void> abortOptimization(@PathVariable UUID optId) {
+        // TODO implement abortOptimization method.
+        return null;
+    }
 
-    // can be used if margins could be shown and margin-parameter (pathVariable) is given
-	@ApiOperation(value = "Get the result of an optimization (with margins, if selected); returns intermediate result if not finished.", response = OptimizationResultMarginsDTO.class)
-	@GetMapping(path = {"/optimizations/{optId}/result/{margins}"} , produces = "application/json")
-	@ApiResponses(
-	    value = {
-	        @ApiResponse(code = 200, message = "OK"),
-	    	@ApiResponse(code = 404, message = "Not Found")
-		}
-	)
-    public ResponseEntity<OptimizationResultMarginsDTO> getOptimizationResultMargins(@PathVariable UUID optId, 
-    		@PathVariable boolean margins) {
-		if(optService == null) optService = new OptimizationService();
-		// if margins == true, return margins as well
-		OptimizationResultMarginsDTO optRes = optService.getOptimizationResult(optId, margins);
-		if (optRes != null) {
-			ResponseEntity<OptimizationResultMarginsDTO> response = new ResponseEntity<OptimizationResultMarginsDTO>(optRes, HttpStatus.OK);
-			return response;
-		}
-		ResponseEntity<OptimizationResultMarginsDTO> response = new ResponseEntity<OptimizationResultMarginsDTO>(HttpStatus.NOT_FOUND);
-		return response;
-    }  
-    
-	// to be used if no margins should be shown and no margin-parameter (pathVariable) is given
-	@ApiOperation(value = "Get the result of an optimization; returns intermediate result if not finished.", response = OptimizationResultDTO.class)
-	@GetMapping(path = {"/optimizations/{optId}/result"} , produces = "application/json")
-	@ApiResponses(
-	    value = {
-	        @ApiResponse(code = 200, message = "OK"),
-	    	@ApiResponse(code = 404, message = "Not Found")
-		}
-	)
+    @ApiOperation(value = "Get the result of an optimization, if available.", response = OptimizationResultDTO.class)
+    @GetMapping(path = {"/optimizations/{optId}/result"}, produces = "application/json")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "OK"),
+                    @ApiResponse(code = 404, message = "Not Found")
+            }
+    )
     public ResponseEntity<OptimizationResultDTO> getOptimizationResult(@PathVariable UUID optId) {
-		if(optService == null) optService = new OptimizationService();
-		// because margins = false, margins will not be returned
-		OptimizationResultDTO optRes = optService.getOptimizationResult(optId);
-		if (optRes != null) {
-			ResponseEntity<OptimizationResultDTO> response = new ResponseEntity<OptimizationResultDTO>(optRes, HttpStatus.OK);
-			return response;
-		}
-		ResponseEntity<OptimizationResultDTO> response = new ResponseEntity<OptimizationResultDTO>(HttpStatus.NOT_FOUND);
-		return response;
+        // margins will be returned if they were submitted upon creation of optimization session
+        OptimizationResultDTO optimizationResult =
+                optimizationService.getOptimizationResult(optId);
+
+        ResponseEntity<OptimizationResultDTO> response;
+
+        if (optimizationResult != null) {
+            response = new ResponseEntity<>(optimizationResult, HttpStatus.OK);
+        } else {
+            response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return response;
     }
 
 
-	@ApiOperation(value = "Get current statistics for a specific optimization and its result.", response = OptimizationStatisticsDTO.class)
-	@GetMapping(path = "/optimizations/{optId}/stats", produces = "application/json")
-	@ApiResponses(
-		value = {
-			@ApiResponse(code = 200, message = "OK"),
-			@ApiResponse(code = 404, message = "Not Found")
-		}
-	)
-	public ResponseEntity<OptimizationStatisticsDTO> getOptimizationStatistics(@PathVariable UUID optId) {
-		return null;
-	}
+    @ApiOperation(value = "Get current statistics for a specific optimization and its result.", response = OptimizationStatisticsDTO.class)
+    @GetMapping(path = "/optimizations/{optId}/stats", produces = "application/json")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "OK"),
+                    @ApiResponse(code = 404, message = "Not Found")
+            }
+    )
+    public ResponseEntity<OptimizationStatisticsDTO> getOptimizationStatistics(@PathVariable UUID optId) {
+        // TODO not implemented yet
+        return null;
+    }
 
-	@ApiOperation(value = "Get the description of a specific optimization.", response = OptimizationStatisticsDTO.class)
-	@GetMapping(path = "/optimizations/{optId}", produces = "application/json")
-	@ApiResponses(
-		value = {
-			@ApiResponse(code = 200, message = "OK"),
-			@ApiResponse(code = 404, message = "Not Found")
-		}
-	)
-	public ResponseEntity<OptimizationDTO> getOptimization(@PathVariable UUID optId) {
-		return null;
-	}
+    @ApiOperation(value = "Get the description of a specific optimization.", response = OptimizationStatisticsDTO.class)
+    @GetMapping(path = "/optimizations/{optId}", produces = "application/json")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "OK"),
+                    @ApiResponse(code = 404, message = "Not Found")
+            }
+    )
+    public ResponseEntity<OptimizationDTO> getOptimization(@PathVariable UUID optId) {
+        // include margins as well (only for development purposes, not meant as production feature)
+        OptimizationDTO optimization =
+                optimizationService.getOptimization(optId);
+
+        ResponseEntity<OptimizationDTO> response;
+
+        if (optimization != null) {
+            response = new ResponseEntity<>(optimization, HttpStatus.OK);
+        } else {
+            response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return response;
+    }
 }

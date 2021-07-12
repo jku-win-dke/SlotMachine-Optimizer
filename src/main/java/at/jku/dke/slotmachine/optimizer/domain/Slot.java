@@ -5,8 +5,6 @@ import java.time.Instant;
 import org.optaplanner.core.api.domain.lookup.PlanningId;
 
 public class Slot implements Comparable<Slot> {
-	// PlanningId is used for OptaPlanner (move thread count)
-	@PlanningId
     private Instant time;
 
     public Slot(Instant time) {
@@ -23,11 +21,8 @@ public class Slot implements Comparable<Slot> {
         this.time = time;
     }
 
-
     @Override
     public int compareTo(Slot o) {
         return this.getTime().compareTo(o.getTime());
     }
-
-
 }

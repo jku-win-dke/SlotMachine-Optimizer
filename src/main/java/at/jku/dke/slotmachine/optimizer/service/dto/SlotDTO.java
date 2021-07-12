@@ -8,9 +8,8 @@ public class SlotDTO {
     public SlotDTO(Instant time) {
         this.time = time;
     }
-    public SlotDTO() {
-    	//default constructor needed for optaplanner
-    }
+
+    public SlotDTO() {}
 
     public Instant getTime() {
         return time;

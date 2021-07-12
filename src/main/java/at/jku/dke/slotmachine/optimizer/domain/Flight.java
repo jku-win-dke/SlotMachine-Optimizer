@@ -1,34 +1,22 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
-import org.optaplanner.core.api.domain.entity.PlanningEntity;
-import org.optaplanner.core.api.domain.lookup.PlanningId;
-import org.optaplanner.core.api.domain.variable.PlanningVariable;
-
-import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.FlightDifficultyComparator;
-import at.jku.dke.slotmachine.optimizer.frameworks.optaplanner.SlotStrengthComparator;
-
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-@PlanningEntity(difficultyComparatorClass = FlightDifficultyComparator.class)
 public class Flight {
-	// PlanningId is used for OptaPlanner (move thread count)
-	@PlanningId
     private String flightId;
     private Instant scheduledTime;
-    private int[] weightMap;
+    private int[] weights;
+    private Map<Slot, Integer> weightMap;
+    private Margins margins;
 
-    @PlanningVariable(valueRangeProviderRefs = "slotRange",
-    		strengthComparatorClass = SlotStrengthComparator.class)
-    private Slot slot;
-
-    public Flight(String flightId, Instant scheduledTime, int[] weightMap) {
+    public Flight(String flightId, Instant scheduledTime, int[] weights) {
         this.flightId = flightId;
         this.scheduledTime = scheduledTime;
-        this.weightMap = weightMap;
-    }
-
-    public Flight() {
-    	// empty default constructor needed for OptaPlanner
+        this.weights = weights;
     }
     
     public String getFlightId() {
@@ -47,19 +35,41 @@ public class Flight {
         this.scheduledTime = scheduledTime;
     }
 
-    public int[] getWeightMap() {
-        return weightMap;
+    public void computeWeightMap(Slot[] slots) {
+        if(weightMap != null) {
+            weightMap.clear();
+        } else {
+            weightMap = new HashMap<>();
+        }
+
+        // sort the slots by their time
+        List<Slot> slotList = Arrays.stream(slots).sorted().toList();
+
+        // for each slot in the sorted slot list get the weight from the weights array
+        for(Slot s : slotList){
+            weightMap.put(s, weights[slotList.indexOf(s)]);
+        }
     }
 
-    public void setWeightMap(int[] weightMap) {
-        this.weightMap = weightMap;
+    public int getWeight(Slot s) {
+        int weight = -1;
+
+        if(weightMap != null && weightMap.containsKey(s)) {
+            weight = weightMap.get(s);
+        }
+
+        return weight;
     }
 
-    public Slot getSlot() {
-        return slot;
+    public int[] getWeights() {
+        return weights;
     }
 
-    public void setSlot(Slot slot) {
-        this.slot = slot;
+    public void setWeightMap(int[] weights) {
+        this.weights = weights;
     }
+
+    public Margins getMargins() { return margins; }
+
+    public void setMargins(Margins margins) { this.margins = margins; }
 }

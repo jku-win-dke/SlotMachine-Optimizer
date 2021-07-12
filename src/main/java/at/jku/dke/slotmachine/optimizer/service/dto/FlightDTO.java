@@ -1,5 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.service.dto;
 
+import at.jku.dke.slotmachine.optimizer.domain.Flight;
+
 import java.time.Instant;
 
 public class FlightDTO {
@@ -12,9 +14,8 @@ public class FlightDTO {
         this.scheduledTime = scheduledTime;
         this.weightMap = weightMap;
     }
-    public FlightDTO() {
-    	//used for OptaPlanner
-    }
+
+    public FlightDTO() { }
 
     public String getFlightId() {
         return flightId;
