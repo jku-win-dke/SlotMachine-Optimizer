@@ -185,7 +185,7 @@ public class JeneticsOptimization extends Optimization {
                 newConfiguration.setTerminationConditions(terminationConditionsMap);
             }
         } catch (Exception e) {
-            throw new InvalidOptimizationParameterTypeException("terminationConditions", Array.class);
+            throw new InvalidOptimizationParameterTypeException("terminationConditions", Map.class);
         }
 
 
