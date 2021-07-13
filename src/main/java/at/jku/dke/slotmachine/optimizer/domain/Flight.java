@@ -52,7 +52,7 @@ public class Flight {
     }
 
     public int getWeight(Slot s) {
-        int weight = -1;
+        int weight = Integer.MIN_VALUE;
 
         if(weightMap != null && weightMap.containsKey(s)) {
             weight = weightMap.get(s);

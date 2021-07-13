@@ -8,10 +8,12 @@ import io.jenetics.*;
 import io.jenetics.engine.Engine;
 import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.EvolutionStatistics;
+import io.jenetics.engine.EvolutionStream;
 import io.jenetics.util.ISeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -61,22 +63,27 @@ public class JeneticsOptimization extends Optimization {
                 .survivorsSelector(survivorsSelector)
                 .maximalPhenotypeAge(maximalPhenotypeAge)
                 .offspringFraction(offspringFraction)
-                .constraint(problem.constraint().get())
+                .constraint(problem.constraint().isPresent()?problem.constraint().get():null)
                 .build();
 
         ISeq<Phenotype<EnumGene<Integer>, Integer>> initialPopulation = this.getConfiguration().getInitialPopulation();
         if(initialPopulation == null) { initialPopulation = this.getDefaultConfiguration().getInitialPopulation(); }
 
-        Predicate<EvolutionResult<EnumGene<Integer>, Integer>> terminationCondition =
-            this.getConfiguration().getTerminationCondition();
-        if(terminationCondition == null) {
-            terminationCondition = this.getConfiguration().getTerminationCondition();
+        Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>[] terminationConditions =
+                this.getConfiguration().getTerminationConditions();
+        if(terminationConditions == null) {
+            terminationConditions = this.getConfiguration().getTerminationConditions();
         }
 
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
-        Genotype<EnumGene<Integer>> result = engine.stream(initialPopulation)
-                .limit(terminationCondition)
+        EvolutionStream<EnumGene<Integer>, Integer> stream = engine.stream(initialPopulation);
+
+        for(Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>> predicate : terminationConditions) {
+            stream = stream.limit(predicate);
+        }
+
+        Genotype<EnumGene<Integer>> result = stream
                 .peek(statistics)
                 .collect(EvolutionResult.toBestGenotype());
 
@@ -84,7 +91,7 @@ public class JeneticsOptimization extends Optimization {
 
         this.updateStatistics(statistics);
 
-        return null;
+        return resultMap;
     }
 
     @Override
@@ -111,11 +118,12 @@ public class JeneticsOptimization extends Optimization {
         Object mutatorAlterProbability = parameters.get("mutatorAlterProbability");
         Object crossover = parameters.get("crossover");
         Object crossoverAlterProbability = parameters.get("crossoverAlterProbability");
+        Object terminationConditions = parameters.get("terminationConditions");
 
         // set the parameters
         try {
             if (maximalPhenotypeAge != null) {
-                newConfiguration.setMaximumPhenotypeAge(Integer.parseInt((String) maximalPhenotypeAge));
+                newConfiguration.setMaximalPhenotypeAge(Integer.parseInt((String) maximalPhenotypeAge));
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("maximalPhenotypeAge", Integer.class);
@@ -123,7 +131,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (populationSize != null) {
-                newConfiguration.setMaximumPhenotypeAge(Integer.parseInt((String) populationSize));
+                newConfiguration.setMaximalPhenotypeAge(Integer.parseInt((String) populationSize));
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("populationSize", Integer.class);
@@ -161,6 +169,24 @@ public class JeneticsOptimization extends Optimization {
             throw new InvalidOptimizationParameterTypeException("crossover", String.class);
         }
 
+        try {
+            if (crossoverAlterProbability != null) {
+                newConfiguration.setCrossoverAlterProbability(Double.parseDouble((String) crossoverAlterProbability));
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("crossoverAlterProbability", Double.class);
+        }
+
+        try {
+            if (terminationConditions != null) {
+                // if cast throws error, the error is caught
+                @SuppressWarnings("unchecked")
+                Map<String,Object> terminationConditionsMap = (Map<String,Object>) terminationConditions;
+                newConfiguration.setTerminationConditions(terminationConditionsMap);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("terminationConditions", Map.class);
+        }
 
 
         // replace the configuration if no error was thrown
