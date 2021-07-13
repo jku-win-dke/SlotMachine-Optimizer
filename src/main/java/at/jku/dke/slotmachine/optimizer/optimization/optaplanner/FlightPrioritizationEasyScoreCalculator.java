@@ -47,7 +47,7 @@ public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalcula
 			int posOfSlot = sortedSlots.indexOf(f.getSlot().getTime());
 			
 			// adds weight at position of slot
-			softScore += f.getWrappedFlight().getWeightMap()[posOfSlot];
+			softScore += f.getWrappedFlight().getWeights()[posOfSlot];
         }
 
         return HardSoftScore.of(hardScore, softScore);
