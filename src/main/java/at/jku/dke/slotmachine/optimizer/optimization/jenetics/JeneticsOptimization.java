@@ -123,7 +123,7 @@ public class JeneticsOptimization extends Optimization {
         // set the parameters
         try {
             if (maximalPhenotypeAge != null) {
-                newConfiguration.setMaximalPhenotypeAge(Integer.parseInt((String) maximalPhenotypeAge));
+                newConfiguration.setMaximalPhenotypeAge((int) maximalPhenotypeAge);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("maximalPhenotypeAge", Integer.class);
@@ -131,7 +131,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (populationSize != null) {
-                newConfiguration.setMaximalPhenotypeAge(Integer.parseInt((String) populationSize));
+                newConfiguration.setMaximalPhenotypeAge((int) populationSize);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("populationSize", Integer.class);
@@ -139,7 +139,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (offspringFraction != null) {
-                newConfiguration.setOffspringFraction(Double.parseDouble((String) offspringFraction));
+                newConfiguration.setOffspringFraction((double) offspringFraction);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("offspringFraction", Double.class);
@@ -155,7 +155,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (mutatorAlterProbability != null) {
-                newConfiguration.setMutatorAlterProbability(Double.parseDouble((String) mutatorAlterProbability));
+                newConfiguration.setMutatorAlterProbability((double) mutatorAlterProbability);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("mutatorAlterProbability", Double.class);
@@ -171,7 +171,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (crossoverAlterProbability != null) {
-                newConfiguration.setCrossoverAlterProbability(Double.parseDouble((String) crossoverAlterProbability));
+                newConfiguration.setCrossoverAlterProbability((double) crossoverAlterProbability);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("crossoverAlterProbability", Double.class);

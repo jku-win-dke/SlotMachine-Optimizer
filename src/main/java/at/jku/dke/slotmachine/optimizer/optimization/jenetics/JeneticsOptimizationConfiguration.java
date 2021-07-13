@@ -7,7 +7,6 @@ import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.Limits;
 import io.jenetics.util.ISeq;
 
-import java.lang.reflect.Array;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.Predicate;
@@ -102,7 +101,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         if(crossoverType != null) {
             switch (crossoverType) {
                 case "PARTIALLY_MATCHED_CROSSOVER":
-                    double alterProbability = this.getPartiallyMatchedCrossoverAlterProbability();
+                    double alterProbability = this.getCrossoverAlterProbability();
 
                     if(alterProbability >= 0) {
                         crossover = new PartiallyMatchedCrossover<>(alterProbability);
@@ -116,8 +115,8 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         return crossover;
     }
 
-    private double getPartiallyMatchedCrossoverAlterProbability() {
-        return this.getDoubleParameter("partiallyMatchedCrossoverAlterProbability");
+    private double getCrossoverAlterProbability() {
+        return this.getDoubleParameter("crossoverAlterProbability");
     }
 
     public Selector<EnumGene<Integer>, Integer> getOffspringSelector() {
