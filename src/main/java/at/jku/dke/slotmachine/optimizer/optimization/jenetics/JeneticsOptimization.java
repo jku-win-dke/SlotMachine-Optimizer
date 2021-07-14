@@ -125,14 +125,17 @@ public class JeneticsOptimization extends Optimization {
             stream = stream.limit(terminationCondition);
         }
 
-        Genotype<EnumGene<Integer>> result = stream
+        Phenotype<EnumGene<Integer>, Integer> result = stream
                 .peek(statistics)
-                .collect(EvolutionResult.toBestGenotype());
+                .collect(EvolutionResult.toBestPhenotype());
 
 
         logger.info("Finished optimization");
 
-        Map<Flight, Slot> resultMap = problem.decode(result);
+        Map<Flight, Slot> resultMap = problem.decode(result.genotype());
+
+        logger.info("Fitness of best solution: " + problem.fitness(result.genotype()));
+        logger.info("Generation of best solution: " + result.generation());
 
         logger.info("Statistics: \n" + statistics);
 

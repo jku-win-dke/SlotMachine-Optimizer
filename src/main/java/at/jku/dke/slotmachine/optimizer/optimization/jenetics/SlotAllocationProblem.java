@@ -60,17 +60,7 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
                 RetryConstraint.of(
                         codec(),
                         flightSlotMap -> {
-                                boolean noFlightBeforeScheduledTime = true;
-                                
-                                for (Map.Entry<Flight, Slot> entry: flightSlotMap.entrySet()) {
-                					Flight flight = entry.getKey();
-                					Slot slot = entry.getValue();
-                					if (flight.getScheduledTime().isAfter(slot.getTime())) {
-                						noFlightBeforeScheduledTime = false;
-                					}
-                                }
-                                
-                                return (!noFlightBeforeScheduledTime);
+                                return flightSlotMap.entrySet().stream().allMatch(entry -> entry.getKey().getScheduledTime().compareTo(entry.getValue().getTime()) < 0);
                         }
                 )
         );

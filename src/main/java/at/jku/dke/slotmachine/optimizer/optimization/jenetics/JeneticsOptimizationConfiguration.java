@@ -8,6 +8,7 @@ import io.jenetics.*;
 import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.Limits;
 import io.jenetics.util.ISeq;
+import org.apache.commons.math3.genetics.OrderedCrossover;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -104,13 +105,16 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
         Crossover<EnumGene<Integer>, Integer> crossover = null;
 
+        double alterProbability = this.getCrossoverAlterProbability();
+
         if(crossoverType != null) {
             switch (crossoverType) {
                 case "PARTIALLY_MATCHED_CROSSOVER":
-                    double alterProbability = this.getCrossoverAlterProbability();
-
                     if(alterProbability >= 0) {
+                        logger.info("Use partially matched crossover with " + alterProbability + " alter probability.");
                         crossover = new PartiallyMatchedCrossover<>(alterProbability);
+                    } else {
+                        logger.info("No alter probability for partially matched crossover.");
                     }
                     break;
                 default:
@@ -200,16 +204,13 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
             initialAllocation.put(flights[i], slots[i]);
         }
 
-        logger.info("Encode the initial population.");
         Genotype<EnumGene<Integer>> genotype = problem.codec().encode(initialAllocation);
-
-        logger.info("Initial population fitness: " + problem.fitness(genotype));
 
         Genotype[] genotypes = new Genotype[populationSize];
 
         genotypes[0] = genotype;
 
-        logger.info("Swap neihboring flights in initial allocation.");
+        logger.info("Swap neighboring flights in initial allocation.");
         for(int i = 1; i < genotypes.length; i++) {
             for(int j = 0; j < flights.length; j++) {
                 Map<Flight, Slot> swappedAllocation = new HashMap<>(initialAllocation);
@@ -221,7 +222,6 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                     swappedAllocation.put(flights[j+1], s1);
                 }
                 genotype = problem.codec().encode(swappedAllocation);
-                logger.info("Swapped inital population fitness: " + problem.fitness(genotype));
                 genotypes[i] = genotype;
             }
         }
