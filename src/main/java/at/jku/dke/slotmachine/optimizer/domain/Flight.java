@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Flight {
+public class Flight implements Comparable<Flight> {
     private String flightId;
     private Instant scheduledTime;
     private int[] weights;
@@ -72,4 +72,9 @@ public class Flight {
     public Margins getMargins() { return margins; }
 
     public void setMargins(Margins margins) { this.margins = margins; }
+
+    @Override
+    public int compareTo(Flight flight) {
+        return this.getScheduledTime().compareTo(flight.getScheduledTime());
+    }
 }

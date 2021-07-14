@@ -1,17 +1,23 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
+import at.jku.dke.slotmachine.optimizer.domain.Flight;
+import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
 import io.jenetics.*;
 import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.Limits;
 import io.jenetics.util.ISeq;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.time.Duration;
 import java.util.*;
 import java.util.function.Predicate;
 
 public class JeneticsOptimizationConfiguration extends OptimizationConfiguration {
+    private static final Logger logger = LogManager.getLogger();
+
     /**
      * Returns the maximal phenotype age, or -1 if the parameter is not set.
      * @return the maximal phenotype age
@@ -25,12 +31,12 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     }
 
 
-    public void setMaximalPhenotypeAge(Object maximumPhenotypeAge) throws InvalidOptimizationParameterTypeException {
-        if (!(maximumPhenotypeAge instanceof Integer)) {
-            throw new InvalidOptimizationParameterTypeException("maximalPhenotypeAge", Integer.class, maximumPhenotypeAge.getClass());
+    public void setMaximalPhenotypeAge(Object maximalPhenotypeAge) throws InvalidOptimizationParameterTypeException {
+        if (!(maximalPhenotypeAge instanceof Integer)) {
+            throw new InvalidOptimizationParameterTypeException("maximalPhenotypeAge", Integer.class, maximalPhenotypeAge.getClass());
         }
 
-        this.setMaximalPhenotypeAge(maximumPhenotypeAge);
+        this.setMaximalPhenotypeAge(maximalPhenotypeAge);
     }
 
 
@@ -152,7 +158,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                     selector = new StochasticUniversalSelector<>();
                     break;
                 case "TOURNAMENT_SELECTOR":
-                    selector = new TournamentSelector<>();
+                    selector = new TournamentSelector<>(3);
                     break;
                 case "TRUNCATION_SELECTOR":
                     selector = new TruncationSelector<>();
@@ -176,8 +182,51 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         return doubleValue;
     }
 
-    public ISeq<Phenotype<EnumGene<Integer>, Integer>> getInitialPopulation() {
-        return null;
+    public ISeq<Genotype<EnumGene<Integer>>> getInitialPopulation(SlotAllocationProblem problem, int populationSize) {
+        Map<Flight, Slot> initialAllocation = new HashMap<>();
+        Flight[] flights = null;
+        Slot[] slots = null;
+
+        logger.info("Sort flights and available slots to get initial population.");
+        try {
+            flights = problem.getFlights().stream().sorted().toArray(Flight[]::new);
+            slots = problem.getAvailableSlots().stream().sorted().toArray(Slot[]::new);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+        logger.info("Allocate slots according to scheduled time.");
+        for(int i = 0; i < flights.length; i++) {
+            initialAllocation.put(flights[i], slots[i]);
+        }
+
+        logger.info("Encode the initial population.");
+        Genotype<EnumGene<Integer>> genotype = problem.codec().encode(initialAllocation);
+
+        logger.info("Initial population fitness: " + problem.fitness(genotype));
+
+        Genotype[] genotypes = new Genotype[populationSize];
+
+        genotypes[0] = genotype;
+
+        logger.info("Swap neihboring flights in initial allocation.");
+        for(int i = 1; i < genotypes.length; i++) {
+            for(int j = 0; j < flights.length; j++) {
+                Map<Flight, Slot> swappedAllocation = new HashMap<>(initialAllocation);
+
+                if(j+1 < flights.length) {
+                    Slot s1 = swappedAllocation.get(flights[j]);
+                    Slot s2 = swappedAllocation.get(flights[j+1]);
+                    swappedAllocation.put(flights[j], s2);
+                    swappedAllocation.put(flights[j+1], s1);
+                }
+                genotype = problem.codec().encode(swappedAllocation);
+                logger.info("Swapped inital population fitness: " + problem.fitness(genotype));
+                genotypes[i] = genotype;
+            }
+        }
+
+        return ISeq.of(genotypes);
     }
 
     public Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>[] getTerminationConditions() {
@@ -196,43 +245,37 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
                 switch(terminationConditionType) {
                     case "WORST_FITNESS": {
-                        int threshold =
-                                Integer.parseInt((String) terminationConditionParameters.get("WORST_FITNESS"));
+                        int threshold = (int) terminationConditionParameters.get("WORST_FITNESS");
 
                         nextPredicate = result -> result.worstFitness() > threshold;
                         break;
                     }
                     case "BY_FITNESS_THRESHOLD": {
-                        int threshold =
-                                Integer.parseInt((String) terminationConditionParameters.get("BY_FITNESS_THRESHOLD"));
+                        int threshold = (int) terminationConditionParameters.get("BY_FITNESS_THRESHOLD");
 
                         nextPredicate = Limits.byFitnessThreshold(threshold);
                         break;
                     }
                     case "BY_STEADY_FITNESS": {
-                        int generations =
-                                Integer.parseInt((String) terminationConditionParameters.get("BY_STEADY_FITNESS"));
+                        int generations = (int) terminationConditionParameters.get("BY_STEADY_FITNESS");
 
                         nextPredicate = Limits.bySteadyFitness(generations);
                         break;
                     }
                     case "BY_FIXED_GENERATION": {
-                        int generation =
-                                Integer.parseInt((String) terminationConditionParameters.get("BY_FIXED_GENERATION"));
+                        int generation = (int) terminationConditionParameters.get("BY_FIXED_GENERATION");
 
                         nextPredicate = Limits.byFixedGeneration(generation);
                         break;
                     }
                     case "BY_EXECUTION_TIME": {
-                        int duration =
-                                Integer.parseInt((String) terminationConditionParameters.get("BY_EXECUTION_TIME"));
+                        int duration = (int) terminationConditionParameters.get("BY_EXECUTION_TIME");
 
                         nextPredicate = Limits.byExecutionTime(Duration.ofSeconds(duration));
                         break;
                     }
                     case "BY_POPULATION_CONVERGENCE": {
-                        double epsilon =
-                                Double.parseDouble((String) terminationConditionParameters.get("BY_POPULATION_CONVERGENCE"));
+                        double epsilon = (double) terminationConditionParameters.get("BY_POPULATION_CONVERGENCE");
 
                         nextPredicate = Limits.byPopulationConvergence(epsilon);
                         break;
@@ -241,9 +284,9 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                         Map<String, Object> fitnessConvergenceParameters =
                                 (Map<String, Object>) terminationConditionParameters.get("BY_FITNESS_CONVERGENCE");
 
-                        int shortFilterSize = Integer.parseInt((String) fitnessConvergenceParameters.get("shortFilterSize"));
-                        int longFilterSize = Integer.parseInt((String) fitnessConvergenceParameters.get("longFilterSize"));
-                        double epsilon = Double.parseDouble((String) fitnessConvergenceParameters.get("epsilon"));
+                        int shortFilterSize = (int) fitnessConvergenceParameters.get("shortFilterSize");
+                        int longFilterSize = (int) fitnessConvergenceParameters.get("longFilterSize");
+                        double epsilon = (double) fitnessConvergenceParameters.get("epsilon");
 
                         nextPredicate = Limits.byFitnessConvergence(shortFilterSize, longFilterSize, epsilon);
                         break;
@@ -297,5 +340,13 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
     public void setCrossoverAlterProbability(double crossoverAlterProbability) {
         this.setParameter("crossoverAlterProbability", crossoverAlterProbability);
+    }
+
+    public void setOffspringSelector(String offspringSelector) {
+        this.setParameter("offspringSelector", offspringSelector);
+    }
+
+    public void setSurvivorsSelector(String survivorsSelector) {
+        this.setParameter("survivorsSelector", survivorsSelector);
     }
 }

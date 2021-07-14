@@ -76,13 +76,18 @@ public class OptimizationService {
 					.map(s -> new Slot(s.getTime()))
 					.toArray(Slot[]::new);
 
-			Optimization newOptimization = null;
+			Optimization newOptimization;
 			try {
 				logger.info("Create a new optimization with the specified characteristics");
-				newOptimization = factory.createOptimization(flights, slots, optimizationDto.getParameters());
+				if(optimizationDto.getParameters() != null) {
+					newOptimization = factory.createOptimization(flights, slots, optimizationDto.getParameters());
+				} else {
+					newOptimization = factory.createOptimization(flights, slots);
+				}
+
 				newOptimization.setOptId(optId);
 
-				logger.info("Store the optimization for later invocation");
+				logger.info("Store optimization " + optId + " for later invocation");
 				optimizations.put(optId, newOptimization);
 			} catch (InvalidOptimizationParameterTypeException e) {
 				logger.error("Could not create optimization due to error in parameters.", e);

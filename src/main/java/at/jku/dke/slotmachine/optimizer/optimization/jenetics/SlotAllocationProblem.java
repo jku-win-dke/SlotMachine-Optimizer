@@ -78,4 +78,12 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
         return constraint;
     }
 
+	public ISeq<Flight> getFlights() {
+		return flights;
+	}
+
+	public ISeq<Slot> getAvailableSlots() {
+		return availableSlots;
+	}
+
 }
