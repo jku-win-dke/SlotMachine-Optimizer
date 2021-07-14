@@ -18,9 +18,12 @@ public class JeneticsOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
 
     private JeneticsOptimizationConfiguration configuration;
+    private JeneticsOptimizationStatistics statistics;
 
     public JeneticsOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
+
+        this.statistics = new JeneticsOptimizationStatistics();
     }
 
     @Override
@@ -276,10 +279,10 @@ public class JeneticsOptimization extends Optimization {
 
     @Override
     public JeneticsOptimizationStatistics getStatistics() {
-        return null;
+        return this.statistics;
     }
 
-    private void updateStatistics(EvolutionStatistics<Integer,?> statistics) {
+    private void updateStatistics(EvolutionStatistics<Integer,?> evolutionStatistics) {
 
     }
 
