@@ -3,7 +3,7 @@
 	<moveThreadCount>NONE</moveThreadCount> <!-- how many threads act parallel  -->
 	<environmentMode>REPRODUCIBLE</environmentMode>
     <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization</solutionClass>
-    <entityClass>at.jku.dke.slotmachine.optimizer.domain.Flight</entityClass>
+    <entityClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPlanningEntity</entityClass>
     <scoreDirectorFactory>
         <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
