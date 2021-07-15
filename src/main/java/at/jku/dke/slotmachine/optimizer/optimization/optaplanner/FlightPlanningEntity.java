@@ -6,7 +6,7 @@ import org.optaplanner.core.api.domain.lookup.PlanningId;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 @PlanningEntity(difficultyComparatorClass = FlightDifficultyComparator.class)
-public class FlightPlanningEntity {
+public class FlightPlanningEntity implements Comparable<FlightPlanningEntity> {
     // PlanningId is used for OptaPlanner (move thread count)
     @PlanningId
     private String flightId;
@@ -44,4 +44,8 @@ public class FlightPlanningEntity {
         this.slot = slot;
     }
 
+    @Override
+    public int compareTo(FlightPlanningEntity flightPlanningEntity) {
+        return this.getWrappedFlight().compareTo(flightPlanningEntity.getWrappedFlight());
+    }
 }

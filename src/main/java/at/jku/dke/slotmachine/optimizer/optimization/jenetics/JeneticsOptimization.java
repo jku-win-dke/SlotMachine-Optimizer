@@ -17,8 +17,8 @@ import java.util.function.Predicate;
 public class JeneticsOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
 
-    private JeneticsOptimizationConfiguration configuration;
-    private JeneticsOptimizationStatistics statistics;
+    private JeneticsOptimizationConfiguration configuration = null;
+    private JeneticsOptimizationStatistics statistics = null;
 
     public JeneticsOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
@@ -48,7 +48,7 @@ public class JeneticsOptimization extends Optimization {
 
         if(this.getConfiguration() != null) {
             populationSize = this.getConfiguration().getPopulationSize();
-            if (populationSize == -1) {
+            if (populationSize < 0) {
                 populationSize = this.getDefaultConfiguration().getPopulationSize();
             }
 
@@ -73,12 +73,12 @@ public class JeneticsOptimization extends Optimization {
             }
 
             maximalPhenotypeAge = this.getConfiguration().getMaximalPhenotypeAge();
-            if (maximalPhenotypeAge == -1) {
+            if (maximalPhenotypeAge < 0) {
                 maximalPhenotypeAge = this.getDefaultConfiguration().getMaximalPhenotypeAge();
             }
 
             offspringFraction = this.getConfiguration().getOffspringFraction();
-            if (offspringFraction == -1.0) {
+            if (offspringFraction < 0) {
                 offspringFraction = this.getDefaultConfiguration().getOffspringFraction();
             }
 
@@ -185,7 +185,9 @@ public class JeneticsOptimization extends Optimization {
         Object crossover = parameters.get("crossover");
         Object crossoverAlterProbability = parameters.get("crossoverAlterProbability");
         Object offspringSelector = parameters.get("offspringSelector");
+        Object offspringSelectorParameter = parameters.get("offspringSelectorParameter");
         Object survivorsSelector = parameters.get("survivorsSelector");
+        Object survivorsSelectorParameter = parameters.get("survivorsSelectorParameter");
         Object terminationConditions = parameters.get("terminationConditions");
 
         // set the parameters
@@ -211,6 +213,14 @@ public class JeneticsOptimization extends Optimization {
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("offspringSelector", String.class);
+        }
+
+        try {
+            if (offspringSelectorParameter != null) {
+                newConfiguration.setOffspringSelectorParameter((double) offspringSelectorParameter);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("offspringSelectorParameter", Double.class);
         }
 
         try {
@@ -270,6 +280,14 @@ public class JeneticsOptimization extends Optimization {
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("survivorsSelector", String.class);
+        }
+
+        try {
+            if (survivorsSelectorParameter != null) {
+                newConfiguration.setSurvivorsSelectorParameter((double) survivorsSelectorParameter);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("survivorsSelectorParameter", Double.class);
         }
 
 

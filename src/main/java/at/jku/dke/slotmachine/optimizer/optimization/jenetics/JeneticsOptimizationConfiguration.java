@@ -57,15 +57,6 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         this.setPopulationSize(populationSize);
     }
 
-    private int getIntegerParameter(String param) {
-        int integerValue = -1;
-        Object value = this.getParameter(param);
-
-        if(value != null) integerValue = (int) value;
-
-        return integerValue;
-    }
-
     public Mutator<EnumGene<Integer>, Integer> getMutator() {
         String mutatorType = this.getStringParameter("mutator");
 
@@ -92,11 +83,6 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
     private double getMutatorAlterProbability() {
         return this.getDoubleParameter("mutatorAlterProbability");
-    }
-
-
-    private String getStringParameter(String param) {
-        return (String) this.getParameter(param);
     }
 
 
@@ -132,28 +118,56 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     public Selector<EnumGene<Integer>, Integer> getOffspringSelector() {
         String selectorType = this.getStringParameter("offspringSelector");
 
-        return this.getSelector(selectorType);
+        double selectorParameter = Double.MIN_VALUE;
+
+        if(this.getParameter("offspringSelectorParameter") != null) {
+            selectorParameter = this.getOffspringSelectorParameter();
+        }
+
+        return this.getSelector(selectorType, selectorParameter);
+    }
+
+    private double getOffspringSelectorParameter() {
+        return this.getDoubleParameter("offspringSelectorParameter");
     }
 
     public Selector<EnumGene<Integer>, Integer> getSurvivorsSelector() {
         String selectorType = this.getStringParameter("survivorsSelector");
 
-        return this.getSelector(selectorType);
+        double selectorParameter = this.getSurvivorsSelectorParameter();
+
+        return this.getSelector(selectorType, selectorParameter);
     }
 
-    public Selector<EnumGene<Integer>, Integer> getSelector(String selectorType) {
+    private double getSurvivorsSelectorParameter() {
+        return this.getDoubleParameter("survivorsSelectorParameter");
+    }
+
+    public Selector<EnumGene<Integer>, Integer> getSelector(String selectorType, double selectorParameter) {
         Selector<EnumGene<Integer>, Integer> selector = null;
 
         if(selectorType != null) {
             switch(selectorType) {
                 case "BOLTZMANN_SELECTOR":
-                    selector = new BoltzmannSelector<>();
+                    if(selectorParameter >= 0) {
+                        selector = new BoltzmannSelector<>(selectorParameter);
+                    } else {
+                        selector = new BoltzmannSelector<>();
+                    }
                     break;
                 case "EXPONENTIAL_RANK_SELECTOR":
-                    selector = new ExponentialRankSelector<>();
+                    if(selectorParameter >= 0 && selectorParameter <= 1) {
+                        selector = new ExponentialRankSelector<>(selectorParameter);
+                    } else {
+                        selector = new ExponentialRankSelector<>();
+                    }
                     break;
                 case "LINEAR_RANK_SELECTOR":
-                    selector = new LinearRankSelector<>();
+                    if(selectorParameter < 0) {
+                        selector = new LinearRankSelector<>(selectorParameter);
+                    } else {
+                        selector = new LinearRankSelector<>();
+                    }
                     break;
                 case "ROULETTE_WHEEL_SELECTOR":
                     selector = new RouletteWheelSelector<>();
@@ -162,10 +176,18 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                     selector = new StochasticUniversalSelector<>();
                     break;
                 case "TOURNAMENT_SELECTOR":
-                    selector = new TournamentSelector<>(3);
+                    if(selectorParameter < 2) {
+                        selector = new TournamentSelector<>((int) selectorParameter);
+                    } else {
+                        selector = new TournamentSelector<>();
+                    }
                     break;
                 case "TRUNCATION_SELECTOR":
-                    selector = new TruncationSelector<>();
+                    if(selectorParameter < 1) {
+                        selector = new TruncationSelector<>((int) selectorParameter);
+                    } else {
+                        selector = new TruncationSelector<>();
+                    }
                     break;
             }
         }
@@ -175,15 +197,6 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
     public double getOffspringFraction() {
         return this.getDoubleParameter("offspringFraction");
-    }
-
-    private double getDoubleParameter(String param) {
-        double doubleValue = -1.0;
-        Object value = this.getParameter(param);
-
-        if(value != null) doubleValue = (double) value;
-
-        return doubleValue;
     }
 
     public ISeq<Genotype<EnumGene<Integer>>> getInitialPopulation(SlotAllocationProblem problem, int populationSize) {
@@ -348,5 +361,13 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
     public void setSurvivorsSelector(String survivorsSelector) {
         this.setParameter("survivorsSelector", survivorsSelector);
+    }
+
+    public void setOffspringSelectorParameter(double offspringSelectorParameter) {
+        this.setParameter("offspringSelectorParameter", offspringSelectorParameter);
+    }
+
+    public void setSurvivorsSelectorParameter(double survivorsSelectorParameter) {
+        this.setParameter("offspringSelectorParameter", survivorsSelectorParameter);
     }
 }
