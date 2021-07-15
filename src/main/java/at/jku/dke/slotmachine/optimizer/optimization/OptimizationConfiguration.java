@@ -45,4 +45,16 @@ public abstract class OptimizationConfiguration {
 
         return integerValue;
     }
+
+    protected Number getNumberParameter(String param) {
+        Object value = this.getParameter(param);
+
+        Number numberValue = null;
+
+        if(value != null) {
+            numberValue = (Number) value;
+        }
+
+        return numberValue;
+    }
 }

@@ -217,10 +217,10 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (offspringSelectorParameter != null) {
-                newConfiguration.setOffspringSelectorParameter((double) offspringSelectorParameter);
+                newConfiguration.setOffspringSelectorParameter((Number) offspringSelectorParameter);
             }
         } catch (Exception e) {
-            throw new InvalidOptimizationParameterTypeException("offspringSelectorParameter", Double.class);
+            throw new InvalidOptimizationParameterTypeException("offspringSelectorParameter", Number.class);
         }
 
         try {
@@ -284,7 +284,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (survivorsSelectorParameter != null) {
-                newConfiguration.setSurvivorsSelectorParameter((double) survivorsSelectorParameter);
+                newConfiguration.setSurvivorsSelectorParameter((Number) survivorsSelectorParameter);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("survivorsSelectorParameter", Double.class);

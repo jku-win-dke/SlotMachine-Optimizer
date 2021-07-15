@@ -118,53 +118,49 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     public Selector<EnumGene<Integer>, Integer> getOffspringSelector() {
         String selectorType = this.getStringParameter("offspringSelector");
 
-        double selectorParameter = Double.MIN_VALUE;
-
-        if(this.getParameter("offspringSelectorParameter") != null) {
-            selectorParameter = this.getOffspringSelectorParameter();
-        }
+        Number selectorParameter = this.getOffspringSelectorParameter();
 
         return this.getSelector(selectorType, selectorParameter);
     }
 
-    private double getOffspringSelectorParameter() {
-        return this.getDoubleParameter("offspringSelectorParameter");
+    private Number getOffspringSelectorParameter() {
+        return this.getNumberParameter("offspringSelectorParameter");
     }
 
     public Selector<EnumGene<Integer>, Integer> getSurvivorsSelector() {
         String selectorType = this.getStringParameter("survivorsSelector");
 
-        double selectorParameter = this.getSurvivorsSelectorParameter();
+        Number selectorParameter = this.getSurvivorsSelectorParameter();
 
         return this.getSelector(selectorType, selectorParameter);
     }
 
-    private double getSurvivorsSelectorParameter() {
-        return this.getDoubleParameter("survivorsSelectorParameter");
+    private Number getSurvivorsSelectorParameter() {
+        return this.getNumberParameter("survivorsSelectorParameter");
     }
 
-    public Selector<EnumGene<Integer>, Integer> getSelector(String selectorType, double selectorParameter) {
+    public Selector<EnumGene<Integer>, Integer> getSelector(String selectorType, Number selectorParameter) {
         Selector<EnumGene<Integer>, Integer> selector = null;
 
         if(selectorType != null) {
             switch(selectorType) {
                 case "BOLTZMANN_SELECTOR":
-                    if(selectorParameter >= 0) {
-                        selector = new BoltzmannSelector<>(selectorParameter);
+                    if(selectorParameter != null) {
+                        selector = new BoltzmannSelector<>(selectorParameter.doubleValue());
                     } else {
                         selector = new BoltzmannSelector<>();
                     }
                     break;
                 case "EXPONENTIAL_RANK_SELECTOR":
-                    if(selectorParameter >= 0 && selectorParameter <= 1) {
-                        selector = new ExponentialRankSelector<>(selectorParameter);
+                    if(selectorParameter != null) {
+                        selector = new ExponentialRankSelector<>(selectorParameter.doubleValue());
                     } else {
                         selector = new ExponentialRankSelector<>();
                     }
                     break;
                 case "LINEAR_RANK_SELECTOR":
-                    if(selectorParameter < 0) {
-                        selector = new LinearRankSelector<>(selectorParameter);
+                    if(selectorParameter != null) {
+                        selector = new LinearRankSelector<>(selectorParameter.doubleValue());
                     } else {
                         selector = new LinearRankSelector<>();
                     }
@@ -176,15 +172,17 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                     selector = new StochasticUniversalSelector<>();
                     break;
                 case "TOURNAMENT_SELECTOR":
-                    if(selectorParameter < 2) {
-                        selector = new TournamentSelector<>((int) selectorParameter);
+                    if(selectorParameter != null) {
+                        logger.info("Using tournament selector with parameter " + selectorParameter.intValue() + ".");
+                        selector = new TournamentSelector<>(selectorParameter.intValue());
                     } else {
+                        logger.info("Using tournament selector with default parameter.");
                         selector = new TournamentSelector<>();
                     }
                     break;
                 case "TRUNCATION_SELECTOR":
-                    if(selectorParameter < 1) {
-                        selector = new TruncationSelector<>((int) selectorParameter);
+                    if(selectorParameter != null) {
+                        selector = new TruncationSelector<>(selectorParameter.intValue());
                     } else {
                         selector = new TruncationSelector<>();
                     }
@@ -363,11 +361,11 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         this.setParameter("survivorsSelector", survivorsSelector);
     }
 
-    public void setOffspringSelectorParameter(double offspringSelectorParameter) {
+    public void setOffspringSelectorParameter(Number offspringSelectorParameter) {
         this.setParameter("offspringSelectorParameter", offspringSelectorParameter);
     }
 
-    public void setSurvivorsSelectorParameter(double survivorsSelectorParameter) {
+    public void setSurvivorsSelectorParameter(Number survivorsSelectorParameter) {
         this.setParameter("offspringSelectorParameter", survivorsSelectorParameter);
     }
 }
