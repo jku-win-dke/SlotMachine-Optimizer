@@ -5,15 +5,12 @@ import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import io.jenetics.*;
-import io.jenetics.engine.Engine;
-import io.jenetics.engine.EvolutionResult;
-import io.jenetics.engine.EvolutionStatistics;
-import io.jenetics.engine.EvolutionStream;
+import io.jenetics.engine.*;
 import io.jenetics.util.ISeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.Array;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -21,42 +18,95 @@ public class JeneticsOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
 
     private JeneticsOptimizationConfiguration configuration;
+    private JeneticsOptimizationStatistics statistics;
 
     public JeneticsOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
+
+        this.statistics = new JeneticsOptimizationStatistics();
     }
 
     @Override
     public Map<Flight, Slot> run() {
-        logger.info("Running optimization using Jenetics framework as slot allocation problem ...");
 
         SlotAllocationProblem problem = new SlotAllocationProblem(
             ISeq.of(this.getFlights()),
             ISeq.of(this.getSlots())
         );
 
-        int populationSize = this.getConfiguration().getPopulationSize();
-        if(populationSize == -1) { populationSize = this.getDefaultConfiguration().getPopulationSize(); }
+        logger.info("Slot allocation problem initialized.");
 
-        Mutator<EnumGene<Integer>, Integer> mutator = this.getConfiguration().getMutator();
-        if(mutator == null) { mutator = this.getDefaultConfiguration().getMutator(); }
+        int populationSize;
+        Mutator<EnumGene<Integer>, Integer> mutator;
+        Crossover<EnumGene<Integer>, Integer> crossover;
+        Selector<EnumGene<Integer>, Integer> offspringSelector;
+        Selector<EnumGene<Integer>, Integer> survivorsSelector;
+        int maximalPhenotypeAge;
+        double offspringFraction;
+        ISeq<Genotype<EnumGene<Integer>>> initialPopulation;
+        Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>[] terminationConditions;
 
-        Crossover<EnumGene<Integer>, Integer> crossover = this.getConfiguration().getCrossover();
-        if(crossover == null) { crossover = this.getDefaultConfiguration().getCrossover(); }
+        if(this.getConfiguration() != null) {
+            populationSize = this.getConfiguration().getPopulationSize();
+            if (populationSize == -1) {
+                populationSize = this.getDefaultConfiguration().getPopulationSize();
+            }
 
-        Selector<EnumGene<Integer>, Integer> offspringSelector = this.getConfiguration().getOffspringSelector();
-        if(offspringSelector == null) { offspringSelector = this.getDefaultConfiguration().getOffspringSelector(); }
+            mutator = this.getConfiguration().getMutator();
+            if (mutator == null) {
+                mutator = this.getDefaultConfiguration().getMutator();
+            }
 
-        Selector<EnumGene<Integer>, Integer> survivorsSelector = this.getConfiguration().getSurvivorsSelector();
-        if(survivorsSelector == null) { survivorsSelector = this.getDefaultConfiguration().getSurvivorsSelector(); }
+            crossover = this.getConfiguration().getCrossover();
+            if (crossover == null) {
+                crossover = this.getDefaultConfiguration().getCrossover();
+            }
 
-        int maximalPhenotypeAge = this.getConfiguration().getMaximalPhenotypeAge();
-        if(maximalPhenotypeAge == -1) { maximalPhenotypeAge = this.getDefaultConfiguration().getMaximalPhenotypeAge(); }
+            offspringSelector = this.getConfiguration().getOffspringSelector();
+            if (offspringSelector == null) {
+                offspringSelector = this.getDefaultConfiguration().getOffspringSelector();
+            }
 
-        double offspringFraction = this.getConfiguration().getOffspringFraction();
-        if(offspringFraction == -1.0) { offspringFraction = this.getDefaultConfiguration().getOffspringFraction(); }
+            survivorsSelector = this.getConfiguration().getSurvivorsSelector();
+            if (survivorsSelector == null) {
+                survivorsSelector = this.getDefaultConfiguration().getSurvivorsSelector();
+            }
+
+            maximalPhenotypeAge = this.getConfiguration().getMaximalPhenotypeAge();
+            if (maximalPhenotypeAge == -1) {
+                maximalPhenotypeAge = this.getDefaultConfiguration().getMaximalPhenotypeAge();
+            }
+
+            offspringFraction = this.getConfiguration().getOffspringFraction();
+            if (offspringFraction == -1.0) {
+                offspringFraction = this.getDefaultConfiguration().getOffspringFraction();
+            }
+
+            initialPopulation = this.getConfiguration().getInitialPopulation(problem, populationSize);
+            if(initialPopulation == null) {
+                initialPopulation = this.getDefaultConfiguration().getInitialPopulation(problem, populationSize);
+            }
+
+            terminationConditions = this.getConfiguration().getTerminationConditions();
+            if(terminationConditions == null) {
+                terminationConditions = this.getDefaultConfiguration().getTerminationConditions();
+            }
+        } else {
+            populationSize = this.getDefaultConfiguration().getPopulationSize();
+            mutator = this.getDefaultConfiguration().getMutator();
+            crossover = this.getDefaultConfiguration().getCrossover();
+            offspringSelector = this.getDefaultConfiguration().getOffspringSelector();
+            survivorsSelector = this.getDefaultConfiguration().getSurvivorsSelector();
+            maximalPhenotypeAge = this.getDefaultConfiguration().getMaximalPhenotypeAge();
+            offspringFraction = this.getDefaultConfiguration().getOffspringFraction();
+            initialPopulation = this.getDefaultConfiguration().getInitialPopulation(problem, populationSize);
+            terminationConditions = this.getDefaultConfiguration().getTerminationConditions();
+        }
+
+        logger.info("Build the genetic algorithm engine.");
 
         Engine<EnumGene<Integer>, Integer> engine = Engine.builder(problem)
+                .optimize(Optimize.MAXIMUM)
                 .populationSize(populationSize)
                 .alterers(mutator, crossover)
                 .offspringSelector(offspringSelector)
@@ -66,28 +116,31 @@ public class JeneticsOptimization extends Optimization {
                 .constraint(problem.constraint().isPresent()?problem.constraint().get():null)
                 .build();
 
-        ISeq<Phenotype<EnumGene<Integer>, Integer>> initialPopulation = this.getConfiguration().getInitialPopulation();
-        if(initialPopulation == null) { initialPopulation = this.getDefaultConfiguration().getInitialPopulation(); }
-
-        Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>[] terminationConditions =
-                this.getConfiguration().getTerminationConditions();
-        if(terminationConditions == null) {
-            terminationConditions = this.getConfiguration().getTerminationConditions();
-        }
-
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
+
+        logger.info("Running optimization using Jenetics framework as slot allocation problem ...");
+
+        logger.info("Initial population consists of " + initialPopulation.length() + " individuals.");
 
         EvolutionStream<EnumGene<Integer>, Integer> stream = engine.stream(initialPopulation);
 
-        for(Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>> predicate : terminationConditions) {
-            stream = stream.limit(predicate);
+        for(Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>> terminationCondition: terminationConditions) {
+            stream = stream.limit(terminationCondition);
         }
 
-        Genotype<EnumGene<Integer>> result = stream
+        Phenotype<EnumGene<Integer>, Integer> result = stream
                 .peek(statistics)
-                .collect(EvolutionResult.toBestGenotype());
+                .collect(EvolutionResult.toBestPhenotype());
 
-        Map<Flight, Slot> resultMap = problem.decode(result);
+
+        logger.info("Finished optimization");
+
+        Map<Flight, Slot> resultMap = problem.decode(result.genotype());
+
+        logger.info("Fitness of best solution: " + problem.fitness(result.genotype()));
+        logger.info("Generation of best solution: " + result.generation());
+
+        logger.info("Statistics: \n" + statistics);
 
         this.updateStatistics(statistics);
 
@@ -96,9 +149,23 @@ public class JeneticsOptimization extends Optimization {
 
     @Override
     public JeneticsOptimizationConfiguration getDefaultConfiguration() {
-        // TODO create default configuration that can be returned
+        JeneticsOptimizationConfiguration defaultConfiguration = new JeneticsOptimizationConfiguration();
 
-        return null;
+        Map<String, Object> terminationConditionParameters = new HashMap<>();
+        terminationConditionParameters.put("BY_EXECUTION_TIME", 60);
+
+        defaultConfiguration.setMaximalPhenotypeAge(70);
+        defaultConfiguration.setPopulationSize(50);
+        defaultConfiguration.setOffspringFraction(0.6);
+        defaultConfiguration.setMutator("SWAP_MUTATOR");
+        defaultConfiguration.setMutatorAlterProbability(0.2);
+        defaultConfiguration.setCrossover("PARTIALLY_MATCHED_CROSSOVER");
+        defaultConfiguration.setCrossoverAlterProbability(0.35);
+        defaultConfiguration.setSurvivorsSelector("TOURNAMENT_SELECTOR");
+        defaultConfiguration.setOffspringSelector("TOURNAMENT_SELECTOR");
+        defaultConfiguration.setTerminationConditions(terminationConditionParameters);
+
+        return defaultConfiguration;
     }
 
     @Override
@@ -108,8 +175,7 @@ public class JeneticsOptimization extends Optimization {
 
     @Override
     public void newConfiguration(Map<String, Object> parameters) throws InvalidOptimizationParameterTypeException {
-        JeneticsOptimizationConfiguration newConfiguration =
-            new JeneticsOptimizationConfiguration();
+        JeneticsOptimizationConfiguration newConfiguration = new JeneticsOptimizationConfiguration();
 
         Object maximalPhenotypeAge = parameters.get("maximalPhenotypeAge");
         Object populationSize = parameters.get("populationSize");
@@ -118,12 +184,14 @@ public class JeneticsOptimization extends Optimization {
         Object mutatorAlterProbability = parameters.get("mutatorAlterProbability");
         Object crossover = parameters.get("crossover");
         Object crossoverAlterProbability = parameters.get("crossoverAlterProbability");
+        Object offspringSelector = parameters.get("offspringSelector");
+        Object survivorsSelector = parameters.get("survivorsSelector");
         Object terminationConditions = parameters.get("terminationConditions");
 
         // set the parameters
         try {
             if (maximalPhenotypeAge != null) {
-                newConfiguration.setMaximalPhenotypeAge(Integer.parseInt((String) maximalPhenotypeAge));
+                newConfiguration.setMaximalPhenotypeAge((int) maximalPhenotypeAge);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("maximalPhenotypeAge", Integer.class);
@@ -131,15 +199,23 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (populationSize != null) {
-                newConfiguration.setMaximalPhenotypeAge(Integer.parseInt((String) populationSize));
+                newConfiguration.setPopulationSize((int) populationSize);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("populationSize", Integer.class);
         }
 
         try {
+            if (offspringSelector != null) {
+                newConfiguration.setOffspringSelector((String) offspringSelector);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("offspringSelector", String.class);
+        }
+
+        try {
             if (offspringFraction != null) {
-                newConfiguration.setOffspringFraction(Double.parseDouble((String) offspringFraction));
+                newConfiguration.setOffspringFraction((double) offspringFraction);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("offspringFraction", Double.class);
@@ -155,7 +231,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (mutatorAlterProbability != null) {
-                newConfiguration.setMutatorAlterProbability(Double.parseDouble((String) mutatorAlterProbability));
+                newConfiguration.setMutatorAlterProbability((double) mutatorAlterProbability);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("mutatorAlterProbability", Double.class);
@@ -171,7 +247,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (crossoverAlterProbability != null) {
-                newConfiguration.setCrossoverAlterProbability(Double.parseDouble((String) crossoverAlterProbability));
+                newConfiguration.setCrossoverAlterProbability((double) crossoverAlterProbability);
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("crossoverAlterProbability", Double.class);
@@ -188,6 +264,14 @@ public class JeneticsOptimization extends Optimization {
             throw new InvalidOptimizationParameterTypeException("terminationConditions", Map.class);
         }
 
+        try {
+            if(survivorsSelector != null) {
+                newConfiguration.setSurvivorsSelector((String) survivorsSelector);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("survivorsSelector", String.class);
+        }
+
 
         // replace the configuration if no error was thrown
         this.configuration = newConfiguration;
@@ -195,10 +279,10 @@ public class JeneticsOptimization extends Optimization {
 
     @Override
     public JeneticsOptimizationStatistics getStatistics() {
-        return null;
+        return this.statistics;
     }
 
-    private void updateStatistics(EvolutionStatistics<Integer,?> statistics) {
+    private void updateStatistics(EvolutionStatistics<Integer,?> evolutionStatistics) {
 
     }
 

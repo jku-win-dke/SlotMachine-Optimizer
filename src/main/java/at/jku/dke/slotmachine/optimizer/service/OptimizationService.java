@@ -11,6 +11,7 @@ import at.jku.dke.slotmachine.optimizer.service.dto.MarginsDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
 
+import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.scheduling.annotation.Async;
@@ -76,13 +77,18 @@ public class OptimizationService {
 					.map(s -> new Slot(s.getTime()))
 					.toArray(Slot[]::new);
 
-			Optimization newOptimization = null;
+			Optimization newOptimization;
 			try {
 				logger.info("Create a new optimization with the specified characteristics");
-				newOptimization = factory.createOptimization(flights, slots, optimizationDto.getParameters());
+				if(optimizationDto.getParameters() != null) {
+					newOptimization = factory.createOptimization(flights, slots, optimizationDto.getParameters());
+				} else {
+					newOptimization = factory.createOptimization(flights, slots);
+				}
+
 				newOptimization.setOptId(optId);
 
-				logger.info("Store the optimization for later invocation");
+				logger.info("Store optimization " + optId + " for later invocation");
 				optimizations.put(optId, newOptimization);
 			} catch (InvalidOptimizationParameterTypeException e) {
 				logger.error("Could not create optimization due to error in parameters.", e);
@@ -130,19 +136,19 @@ public class OptimizationService {
 
 			logger.info("Optimization " + optId + " has finished.");
 
-			// convert the result map into the required format
+			logger.info("Convert the result map into the required format.");
 			optimizationResultDto = OptimizationResultDTO.fromResultMap(optId, resultMap);
 
-			// if the margins were in the original optimization DTO then include the margins in the result
 			MarginsDTO[] margins = optimizationDto.getMargins();
 			if(margins != null) {
+				logger.info("Since the margins were in the original submission include the margins also in the result.");
 				optimizationResultDto.setMargins(margins);
 			}
 
 			// get the fitness from the statistics and include it in the results
-			optimizationResultDto.setFitness(optimization.getStatistics().getSolutionFitness());
+			//optimizationResultDto.setFitness(optimization.getStatistics().getSolutionFitness());
 
-			// register the optimization result
+			logger.info("Register the result for optimization " + optId + ".");
 			optimizationResultDTOs.put(optId, optimizationResultDto);
 		} else {
 			logger.info("Optimization " + optId + " not found.");
@@ -178,5 +184,11 @@ public class OptimizationService {
 	 */
 	public OptimizationDTO getOptimization(UUID optId) {
 		return optimizationDTOs.get(optId);
+	}
+
+	public OptimizationStatisticsDTO getOptimizationStatistics(UUID optId) {
+		// TODO implement the retrieval of statistics
+
+		return null;
 	}
 }

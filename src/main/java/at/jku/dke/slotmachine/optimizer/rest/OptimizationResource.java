@@ -129,8 +129,17 @@ public class OptimizationResource {
             }
     )
     public ResponseEntity<OptimizationStatisticsDTO> getOptimizationStatistics(@PathVariable UUID optId) {
-        // TODO not implemented yet
-        return null;
+        OptimizationStatisticsDTO optimizationStatistics = optimizationService.getOptimizationStatistics(optId);
+
+        ResponseEntity<OptimizationStatisticsDTO> response;
+
+        if (optimizationStatistics != null) {
+            response = new ResponseEntity<>(optimizationStatistics, HttpStatus.OK);
+        } else {
+            response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return response;
     }
 
     @ApiOperation(value = "Get the description of a specific optimization.", response = OptimizationStatisticsDTO.class)

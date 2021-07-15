@@ -27,7 +27,7 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 		this.flights = flights;
 		this.availableSlots = availableSlots;
 
-		// for each flight compute the weight map
+		logger.debug("Compute weight map for each flight.");
 		Slot[] slotArray = availableSlots.toArray(Slot[]::new);
 		for(Flight f : flights) {
 			f.computeWeightMap(slotArray);
@@ -36,17 +36,10 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 	
     @Override
     public Function<Map<Flight, Slot>, Integer> fitness() {
-        return new Function<Map<Flight, Slot>, Integer>() {
-			@Override
-			public Integer apply(Map<Flight, Slot> slotAllocation) {
-				int sum = slotAllocation.keySet().stream()
-						.map(f -> f.getWeight(slotAllocation.get(f)))
-						.mapToInt(Integer::intValue)
-						.sum();
-
-				return sum;
-			}
-        };
+        return slotAllocation -> slotAllocation.keySet().stream()
+				.map(f -> f.getWeight(slotAllocation.get(f)))
+				.mapToInt(Integer::intValue)
+				.sum();
     }
 
     @Override
@@ -56,26 +49,21 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
     
     @Override
     public Optional<Constraint<EnumGene<Integer>, Integer>> constraint() {
-        Optional<Constraint<EnumGene<Integer>, Integer>> constraint = Optional.of(
-                RetryConstraint.of(
-                        codec(),
-                        flightSlotMap -> {
-                                boolean noFlightBeforeScheduledTime = true;
-                                
-                                for (Map.Entry<Flight, Slot> entry: flightSlotMap.entrySet()) {
-                					Flight flight = entry.getKey();
-                					Slot slot = entry.getValue();
-                					if (flight.getScheduledTime().isAfter(slot.getTime())) {
-                						noFlightBeforeScheduledTime = false;
-                					}
-                                }
-                                
-                                return (!noFlightBeforeScheduledTime);
-                        }
-                )
-        );
-        
-        return constraint;
+
+		return Optional.of(
+				RetryConstraint.of(
+						codec(),
+						flightSlotMap -> flightSlotMap.entrySet().stream().allMatch(entry -> entry.getKey().getScheduledTime().compareTo(entry.getValue().getTime()) < 0)
+				)
+		);
     }
+
+	public ISeq<Flight> getFlights() {
+		return flights;
+	}
+
+	public ISeq<Slot> getAvailableSlots() {
+		return availableSlots;
+	}
 
 }

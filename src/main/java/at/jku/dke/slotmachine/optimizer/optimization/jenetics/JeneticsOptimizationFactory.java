@@ -1,4 +1,4 @@
-package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
+package at.jku.dke.slotmachine.optimizer.optimization.jenetics; 
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;

@@ -5,7 +5,6 @@ import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import org.springframework.lang.Nullable;
 
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -36,15 +35,14 @@ public class OptimizationResultDTO {
     public static OptimizationResultDTO fromResultMap(UUID optId, Map<Flight, Slot> resultMap) {
         // sort the flights by slot instant
         String[] optimizedFlightSequence = resultMap.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getValue))
+                .sorted(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
+                .map(Flight::getFlightId)
                 .toArray(String[]::new);
 
-        Instant[] slots = resultMap.values().stream().sorted().map(slot -> slot.getTime()).toArray(Instant[]::new);
+        Instant[] slots = resultMap.values().stream().sorted().map(Slot::getTime).toArray(Instant[]::new);
 
-        OptimizationResultDTO newInstance = new OptimizationResultDTO(optId, optimizedFlightSequence, slots);
-
-        return newInstance;
+        return new OptimizationResultDTO(optId, optimizedFlightSequence, slots);
     }
 
     public Instant[] getSlots() {
