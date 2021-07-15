@@ -13,6 +13,7 @@ public class OptimizerApplication {
     private static final Logger logger = LogManager.getLogger();
 
     public static final String FACTORY_PROPERTY = "slotmachine.optimization.factory";
+    public static final String OPTAPLANNER_CONFIGURATIONS = "slotmachine.optimization.optaplanner.settings";
 
     public static void main(String[] args) {
         final String resourceName = "optimizationFactorySettings.json";
@@ -24,6 +25,15 @@ public class OptimizerApplication {
             System.setProperty(FACTORY_PROPERTY, optimizationFactorySettings);
         } catch (IOException e) {
             logger.error("Could not read optimization factory settings.", e);
+        }
+
+        final String optaplannerResourceName = "optaplannerConfigurations.json";
+
+        try(InputStream resourceStream = loader.getResourceAsStream(optaplannerResourceName)) {
+            String optaplannerConfigurations = new String(resourceStream.readAllBytes());
+            System.setProperty(OPTAPLANNER_CONFIGURATIONS, optaplannerConfigurations);
+        } catch (IOException e) {
+            logger.error("Could not read OptaPlanner configurations.", e);
         }
 
         SpringApplication.run(OptimizerApplication.class, args);
