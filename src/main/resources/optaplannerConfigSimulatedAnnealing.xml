@@ -19,6 +19,8 @@
     </constructionHeuristic>
     <!-- Local Search Phase -->
     <localSearchPhase>
-    	<localSearchType>HILL_CLIMBING</localSearchType>
+    	<acceptor>
+    		<simulatedAnnealingStartingTemperature>0hard/500soft</simulatedAnnealingStartingTemperature>
+    	</acceptor>
     </localSearchPhase>
 </solver>

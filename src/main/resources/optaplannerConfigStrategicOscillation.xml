@@ -19,6 +19,12 @@
     </constructionHeuristic>
     <!-- Local Search Phase -->
     <localSearchPhase>
-    	<localSearchType>HILL_CLIMBING</localSearchType>
+    	<acceptor>
+    		<entityTabuRatio>0.04</entityTabuRatio>
+    	</acceptor>
+    	<forager>
+    		<acceptedCountLimit>1000</acceptedCountLimit>
+    		<finalistPodiumType>STRATEGIC_OSCILLATION_BY_LEVEL_ON_BEST_SCORE</finalistPodiumType>
+    	</forager>
     </localSearchPhase>
 </solver>

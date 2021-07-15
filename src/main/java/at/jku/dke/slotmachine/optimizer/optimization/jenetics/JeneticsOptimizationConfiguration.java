@@ -149,21 +149,24 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         if(selectorType != null) {
             switch(selectorType) {
                 case "BOLTZMANN_SELECTOR":
-                    if(selectorParameter >= 0) {
+                	// parameter can be negative or positive
+                    if(selectorParameter > Double.MIN_VALUE) {
                         selector = new BoltzmannSelector<>(selectorParameter);
                     } else {
                         selector = new BoltzmannSelector<>();
                     }
                     break;
                 case "EXPONENTIAL_RANK_SELECTOR":
-                    if(selectorParameter >= 0 && selectorParameter <= 1) {
+                	// parameter has to be between 0 (inclusive) and 1 (exclusive)
+                    if(selectorParameter >= 0 && selectorParameter < 1) {
                         selector = new ExponentialRankSelector<>(selectorParameter);
                     } else {
                         selector = new ExponentialRankSelector<>();
                     }
                     break;
                 case "LINEAR_RANK_SELECTOR":
-                    if(selectorParameter < 0) {
+                	// parameter has to be 0 or higher
+                    if(selectorParameter >= 0) {
                         selector = new LinearRankSelector<>(selectorParameter);
                     } else {
                         selector = new LinearRankSelector<>();
@@ -176,14 +179,16 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                     selector = new StochasticUniversalSelector<>();
                     break;
                 case "TOURNAMENT_SELECTOR":
-                    if(selectorParameter < 2) {
+                	// parameter has to be 2 or higher
+                    if(selectorParameter >= 2) {
                         selector = new TournamentSelector<>((int) selectorParameter);
                     } else {
                         selector = new TournamentSelector<>();
                     }
                     break;
                 case "TRUNCATION_SELECTOR":
-                    if(selectorParameter < 1) {
+                	// parameter has to be 1 or higher
+                    if(selectorParameter >= 1) {
                         selector = new TruncationSelector<>((int) selectorParameter);
                     } else {
                         selector = new TruncationSelector<>();

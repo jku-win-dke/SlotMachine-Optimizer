@@ -10,7 +10,7 @@
 
     <!-- Termination -->
     <termination>
-        <secondsSpentLimit>60</secondsSpentLimit>
+        <SecondsSpentLimit>60</SecondsSpentLimit>
     </termination>
 
     <!-- Construction Heuristic Phase -->
@@ -19,6 +19,11 @@
     </constructionHeuristic>
     <!-- Local Search Phase -->
     <localSearchPhase>
-    	<localSearchType>HILL_CLIMBING</localSearchType>
+    	<acceptor>
+    		<greatDelugeWaterLevelIncrementScore>0hard/100soft</greatDelugeWaterLevelIncrementScore>
+    	</acceptor>
+    	<forager>
+    		<acceptedCountLimit>1</acceptedCountLimit>
+    	</forager>
     </localSearchPhase>
 </solver>

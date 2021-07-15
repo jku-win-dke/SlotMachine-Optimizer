@@ -19,6 +19,11 @@
     </constructionHeuristic>
     <!-- Local Search Phase -->
     <localSearchPhase>
-    	<localSearchType>HILL_CLIMBING</localSearchType>
+    	<acceptor>
+    		<lateAcceptanceSize>50</lateAcceptanceSize>
+    	</acceptor>
+    	<forager>
+    		<acceptedCountLimit>4</acceptedCountLimit>
+    	</forager>
     </localSearchPhase>
 </solver>

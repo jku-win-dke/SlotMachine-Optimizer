@@ -19,6 +19,6 @@
     </constructionHeuristic>
     <!-- Local Search Phase -->
     <localSearchPhase>
-    	<localSearchType>HILL_CLIMBING</localSearchType>
+    	<localSearchType>TABU_SEARCH</localSearchType>
     </localSearchPhase>
 </solver>

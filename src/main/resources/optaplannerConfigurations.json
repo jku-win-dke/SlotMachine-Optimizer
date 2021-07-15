@@ -1,3 +1,9 @@
 {
-  "HILL_CLIMBING":"optaplannerConfigHillClimbing.xml"
+  "HILL_CLIMBING":"optaplannerConfigHillClimbing.xml",
+  "TABU_SEARCH":"optaplannerConfigTabuSearch.xml",
+  "SIMULATED_ANNEALING":"optaplannerConfigSimulatedAnnealing.xml",
+  "LATE_ACCEPTANCE":"optaplannerConfigLateAcceptance.xml",
+  "GREAT_DELUGE":"optaplannerConfigGreatDeluge.xml",
+  "STEP_COUNTING_HILL_CLIMBING":"optaplannerConfigStepCountingHillClimbing.xml",
+  "STRATEGIC_OSCILLATION":"optaplannerConfigStrategicOscillation.xml"
 }
