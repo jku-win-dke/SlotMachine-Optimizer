@@ -24,6 +24,7 @@ public class OptaplannerOptimization extends Optimization {
 
     @Override
     public Map<Flight, Slot> run() {
+        // TODO make it work with configuration specified via REST interface
         SolverFactory<FlightPrioritization> solverFactory = SolverFactory.createFromXmlResource("solver_config.xml");
 
         Solver<FlightPrioritization> solver = solverFactory.buildSolver();
@@ -33,7 +34,7 @@ public class OptaplannerOptimization extends Optimization {
             this.getFlights()[i].computeWeightMap(this.getSlots());
         }
 
-        logger.info("Get Optaplanner domain model.");
+        logger.info("Get OptaPlanner domain model.");
         List<FlightPlanningEntity> flights = Arrays.stream(this.getFlights())
                 .map(flight -> new FlightPlanningEntity(flight)).toList();
 
@@ -43,9 +44,11 @@ public class OptaplannerOptimization extends Optimization {
 
         FlightPrioritization unsolvedFlightPrioritization = new FlightPrioritization(slots, flights);
 
+        FlightPrioritization solvedFlightPrioritization = solver.solve(unsolvedFlightPrioritization);
 
+        logger.info("Finished optimization with Optaplanner. Score of solution is: " + solvedFlightPrioritization.getScore());
 
-        return null;
+        return solvedFlightPrioritization.getResultMap();
     }
 
     @Override
