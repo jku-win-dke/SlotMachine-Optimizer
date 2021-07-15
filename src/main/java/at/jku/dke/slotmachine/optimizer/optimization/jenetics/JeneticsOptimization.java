@@ -103,6 +103,10 @@ public class JeneticsOptimization extends Optimization {
             terminationConditions = this.getDefaultConfiguration().getTerminationConditions();
         }
 
+        logger.info("Initial population consists of " + initialPopulation.length() + " individuals.");
+
+        logger.info("-- Optimization --");
+
         logger.info("Build the genetic algorithm engine.");
 
         Engine<EnumGene<Integer>, Integer> engine = Engine.builder(problem)
@@ -116,11 +120,11 @@ public class JeneticsOptimization extends Optimization {
                 .constraint(problem.constraint().isPresent()?problem.constraint().get():null)
                 .build();
 
+        logger.info("Engine population size: " + engine.populationSize());
+
         EvolutionStatistics <Integer, ?> statistics = EvolutionStatistics.ofNumber();
 
         logger.info("Running optimization using Jenetics framework as slot allocation problem ...");
-
-        logger.info("Initial population consists of " + initialPopulation.length() + " individuals.");
 
         EvolutionStream<EnumGene<Integer>, Integer> stream = engine.stream(initialPopulation);
 
@@ -284,6 +288,7 @@ public class JeneticsOptimization extends Optimization {
 
         try {
             if (survivorsSelectorParameter != null) {
+                logger.info("Submitted survivors selector parameter: " + survivorsSelectorParameter);
                 newConfiguration.setSurvivorsSelectorParameter((Number) survivorsSelectorParameter);
             }
         } catch (Exception e) {

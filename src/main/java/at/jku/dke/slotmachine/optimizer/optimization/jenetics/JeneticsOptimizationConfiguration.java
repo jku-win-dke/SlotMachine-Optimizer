@@ -43,14 +43,18 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
         Mutator<EnumGene<Integer>, Integer> mutator = null;
 
+        logger.info("-- Mutator --");
+
         if(mutatorType != null) {
             switch (mutatorType) {
                 case "SWAP_MUTATOR":
                     double alterProbability = this.getMutatorAlterProbability();
 
                     if(alterProbability >= 0) {
+                        logger.info("Use swap mutator with alter probability: " + alterProbability);
                         mutator = new SwapMutator<>(alterProbability);
                     } else {
+                        logger.info("Use swap mutator with default alter probability.");
                         mutator = new SwapMutator<>();
                     }
                     break;
@@ -73,6 +77,8 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         Crossover<EnumGene<Integer>, Integer> crossover = null;
 
         double alterProbability = this.getCrossoverAlterProbability();
+
+        logger.info("-- Crossover --");
 
         if(crossoverType != null) {
             switch (crossoverType) {
@@ -115,6 +121,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         Number selectorParameter = this.getSurvivorsSelectorParameter();
 
         logger.info("-- Survivors Selector --");
+        logger.info("Found survivors selector parameter: " + selectorParameter);
         return this.getSelector(selectorType, selectorParameter);
     }
 
@@ -184,6 +191,8 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         Map<Flight, Slot> initialAllocation = new HashMap<>();
         Flight[] flights;
         Slot[] slots;
+
+        logger.info("-- Initial Population --");
 
         logger.info("Sort flights and available slots to get initial population.");
         flights = problem.getFlights().stream().sorted().toArray(Flight[]::new);
@@ -333,6 +342,6 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     }
 
     public void setSurvivorsSelectorParameter(Number survivorsSelectorParameter) {
-        this.setParameter("offspringSelectorParameter", survivorsSelectorParameter);
+        this.setParameter("survivorsSelectorParameter", survivorsSelectorParameter);
     }
 }
