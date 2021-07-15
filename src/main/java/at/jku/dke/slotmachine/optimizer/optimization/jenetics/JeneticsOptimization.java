@@ -18,7 +18,7 @@ public class JeneticsOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
 
     private JeneticsOptimizationConfiguration configuration = null;
-    private JeneticsOptimizationStatistics statistics = null;
+    private JeneticsOptimizationStatistics statistics;
 
     public JeneticsOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
@@ -287,7 +287,7 @@ public class JeneticsOptimization extends Optimization {
                 newConfiguration.setSurvivorsSelectorParameter((Number) survivorsSelectorParameter);
             }
         } catch (Exception e) {
-            throw new InvalidOptimizationParameterTypeException("survivorsSelectorParameter", Double.class);
+            throw new InvalidOptimizationParameterTypeException("survivorsSelectorParameter", Number.class);
         }
 
 

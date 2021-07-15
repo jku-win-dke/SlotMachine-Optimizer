@@ -2,13 +2,11 @@ package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
-import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
 import io.jenetics.*;
 import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.Limits;
 import io.jenetics.util.ISeq;
-import org.apache.commons.math3.genetics.OrderedCrossover;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,7 +18,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     private static final Logger logger = LogManager.getLogger();
 
     /**
-     * Returns the maximal phenotype age, or -1 if the parameter is not set.
+     * Returns the maximal phenotype age, or Integer.MIN_VALUE if the parameter is not set.
      * @return the maximal phenotype age
      */
     public int getMaximalPhenotypeAge() {
@@ -32,29 +30,12 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     }
 
 
-    public void setMaximalPhenotypeAge(Object maximalPhenotypeAge) throws InvalidOptimizationParameterTypeException {
-        if (!(maximalPhenotypeAge instanceof Integer)) {
-            throw new InvalidOptimizationParameterTypeException("maximalPhenotypeAge", Integer.class, maximalPhenotypeAge.getClass());
-        }
-
-        this.setMaximalPhenotypeAge(maximalPhenotypeAge);
-    }
-
-
     public int getPopulationSize() {
         return this.getIntegerParameter("populationSize");
     }
 
     public void setPopulationSize(int populationSize) {
         this.setParameter("populationSize", populationSize);
-    }
-
-    public void setPopulationSize(Object populationSize) throws InvalidOptimizationParameterTypeException {
-        if (!(populationSize instanceof Integer)) {
-            throw new InvalidOptimizationParameterTypeException("populationSize", Integer.class, populationSize.getClass());
-        }
-
-        this.setPopulationSize(populationSize);
     }
 
     public Mutator<EnumGene<Integer>, Integer> getMutator() {
@@ -120,6 +101,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
         Number selectorParameter = this.getOffspringSelectorParameter();
 
+        logger.info("-- Offspring Selector --");
         return this.getSelector(selectorType, selectorParameter);
     }
 
@@ -132,6 +114,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
         Number selectorParameter = this.getSurvivorsSelectorParameter();
 
+        logger.info("-- Survivors Selector --");
         return this.getSelector(selectorType, selectorParameter);
     }
 
@@ -199,16 +182,12 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
     public ISeq<Genotype<EnumGene<Integer>>> getInitialPopulation(SlotAllocationProblem problem, int populationSize) {
         Map<Flight, Slot> initialAllocation = new HashMap<>();
-        Flight[] flights = null;
-        Slot[] slots = null;
+        Flight[] flights;
+        Slot[] slots;
 
         logger.info("Sort flights and available slots to get initial population.");
-        try {
-            flights = problem.getFlights().stream().sorted().toArray(Flight[]::new);
-            slots = problem.getAvailableSlots().stream().sorted().toArray(Slot[]::new);
-        } catch (Exception e) {
-            logger.error(e);
-        }
+        flights = problem.getFlights().stream().sorted().toArray(Flight[]::new);
+        slots = problem.getAvailableSlots().stream().sorted().toArray(Slot[]::new);
 
         logger.info("Allocate slots according to scheduled time.");
         for(int i = 0; i < flights.length; i++) {
@@ -241,16 +220,13 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
     }
 
     public Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>[] getTerminationConditions() {
-        Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>> predicate = null;
-
         List<Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>>> predicates = new LinkedList<>();
 
-        Map<String,Object> terminationConditionParameters =
-                this.getMapParameter("terminationConditions");
+        Map<String,Object> terminationConditionParameters = this.getMapParameter("terminationConditions");
 
-        Set<String> terminationConditionTypes = terminationConditionParameters.keySet();
+        if(terminationConditionParameters != null) {
+            Set<String> terminationConditionTypes = terminationConditionParameters.keySet();
 
-        if(terminationConditionTypes != null) {
             for(String terminationConditionType : terminationConditionTypes) {
                 Predicate<? super EvolutionResult<EnumGene<Integer>, Integer>> nextPredicate = null;
 
@@ -318,15 +294,6 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         if(value != null) mapValue = (Map<String,Object>) value;
 
         return mapValue;
-    }
-
-    private String[] getStringArrayParameter(String param) {
-        String[] stringArrayValue = null;
-        Object value = this.getParameter(param);
-
-        if(value != null) stringArrayValue = (String[]) value;
-
-        return stringArrayValue;
     }
 
     public void setTerminationConditions(Map<String,Object> terminationConditionParameters) {
