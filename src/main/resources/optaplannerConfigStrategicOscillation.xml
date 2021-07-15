@@ -18,7 +18,7 @@
     	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
     </constructionHeuristic>
     <!-- Local Search Phase -->
-    <localSearchPhase>
+    <localSearch>
     	<acceptor>
     		<entityTabuRatio>0.04</entityTabuRatio>
     	</acceptor>
@@ -26,5 +26,5 @@
     		<acceptedCountLimit>1000</acceptedCountLimit>
     		<finalistPodiumType>STRATEGIC_OSCILLATION_BY_LEVEL_ON_BEST_SCORE</finalistPodiumType>
     	</forager>
-    </localSearchPhase>
+    </localSearch>
 </solver>

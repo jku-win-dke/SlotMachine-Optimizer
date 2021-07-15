@@ -18,12 +18,12 @@
     	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
     </constructionHeuristic>
     <!-- Local Search Phase -->
-    <localSearchPhase>
+    <localSearch>
     	<acceptor>
     		<lateAcceptanceSize>50</lateAcceptanceSize>
     	</acceptor>
     	<forager>
     		<acceptedCountLimit>4</acceptedCountLimit>
     	</forager>
-    </localSearchPhase>
+    </localSearch>
 </solver>

@@ -5,5 +5,6 @@
   "LATE_ACCEPTANCE":"optaplannerConfigLateAcceptance.xml",
   "GREAT_DELUGE":"optaplannerConfigGreatDeluge.xml",
   "STEP_COUNTING_HILL_CLIMBING":"optaplannerConfigStepCountingHillClimbing.xml",
-  "STRATEGIC_OSCILLATION":"optaplannerConfigStrategicOscillation.xml"
+  "STRATEGIC_OSCILLATION":"optaplannerConfigStrategicOscillation.xml",
+  "BRANCH_AND_BOUND":"optaplannerConfigBranchAndBound.xml"
 }

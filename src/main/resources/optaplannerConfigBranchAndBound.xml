@@ -14,13 +14,10 @@
     </termination>
 
     <!-- Construction Heuristic Phase -->
-    <constructionHeuristic>
-    	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
-    </constructionHeuristic>
     <!-- Local Search Phase -->
-    <localSearch>
-    	<acceptor>
-    		<simulatedAnnealingStartingTemperature>0hard/500soft</simulatedAnnealingStartingTemperature>
-    	</acceptor>
-    </localSearch>
+    <!-- Exhaustive Search -->
+	<exhaustiveSearch>
+		<exhaustiveSearchType>BRANCH_AND_BOUND</exhaustiveSearchType>
+		<nodeExplorationType>DEPTH_FIRST</nodeExplorationType>
+	</exhaustiveSearch>
 </solver>

@@ -18,7 +18,7 @@
     	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
     </constructionHeuristic>
     <!-- Local Search Phase -->
-    <localSearchPhase>
+    <localSearch>
     	<localSearchType>TABU_SEARCH</localSearchType>
-    </localSearchPhase>
+    </localSearch>
 </solver>

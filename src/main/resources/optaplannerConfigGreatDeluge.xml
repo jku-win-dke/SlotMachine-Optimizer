@@ -18,12 +18,12 @@
     	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
     </constructionHeuristic>
     <!-- Local Search Phase -->
-    <localSearchPhase>
+    <localSearch>
     	<acceptor>
     		<greatDelugeWaterLevelIncrementScore>0hard/100soft</greatDelugeWaterLevelIncrementScore>
     	</acceptor>
     	<forager>
     		<acceptedCountLimit>1</acceptedCountLimit>
     	</forager>
-    </localSearchPhase>
+    </localSearch>
 </solver>

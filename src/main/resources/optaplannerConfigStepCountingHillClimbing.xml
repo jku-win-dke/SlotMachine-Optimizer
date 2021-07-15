@@ -18,12 +18,12 @@
     	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
     </constructionHeuristic>
     <!-- Local Search Phase -->
-    <localSearchPhase>
+    <localSearch>
     	<acceptor>
     		<stepCountingHillClimbingSize>20</stepCountingHillClimbingSize>
     	</acceptor>
     	<forager>
     		<acceptedCountLimit>1</acceptedCountLimit>
     	</forager>
-    </localSearchPhase>
+    </localSearch>
 </solver>
