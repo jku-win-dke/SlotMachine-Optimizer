@@ -15,9 +15,13 @@ import org.apache.logging.log4j.Logger;
 
 public class HungarianOptimization extends Optimization {
 	private static final Logger logger = LogManager.getLogger();
+
+	private HungarianOptimizationStatistics statistics;
 	
     public HungarianOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
+
+        this.statistics = new HungarianOptimizationStatistics();
     }
 
     @Override
@@ -27,77 +31,77 @@ public class HungarianOptimization extends Optimization {
     	Slot[] slots = this.getSlots();
     	logger.debug("Optimization flights: " + flights.length + " | slots: " + slots.length);
     	
-    	//create cost matrix
+    	// create cost matrix
     	// slots are with index i (so some slots can be unassigned)
     	// flights are with index j
     	//  -> at [i][j] is the weight to assign flight j to slot i
-    	double[][] costmatrix = new double[slots.length][flights.length];
+    	double[][] costMatrix = new double[slots.length][flights.length];
     	for (int i = 0; i < slots.length; i++) {
     		for (int j = 0; j < flights.length; j++) {
     			flights[j].computeWeightMap(slots);
-    			costmatrix[i][j] = flights[j].getWeight(slots[i]);
+    			costMatrix[i][j] = flights[j].getWeight(slots[i]);
     		}
     	}
     	
     	//logger.debug - print costmatrix
-    	logger.debug("costmatrix[" + costmatrix.length + "][" + costmatrix[0].length + "]");
+    	logger.debug("costMatrix[" + costMatrix.length + "][" + costMatrix[0].length + "]");
     	if (logger.isDebugEnabled()) {
 	    	String out = "";
-	    	for (int k = 0; k < costmatrix.length; k++) {
-	    		for (int l = 0; l < costmatrix[k].length; l++) {
-	    			out = out + ("[" + costmatrix[k][l] + "]");
+	    	for (int k = 0; k < costMatrix.length; k++) {
+	    		for (int l = 0; l < costMatrix[k].length; l++) {
+	    			out = out + ("[" + costMatrix[k][l] + "]");
 	    		}
 	    		out = out + "\n";
 	    	}
 	    	logger.debug(out);
     	}
     	
-    	//hungarian algorithm cannot work with negative values
-    	// according to https://math.stackexchange.com/q/2036640 & https://en.wikipedia.org/wiki/Hungarian_algorithm -> No
-    	//TODO can this hungarian algorithm implementation work with negative numbers or is it better to adjust cost matrix?
+    	// Hungarian algorithm cannot work with negative values
+    	// See https://math.stackexchange.com/q/2036640 & https://en.wikipedia.org/wiki/Hungarian_algorithm
+    	// TODO Can this implementation work with negative numbers or is it better to adjust cost matrix?
     	
-    	//adjusting costmatrix
-    		// find minimum value
+    	// adjusting cost matrix
+   		// find minimum value
     	double minValue = Double.MAX_VALUE;
-    	for (int i = 0; i < costmatrix.length; i++) {
-    		for (int j = 0; j < costmatrix[i].length; j++) {
-    			if (minValue > costmatrix[i][j]) {
-    				minValue = costmatrix[i][j];
+    	for (int i = 0; i < costMatrix.length; i++) {
+    		for (int j = 0; j < costMatrix[i].length; j++) {
+    			if (minValue > costMatrix[i][j]) {
+    				minValue = costMatrix[i][j];
     			}
     		}
     	}
     	
-    	for (int i = 0; i < costmatrix.length; i++) {
-    		for (int j = 0; j < costmatrix[i].length; j++) {
-    			if (minValue < costmatrix[i][j]) {
-    				costmatrix[i][j] = minValue + costmatrix[i][j];
+    	for (int i = 0; i < costMatrix.length; i++) {
+    		for (int j = 0; j < costMatrix[i].length; j++) {
+    			if (minValue < costMatrix[i][j]) {
+    				costMatrix[i][j] = minValue + costMatrix[i][j];
     			}
     		}
     	}
     	
-    	//TODO adjust costmatrix or adjust hungarian algorithm implementation? 
-    	// (as usually, hungarian algorithm tries to minimize cost, but here the goal is to maximize the weights)
+    	// TODO Adjust cost matrix or adjust Hungarian algorithm implementation?
+    	// (Hungarian algorithm tries to minimize cost, but here the goal is to maximize utility)
     	// https://stackoverflow.com/a/17520780
     	
-    	//adjusting costmatrix
-    		// find maximum value
+    	// Adjusting cost matrix
+		// find maximum value
     	double maxValue = Double.MIN_VALUE;
-    	for (int i = 0; i < costmatrix.length; i++) {
-    		for (int j = 0; j < costmatrix[i].length; j++) {
-    			if (maxValue < costmatrix[i][j]) {
-    				maxValue = costmatrix[i][j];
+    	for (int i = 0; i < costMatrix.length; i++) {
+    		for (int j = 0; j < costMatrix[i].length; j++) {
+    			if (maxValue < costMatrix[i][j]) {
+    				maxValue = costMatrix[i][j];
     			}
     		}
     	}
     	
-    	for (int i = 0; i < costmatrix.length; i++) {
-    		for (int j = 0; j < costmatrix[i].length; j++) {
-    			costmatrix[i][j] = maxValue - costmatrix[i][j];
+    	for (int i = 0; i < costMatrix.length; i++) {
+    		for (int j = 0; j < costMatrix[i].length; j++) {
+    			costMatrix[i][j] = maxValue - costMatrix[i][j];
     		}
     	}
     	
-    	// use hungarian algorithm
-    	HungarianAlgorithm ha = new HungarianAlgorithm(costmatrix);
+    	// use Hungarian algorithm
+    	HungarianAlgorithm ha = new HungarianAlgorithm(costMatrix);
     	// result[3] = 51: flights[51] at slots[3]
     	int[] result = ha.execute();
     	
@@ -120,7 +124,7 @@ public class HungarianOptimization extends Optimization {
         		sumOfWeights = sumOfWeights + flights[result[i]].getWeight(slots[i]);
         	}
     	}
-    	logger.debug("Finished optimization for " + this.getOptId() + " has a fitness value of " + sumOfWeights);
+    	logger.debug("Finished optimization for " + this.getOptId() + " with a fitness value of " + sumOfWeights);
     	
         return resultMap;
     }
@@ -128,23 +132,23 @@ public class HungarianOptimization extends Optimization {
     // no configuration used
     @Override
     public HungarianOptimizationConfiguration getDefaultConfiguration() {
-        return null;
+        return new HungarianOptimizationConfiguration();
     }
 
     // no configuration used
     @Override
     public HungarianOptimizationConfiguration getConfiguration() {
-        return null;
+        return new HungarianOptimizationConfiguration();
     }
 
     // no configuration used
     @Override
     public void newConfiguration(Map<String, Object> parameters) throws InvalidOptimizationParameterTypeException {
-    	return;
+    	// do nothing
     }
 
     @Override
     public HungarianOptimizationStatistics getStatistics() {
-        return null;
+    	return this.statistics;
     }
 }

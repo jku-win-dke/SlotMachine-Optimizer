@@ -4,7 +4,6 @@ import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
 
 public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalculator<FlightPrioritization, HardSoftScore> {
-
     @Override
     public HardSoftScore calculateScore(FlightPrioritization flightPrioritization) {
         int hardScore = 0;
@@ -24,6 +23,8 @@ public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalcula
 			// add weight of flight to soft score
 			softScore += f.getWrappedFlight().getWeight(f.getSlot().getWrappedSlot());
         }
+
+        flightPrioritization.incrementFitnessFunctionApplications();
 
         return HardSoftScore.of(hardScore, softScore);
     }

@@ -23,6 +23,8 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 	private final ISeq<Flight> flights;
 	private final ISeq<Slot> availableSlots;
 
+	private int fitnessFunctionApplications = 0;
+
 	public SlotAllocationProblem(ISeq<Flight> flights, ISeq<Slot> availableSlots) {
 		this.flights = flights;
 		this.availableSlots = availableSlots;
@@ -33,13 +35,21 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 			f.computeWeightMap(slotArray);
 		}
 	}
+
+	public int getFitnessFunctionApplications() {
+		return fitnessFunctionApplications;
+	}
 	
     @Override
     public Function<Map<Flight, Slot>, Integer> fitness() {
-        return slotAllocation -> slotAllocation.keySet().stream()
-				.map(f -> f.getWeight(slotAllocation.get(f)))
-				.mapToInt(Integer::intValue)
-				.sum();
+        return slotAllocation -> {
+			fitnessFunctionApplications++;
+
+			return slotAllocation.keySet().stream()
+					.map(f -> f.getWeight(slotAllocation.get(f)))
+					.mapToInt(Integer::intValue)
+					.sum();
+		};
     }
 
     @Override

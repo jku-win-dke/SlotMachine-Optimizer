@@ -146,7 +146,9 @@ public class OptimizationService {
 			}
 
 			// get the fitness from the statistics and include it in the results
-			//optimizationResultDto.setFitness(optimization.getStatistics().getSolutionFitness());
+			logger.info("Including basic statistics in the response.");
+			optimizationResultDto.setFitness(optimization.getStatistics().getSolutionFitness());
+			optimizationResultDto.setFitnessFunctionInvocations(optimization.getStatistics().getFitnessFunctionInvocations());
 
 			logger.info("Register the result for optimization " + optId + ".");
 			optimizationResultDTOs.put(optId, optimizationResultDto);

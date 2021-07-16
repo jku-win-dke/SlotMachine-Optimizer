@@ -34,4 +34,12 @@ public class OptaplannerOptimizationConfiguration extends OptimizationConfigurat
     public String getConfigurationName() {
         return this.getStringParameter("configurationName");
     }
+
+    public Long getSecondsSpentLimit() {
+        return this.getLongParameter("secondsSpentLimit");
+    }
+
+    public void setSecondsSpentLimit(Long secondsSpentLimit) {
+        this.setParameter("secondsSpentLimit", secondsSpentLimit);
+    }
 }

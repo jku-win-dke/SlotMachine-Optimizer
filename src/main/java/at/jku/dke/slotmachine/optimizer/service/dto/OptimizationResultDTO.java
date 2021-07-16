@@ -17,8 +17,12 @@ public class OptimizationResultDTO {
     @Nullable
     private MarginsDTO[] margins;
 
+    /** Basic Statistics **/
+
     @Nullable
     private int fitness;
+    @Nullable
+    private int fitnessFunctionInvocations;
 
     public OptimizationResultDTO(UUID optId, String[] optimizedFlightSequence, Instant[] slots) {
         this.optId = optId;
@@ -68,6 +72,12 @@ public class OptimizationResultDTO {
 
     public void setFitness(int fitness) {
         this.fitness = fitness;
+    }
+
+    public int getFitnessFunctionInvocations() { return fitnessFunctionInvocations; }
+
+    public void setFitnessFunctionInvocations(int fitnessFunctionInvocations) {
+        this.fitnessFunctionInvocations = fitnessFunctionInvocations;
     }
 
 	public UUID getOptId() {

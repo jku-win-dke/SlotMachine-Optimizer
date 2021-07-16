@@ -11,7 +11,6 @@ import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.solver.SolverConfig;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +34,11 @@ public class OptaplannerOptimization extends Optimization {
 
         if(this.getConfiguration() == null || solverConfig == null) {
             solverConfig = this.getDefaultConfiguration().getSolverConfig();
+        }
+
+        if(this.getConfiguration() != null && this.getConfiguration().getSecondsSpentLimit() > 0) {
+            logger.info("Setting seconds spent limit to " + this.getConfiguration().getSecondsSpentLimit());
+            solverConfig.getTerminationConfig().setSecondsSpentLimit(this.getConfiguration().getSecondsSpentLimit());
         }
 
         logger.info("Create the solver factory.");
@@ -74,9 +78,24 @@ public class OptaplannerOptimization extends Optimization {
             logger.error(e);
         }
 
-        logger.info("Finished optimization with OptaPlanner. Score of solution is: " + solvedFlightPrioritization.getScore());
 
-        return solvedFlightPrioritization.getResultMap();
+        Map<Flight,Slot> resultMap = null;
+
+        if(solvedFlightPrioritization != null) {
+            logger.info("Finished optimization with OptaPlanner. Score of solution is: " + solvedFlightPrioritization.getScore());
+
+            resultMap = solvedFlightPrioritization.getResultMap();
+
+            logger.info("Setting statistics for this optimization.");
+            this.statistics = new OptaplannerOptimizationStatistics();
+
+            this.getStatistics().setSolutionFitness(solvedFlightPrioritization.getScore().getSoftScore());
+            this.getStatistics().setFitnessFunctionInvocations(solvedFlightPrioritization.getFitnessFunctionInvocations());
+
+            logger.info("Number of fitness function invocations: " + this.getStatistics().getFitnessFunctionInvocations());
+        }
+
+        return resultMap;
     }
 
     @Override
@@ -98,6 +117,7 @@ public class OptaplannerOptimization extends Optimization {
         OptaplannerOptimizationConfiguration newConfiguration = new OptaplannerOptimizationConfiguration();
 
         Object configurationName = parameters.get("configurationName");
+        Object secondsSpentLimit = parameters.get("secondsSpentLimit");
 
         // set the parameters
         try {
@@ -110,6 +130,14 @@ public class OptaplannerOptimization extends Optimization {
             throw new InvalidOptimizationParameterTypeException("configurationName", String.class);
         }
 
+        try {
+            if (secondsSpentLimit != null) {
+                newConfiguration.setSecondsSpentLimit(((Integer) secondsSpentLimit).longValue());
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("secondsSpentLimit", Long.class);
+        }
+
         // replace the configuration if no error was thrown
         this.configuration = newConfiguration;
     }
@@ -117,6 +145,6 @@ public class OptaplannerOptimization extends Optimization {
     @Override
     public OptaplannerOptimizationStatistics getStatistics() {
 
-        return this.getStatistics();
+        return this.statistics;
     }
 }

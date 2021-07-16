@@ -16,6 +16,7 @@
     <constructionHeuristic>
         <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
     </constructionHeuristic>
+
     <!-- Local Search Phase -->
     <localSearch>
         <localSearchType>HILL_CLIMBING</localSearchType>

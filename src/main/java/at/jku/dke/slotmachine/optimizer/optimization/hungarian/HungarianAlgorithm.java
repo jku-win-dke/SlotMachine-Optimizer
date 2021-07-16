@@ -1,7 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.optimization.hungarian;
 /**
  * Source: https://github.com/KevinStern/software-and-algorithms/blob/master/src/main/java/blogspot/software_and_algorithms/stern_library/optimization/HungarianAlgorithm.java
- * (from July 12th, 2021)
+ * (downloaded July 12th, 2021)
  */
 import java.util.Arrays;
 

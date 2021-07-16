@@ -57,4 +57,16 @@ public abstract class OptimizationConfiguration {
 
         return numberValue;
     }
+
+    protected Long getLongParameter(String param) {
+        Object value = this.getParameter(param);
+
+        Long longValue = null;
+
+        if(value != null) {
+            longValue = (Long) value;
+        }
+
+        return longValue;
+    }
 }

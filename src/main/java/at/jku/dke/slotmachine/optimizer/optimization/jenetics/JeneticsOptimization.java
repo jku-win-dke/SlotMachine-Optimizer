@@ -5,7 +5,10 @@ import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import io.jenetics.*;
-import io.jenetics.engine.*;
+import io.jenetics.engine.Engine;
+import io.jenetics.engine.EvolutionResult;
+import io.jenetics.engine.EvolutionStatistics;
+import io.jenetics.engine.EvolutionStream;
 import io.jenetics.util.ISeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -141,12 +144,22 @@ public class JeneticsOptimization extends Optimization {
 
         Map<Flight, Slot> resultMap = problem.decode(result.genotype());
 
-        logger.info("Fitness of best solution: " + problem.fitness(result.genotype()));
-        logger.info("Generation of best solution: " + result.generation());
-
         logger.info("Statistics: \n" + statistics);
 
-        this.updateStatistics(statistics);
+        logger.info("Setting statistics for this optimization.");
+        this.statistics = new JeneticsOptimizationStatistics();
+
+        // get number of fitness function invocations first so as to not distort statistics because we
+        // invoke the fitness function
+        this.getStatistics().setFitnessFunctionInvocations(problem.getFitnessFunctionApplications());
+        this.getStatistics().setSolutionFitness(problem.fitness(result.genotype()));
+        this.getStatistics().setGenerations(statistics.altered().count());
+        this.getStatistics().setSolutionGeneration(result.generation());
+
+        logger.info("Number of fitness function applications: " + this.getStatistics().getFitnessFunctionInvocations());
+        logger.info("Fitness of best solution: " + this.getStatistics().getSolutionFitness());
+        logger.info("Number of generations: " + this.getStatistics().getGenerations());
+        logger.info("Generation of best solution: " + this.getStatistics().getSolutionGeneration());
 
         return resultMap;
     }
@@ -303,10 +316,6 @@ public class JeneticsOptimization extends Optimization {
     @Override
     public JeneticsOptimizationStatistics getStatistics() {
         return this.statistics;
-    }
-
-    private void updateStatistics(EvolutionStatistics<Integer,?> evolutionStatistics) {
-
     }
 
 }

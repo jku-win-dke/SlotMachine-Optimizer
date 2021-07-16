@@ -65,7 +65,7 @@ public class FlightPrioritization {
         return fitnessFunctionInvocations;
 	}
 
-	public void setFitnessFunctionInvocations(int fitnessFunctionInvocations) {
-		this.fitnessFunctionInvocations = fitnessFunctionInvocations;
-	}
+    public void incrementFitnessFunctionApplications() {
+        this.fitnessFunctionInvocations++;
+    }
 }
