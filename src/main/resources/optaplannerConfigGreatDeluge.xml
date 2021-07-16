@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<solver>
+	<moveThreadCount>NONE</moveThreadCount> <!-- how many threads act parallel  -->
+	<environmentMode>REPRODUCIBLE</environmentMode>
+    <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization</solutionClass>
+    <entityClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPlanningEntity</entityClass>
+    <scoreDirectorFactory>
+        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
+    </scoreDirectorFactory>
+
+    <!-- Termination -->
+    <termination>
+        <SecondsSpentLimit>60</SecondsSpentLimit>
+    </termination>
+
+    <!-- Construction Heuristic Phase -->
+    <constructionHeuristic>
+    	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+    </constructionHeuristic>
+    <!-- Local Search Phase -->
+    <localSearch>
+    	<acceptor>
+    		<greatDelugeWaterLevelIncrementScore>0hard/100soft</greatDelugeWaterLevelIncrementScore>
+    	</acceptor>
+    	<forager>
+    		<acceptedCountLimit>1</acceptedCountLimit>
+    	</forager>
+    </localSearch>
+</solver>
