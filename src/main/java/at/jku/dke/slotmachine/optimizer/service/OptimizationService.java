@@ -122,39 +122,7 @@ public class OptimizationService {
 	 */
 	@Async("threadPoolTaskExecutor")
 	public CompletableFuture<OptimizationResultDTO> runOptimizationAsynchronously(UUID optId) {
-		// search for optId
-		Optimization optimization = this.optimizations.get(optId);
-		OptimizationDTO optimizationDto = this.optimizationDTOs.get(optId);
-
-		Map<Flight,Slot> resultMap;
-
-		OptimizationResultDTO optimizationResultDto = null;
-
-		if(optimization != null) {
-			logger.info("Starting optimization " + optId + " and running optimization algorithm.");
-			resultMap = optimization.run();
-
-			logger.info("Optimization " + optId + " has finished.");
-
-			logger.info("Convert the result map into the required format.");
-			optimizationResultDto = OptimizationResultDTO.fromResultMap(optId, resultMap);
-
-			MarginsDTO[] margins = optimizationDto.getMargins();
-			if(margins != null) {
-				logger.info("Since the margins were in the original submission include the margins also in the result.");
-				optimizationResultDto.setMargins(margins);
-			}
-
-			// get the fitness from the statistics and include it in the results
-			logger.info("Including basic statistics in the response.");
-			optimizationResultDto.setFitness(optimization.getStatistics().getSolutionFitness());
-			optimizationResultDto.setFitnessFunctionInvocations(optimization.getStatistics().getFitnessFunctionInvocations());
-
-			logger.info("Register the result for optimization " + optId + ".");
-			optimizationResultDTOs.put(optId, optimizationResultDto);
-		} else {
-			logger.info("Optimization " + optId + " not found.");
-		}
+		OptimizationResultDTO optimizationResultDto = this.runOptimization(optId);
 
 		return CompletableFuture.completedFuture(optimizationResultDto);
 	}
@@ -192,5 +160,43 @@ public class OptimizationService {
 		// TODO implement the retrieval of statistics
 
 		return null;
+	}
+
+	public OptimizationResultDTO runOptimization(UUID optId) {
+		// search for optId
+		Optimization optimization = this.optimizations.get(optId);
+		OptimizationDTO optimizationDto = this.optimizationDTOs.get(optId);
+
+		Map<Flight,Slot> resultMap;
+
+		OptimizationResultDTO optimizationResultDto = null;
+
+		if(optimization != null) {
+			logger.info("Starting optimization " + optId + " and running optimization algorithm.");
+			resultMap = optimization.run();
+
+			logger.info("Optimization " + optId + " has finished.");
+
+			logger.info("Convert the result map into the required format.");
+			optimizationResultDto = OptimizationResultDTO.fromResultMap(optId, resultMap);
+
+			MarginsDTO[] margins = optimizationDto.getMargins();
+			if(margins != null) {
+				logger.info("Since the margins were in the original submission include the margins also in the result.");
+				optimizationResultDto.setMargins(margins);
+			}
+
+			// get the fitness from the statistics and include it in the results
+			logger.info("Including basic statistics in the response.");
+			optimizationResultDto.setFitness(optimization.getStatistics().getSolutionFitness());
+			optimizationResultDto.setFitnessFunctionInvocations(optimization.getStatistics().getFitnessFunctionInvocations());
+
+			logger.info("Register the result for optimization " + optId + ".");
+			optimizationResultDTOs.put(optId, optimizationResultDto);
+		} else {
+			logger.info("Optimization " + optId + " not found.");
+		}
+
+		return optimizationResultDto;
 	}
 }

@@ -2,8 +2,8 @@ package at.jku.dke.slotmachine.optimizer.optimization;
 
 public class OptimizationStatistics {
 
-    private int solutionFitness;
-    private int fitnessFunctionInvocations;
+    private int solutionFitness = Integer.MIN_VALUE;
+    private int fitnessFunctionInvocations = Integer.MIN_VALUE;
 
     public int getFitnessFunctionInvocations() {
         return fitnessFunctionInvocations;

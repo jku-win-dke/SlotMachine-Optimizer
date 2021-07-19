@@ -81,6 +81,31 @@ public class OptimizationResource {
         return optimizationResponse;
     }
 
+    @ApiOperation(value = "Run a specific optimization that was previously created and initialized in a synchronized way, waiting for the response.")
+    @PutMapping(path = "/optimizations/{optId}/start/wait")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 202, message = "Accepted"),
+                    @ApiResponse(code = 404, message = "Not Found")
+            }
+    )
+    public ResponseEntity<OptimizationResultDTO> startOptimizationSync(@PathVariable UUID optId) {
+        ResponseEntity<OptimizationResultDTO> optimizationResponse;
+
+        if (!optimizationService.existsOptimizationWithId(optId)) {
+            logger.info("Optimization with id " + optId + " not found.");
+            optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else {
+            OptimizationResultDTO optimizationResult = optimizationService.runOptimization(optId);
+
+            optimizationResponse = new ResponseEntity<>(optimizationResult, HttpStatus.ACCEPTED);
+
+            logger.info("Optimization run with id " + optId + " has finished.");
+        }
+
+        return optimizationResponse;
+    }
+
     @ApiOperation(value = "Abort a previously started optimization; if available, an intermediate result can be obtained.")
     @PutMapping(path = "/optimizations/{optId}/abort", produces = "application/json")
     @ApiResponses(

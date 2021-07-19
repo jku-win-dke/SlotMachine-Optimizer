@@ -4,8 +4,6 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
-import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
-import at.jku.dke.slotmachine.optimizer.optimization.OptimizationStatistics;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -113,8 +111,7 @@ public class HungarianOptimization extends Optimization {
     		logger.debug(out);
     	}
 
-    	// TODO move sumOfWeights to statistics perhaps?	
-    	double sumOfWeights = 0;
+    	int sumOfWeights = 0;
     	Map<Flight, Slot> resultMap = new HashMap<Flight, Slot>();
     	for (int i = 0; i < result.length; i++) {
     		resultMap.put(flights[result[i]], slots[i]);
@@ -124,8 +121,14 @@ public class HungarianOptimization extends Optimization {
         		sumOfWeights = sumOfWeights + flights[result[i]].getWeight(slots[i]);
         	}
     	}
-    	logger.debug("Finished optimization for " + this.getOptId() + " with a fitness value of " + sumOfWeights);
-    	
+    	logger.debug("Finished optimization using Hungarian algorithm for " + this.getOptId() + " with a fitness value of " + sumOfWeights);
+
+    	if(this.getStatistics() == null) {
+    		this.statistics = new HungarianOptimizationStatistics();
+    	}
+
+    	this.getStatistics().setSolutionFitness(sumOfWeights);
+
         return resultMap;
     }
 
