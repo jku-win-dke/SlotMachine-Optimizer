@@ -117,11 +117,10 @@ public class HungarianOptimization extends Optimization {
     		resultMap.put(flights[result[i]], slots[i]);
     		logger.debug("Slot " + slots[i].getTime().toString() + ": " + flights[result[i]].getFlightId() 
     				+ " | weight: " + flights[result[i]].getWeight(slots[i]));
-        	if (logger.isDebugEnabled()) {
-        		sumOfWeights = sumOfWeights + flights[result[i]].getWeight(slots[i]);
-        	}
+
+    		sumOfWeights = sumOfWeights + flights[result[i]].getWeight(slots[i]);
     	}
-    	logger.debug("Finished optimization using Hungarian algorithm for " + this.getOptId() + " with a fitness value of " + sumOfWeights);
+    	logger.info("Finished optimization using Hungarian algorithm for " + this.getOptId() + " with a fitness value of " + sumOfWeights);
 
     	if(this.getStatistics() == null) {
     		this.statistics = new HungarianOptimizationStatistics();
