@@ -59,11 +59,13 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
     
     @Override
     public Optional<Constraint<EnumGene<Integer>, Integer>> constraint() {
-
 		return Optional.of(
 				RetryConstraint.of(
 						codec(),
-						flightSlotMap -> flightSlotMap.entrySet().stream().allMatch(entry -> entry.getKey().getScheduledTime().compareTo(entry.getValue().getTime()) < 0)
+						flightSlotMap -> flightSlotMap.entrySet().stream()
+								.allMatch(
+										entry -> entry.getKey().getScheduledTime().compareTo(entry.getValue().getTime()) <= 0
+								)
 				)
 		);
     }
