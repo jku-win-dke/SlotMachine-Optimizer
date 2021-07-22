@@ -120,7 +120,7 @@ public class OptimizationResource {
         return null;
     }
 
-    @ApiOperation(value = "Get the result of an optimization, if available.", response = OptimizationResultDTO.class)
+    @ApiOperation(value = "Get the result of an optimization, if available.")
     @GetMapping(path = {"/optimizations/{optId}/result"}, produces = "application/json")
     @ApiResponses(
             value = {
@@ -144,6 +144,37 @@ public class OptimizationResource {
         return response;
     }
 
+    @ApiOperation(value = "Delete the result of an optimization, if available, and the optimization data.", response = OptimizationResultDTO.class)
+    @GetMapping(path = {"/optimizations/{optId}/remove"}, produces = "application/json")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "OK"),
+                    @ApiResponse(code = 404, message = "Not Found")
+            }
+    )
+    public ResponseEntity<Void> deleteOptimizationResult(@PathVariable UUID optId) {
+    	ResponseEntity<Void> optimizationResponse;
+
+        if (!optimizationService.existsOptimizationWithId(optId)) {
+            logger.info("Optimization with id " + optId + " not found.");
+            optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else {
+            boolean removed = optimizationService.deleteOptimizationResult(optId);
+
+            optimizationResponse = new ResponseEntity<>(HttpStatus.ACCEPTED);
+
+            if (removed) {
+            	logger.info("Optimization + result with id " + optId + " has successfully been removed.");
+            } else {
+            	logger.info("Optimization result with id " + optId + " has not been found.");
+            	if (!(optimizationService.existsOptimizationWithId(optId))) {
+            		logger.info("Optimization with id " + optId + " has been removed.");
+            	}
+            }
+        }
+
+        return optimizationResponse;
+    }
 
     @ApiOperation(value = "Get current statistics for a specific optimization and its result.", response = OptimizationStatisticsDTO.class)
     @GetMapping(path = "/optimizations/{optId}/stats", produces = "application/json")
