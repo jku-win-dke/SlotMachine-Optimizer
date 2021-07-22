@@ -120,7 +120,7 @@ public class OptimizationResource {
         return null;
     }
 
-    @ApiOperation(value = "Get the result of an optimization, if available.")
+    @ApiOperation(value = "Get the result of an optimization, if available.", response = OptimizationResultDTO.class)
     @GetMapping(path = {"/optimizations/{optId}/result"}, produces = "application/json")
     @ApiResponses(
             value = {
@@ -144,7 +144,7 @@ public class OptimizationResource {
         return response;
     }
 
-    @ApiOperation(value = "Delete the result of an optimization, if available, and the optimization data.", response = OptimizationResultDTO.class)
+    @ApiOperation(value = "Delete the result of an optimization, if available, and the optimization data.")
     @GetMapping(path = {"/optimizations/{optId}/remove"}, produces = "application/json")
     @ApiResponses(
             value = {
