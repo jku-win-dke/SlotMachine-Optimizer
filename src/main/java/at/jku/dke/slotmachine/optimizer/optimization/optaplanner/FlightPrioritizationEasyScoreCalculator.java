@@ -10,6 +10,7 @@ public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalcula
         int softScore = 0;
 
         for(FlightPlanningEntity f : flightPrioritization.getFlights()) {
+        	// make sure, that the scheduled time is before or at the assigned time
             if(f.getWrappedFlight().getScheduledTime().isAfter(f.getSlot().getTime())) {
                 hardScore--;
             }

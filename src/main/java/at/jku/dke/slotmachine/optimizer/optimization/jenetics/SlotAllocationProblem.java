@@ -58,12 +58,12 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
     }
     
     @Override
-    public Optional<Constraint<EnumGene<Integer>, Integer>> constraint() {
+    public Optional<Constraint<EnumGene<Integer>, Integer>> constraint() {    	
 		return Optional.of(
 				RetryConstraint.of(
 						codec(),
 						flightSlotMap -> flightSlotMap.entrySet().stream()
-								.allMatch(
+								.allMatch(	//return true, if the following is true for all entries (that scheduledTime is before assigned time)
 										entry -> entry.getKey().getScheduledTime().compareTo(entry.getValue().getTime()) <= 0
 								)
 				)

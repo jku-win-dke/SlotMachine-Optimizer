@@ -72,7 +72,7 @@ public class HungarianOptimization extends Optimization {
     	for (int i = 0; i < costMatrix.length; i++) {
     		for (int j = 0; j < costMatrix[i].length; j++) {
     			if (minValue < costMatrix[i][j]) {
-    				costMatrix[i][j] = minValue + costMatrix[i][j];
+    				costMatrix[i][j] = Math.abs(minValue) + costMatrix[i][j];
     			}
     		}
     	}

@@ -128,7 +128,7 @@ public class OptimizationService {
 	}
 
 	/**
-	 * Returns the result of the optimziation, if already available.
+	 * Returns the result of the optimization, if already available.
 	 * @param optId the optimization identifier
 	 * @return the result of the optimization
 	 */
@@ -141,6 +141,23 @@ public class OptimizationService {
 		}
 
 		return optimizationResultDto;
+	}
+	
+	/**
+	 * Deletes the result of the optimiziation, if already available and the optimization data as well
+	 * @param optId the optimization identifier
+	 * @return nothing
+	 */
+	public boolean deleteOptimizationResult(UUID optId) {
+		OptimizationResultDTO optimizationResultDto = optimizationResultDTOs.remove(optId);
+		OptimizationDTO optimizationDto = optimizationDTOs.remove(optId); //already checked at OptimizationResource.java
+		Optimization optimizationValue = optimizations.remove(optId);
+		
+		if (optimizationResultDto == null || optimizationDto == null || optimizationValue == null) {
+			return false;
+		}
+		
+		return true;
 	}
 
 	public boolean existsOptimizationWithId(UUID optId) {
