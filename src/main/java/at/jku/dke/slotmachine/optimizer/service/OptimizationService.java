@@ -39,9 +39,9 @@ public class OptimizationService {
 	}
 
 	/**
-	 * Creates the optimization session and initializes it with the given data.
+	 * Create the optimization and initialize it with the given data.
 	 * @param optimizationDto data for the optimization session
-	 * @return information about the optimization (unaltered input DTO, for now)
+	 * @return information about the optimization
 	 */
 	public OptimizationDTO createAndInitializeOptimization(final OptimizationDTO optimizationDto) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidOptimizationParameterTypeException {
 		logger.info("Starting process to initialize optimization session.");
