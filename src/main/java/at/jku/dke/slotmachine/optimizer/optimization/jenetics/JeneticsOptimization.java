@@ -112,7 +112,16 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info("Build the genetic algorithm engine.");
 
-        Engine<EnumGene<Integer>, Integer> engine = Engine.builder(problem)
+        BatchEvaluator evaluator = new BatchEvaluator(problem);
+
+
+        Engine.Builder<EnumGene<Integer>, Integer> builder;
+
+        builder = new Engine.Builder<>(evaluator, problem.codec().encoding());
+
+        // builder = Engine.builder(problem);
+
+        Engine<EnumGene<Integer>, Integer> engine = builder
                 .optimize(Optimize.MAXIMUM)
                 .populationSize(populationSize)
                 .alterers(mutator, crossover)
