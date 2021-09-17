@@ -1,7 +1,5 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
-import at.jku.dke.slotmachine.optimizer.domain.Flight;
-import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import io.jenetics.EnumGene;
 import io.jenetics.Phenotype;
 import io.jenetics.engine.Evaluator;
@@ -13,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     private static final Logger logger = LogManager.getLogger();
@@ -43,13 +40,30 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
         List<Phenotype<EnumGene<Integer>, Integer>> relativeFitnessPopulation =
                 new LinkedList<>();
 
+        double minFitness = evaluatedPopulation.get(0).fitness();
+        double maxFitness = evaluatedPopulation.get(evaluatedPopulation.size()-1).fitness();
+        logger.debug("generation: " + population.get(0).generation() + " | minFitness: " + minFitness + " | maxFitness: " + maxFitness);
+        double difference = (maxFitness - minFitness);
+        
         for(Phenotype<EnumGene<Integer>, Integer> phenotype : evaluatedPopulation) {
+            // function f(i) = ((1/0,948683298) * (x/sqrt(1+x^2)) * (difference/2)) + minFitness + (difference/2)   
+        	// function f(i) is used to give every individual a value between maximum fitness and minimum fitness, 
+        	//   according to their position in the sorted list
+            int i = evaluatedPopulation.indexOf(phenotype);
+            double x = ((i+1.0) * (6.0/(double) evaluatedPopulation.size())) - 3.0;
+            
+            double fitness = ((1.0/0.948683298) * (x/Math.sqrt(1 + x*x)) * (difference/2.0)) + minFitness + (difference/2.0);
+            
             Phenotype<EnumGene<Integer>, Integer> evaluatedPhenotype =
-                    phenotype.withFitness(evaluatedPopulation.indexOf(phenotype));
-
+                    phenotype.withFitness((int) fitness);
+            if (population.get(0).generation() == 1 && i % 20 == 0 && logger.isDebugEnabled()) {
+	            logger.debug("generation: " + population.get(0).generation() + " | minFitness: " + minFitness + " | maxFitness: " + maxFitness +
+	            		" | index: " + i + " | x: " + x + " | popSize: " + evaluatedPopulation.size() + " | 'new fitness': " + fitness);
+            }
             relativeFitnessPopulation.add(evaluatedPhenotype);
         }
 
+        
         logger.debug("Population evaluated.");
 
         return ISeq.of(relativeFitnessPopulation);
