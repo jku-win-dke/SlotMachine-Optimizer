@@ -40,15 +40,16 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
         List<Phenotype<EnumGene<Integer>, Integer>> relativeFitnessPopulation =
                 new LinkedList<>();
 
-        double minFitness = evaluatedPopulation.get(0).fitness();
+        //double minFitness = evaluatedPopulation.get(0).fitness(); //without fitness
         double maxFitness = evaluatedPopulation.get(evaluatedPopulation.size()-1).fitness();
-        logger.debug("generation: " + population.get(0).generation() + " | minFitness: " + minFitness + " | maxFitness: " + maxFitness);
+        double minFitness = maxFitness - (2 * Math.abs(maxFitness));
+        logger.debug("generation: " + population.get(0).generation() + " | minFitness: " + minFitness + " | maxFitness: " + maxFitness);;
         double difference = (maxFitness - minFitness);
         
         for(Phenotype<EnumGene<Integer>, Integer> phenotype : evaluatedPopulation) {
             // function f(i) = ((1/0,948683298) * (x/sqrt(1+x^2)) * (difference/2)) + minFitness + (difference/2)   
         	// function f(i) is used to give every individual a value between maximum fitness and minimum fitness, 
-        	//   according to their position in the sorted list
+        	//   according to their position in the sorted list (f(i) is modeled similar to sigmoid functions)
             int i = evaluatedPopulation.indexOf(phenotype);
             double x = ((i+1.0) * (6.0/(double) evaluatedPopulation.size())) - 3.0;
             
