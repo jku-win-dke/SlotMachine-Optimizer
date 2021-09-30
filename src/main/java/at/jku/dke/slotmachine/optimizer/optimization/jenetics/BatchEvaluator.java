@@ -41,32 +41,122 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                 new LinkedList<>();
 
         //double minFitness = evaluatedPopulation.get(0).fitness(); //without fitness
-        double maxFitness = evaluatedPopulation.get(evaluatedPopulation.size()-1).fitness();
-        double minFitness = maxFitness - (2 * Math.abs(maxFitness));
-        logger.debug("generation: " + population.get(0).generation() + " | minFitness: " + minFitness + " | maxFitness: " + maxFitness);;
-        double difference = (maxFitness - minFitness);
+        double maxFitness = evaluatedPopulation.get(population.size()-1).fitness();
+        double minFitness = maxFitness - (2 * Math.abs(maxFitness)) - (Math.abs(maxFitness)*0.0001);
+        logger.debug("generation: " + getGeneration(population) + " | minFitness: " + minFitness + " | maxFitness: " + maxFitness);
+        //double difference = (maxFitness - minFitness); //for sigmoid function
+        
+        //function (f(i) = a * ln(b * i) //logarithmic function
+        //	a = (minFitness - maxFitness)/(ln(1/populationSize))
+        //	b = e^c
+        //	c = (0 - (minFitness * ln(populationSize))/(minFitness - maxFitness)
+        double a = minFitness - maxFitness;
+        a = a / (Math.log((double) (1 / (double) population.size()))); // Math.log = ln
+        double c = 0 - (minFitness * Math.log(population.size()));
+        c = c / (minFitness - maxFitness);
+        double b = Math.pow(Math.E, c); //e^c
+        
+        //logger.debug("f(i) = a * ln(b * i) / b = e^c / a= " + a + " | b= " + b + " | c= " + c);
+        
+        List<Double> actualfitnessValuesGen = new LinkedList<Double>();
+        List<Double> sigmoidfitnessValuesGen = new LinkedList<Double>();
         
         for(Phenotype<EnumGene<Integer>, Integer> phenotype : evaluatedPopulation) {
-            // function f(i) = ((1/0,948683298) * (x/sqrt(1+x^2)) * (difference/2)) + minFitness + (difference/2)   
+            // function f(i) = ((1/0,948683298) * (x/sqrt(1+x^2)) * (difference/2)) + minFitness + (difference/2)  (sigmoid function, commented)
+        	//CURRENTLY logarithmic function is used, see above
         	// function f(i) is used to give every individual a value between maximum fitness and minimum fitness, 
         	//   according to their position in the sorted list (f(i) is modeled similar to sigmoid functions)
             int i = evaluatedPopulation.indexOf(phenotype);
-            double x = ((i+1.0) * (6.0/(double) evaluatedPopulation.size())) - 3.0;
             
-            double fitness = ((1.0/0.948683298) * (x/Math.sqrt(1 + x*x)) * (difference/2.0)) + minFitness + (difference/2.0);
+            if ((getGeneration(population) == 50 || getGeneration(population) == 150 || getGeneration(population) == 200 || 
+            		getGeneration(population) == 2 ) && logger.isDebugEnabled()) {
+            	actualfitnessValuesGen.add((double) phenotype.fitness());
+            }
+            
+            // for sigmoid function
+            //double x = ((i+1.0) * (6.0/(double) evaluatedPopulation.size())) - 3.0;
+            //
+            //double fitness = ((1.0/0.948683298) * (x/Math.sqrt(1 + x*x)) * (difference/2.0)) + minFitness + (difference/2.0);
+            double fitness = a * Math.log(b * i);
             
             Phenotype<EnumGene<Integer>, Integer> evaluatedPhenotype =
                     phenotype.withFitness((int) fitness);
-            if (population.get(0).generation() == 1 && i % 20 == 0 && logger.isDebugEnabled()) {
-	            logger.debug("generation: " + population.get(0).generation() + " | minFitness: " + minFitness + " | maxFitness: " + maxFitness +
+            // for sigmoid function, debugging information
+            /*if (getGeneration(population) == 1 && i % 20 == 0 && logger.isDebugEnabled()) {
+	            logger.debug("generation: " + getGeneration(population) + " | minFitness: " + minFitness + " | maxFitness: " + maxFitness +
 	            		" | index: " + i + " | x: " + x + " | popSize: " + evaluatedPopulation.size() + " | 'new fitness': " + fitness);
+            }*/
+
+            if ((getGeneration(population) == 50 || getGeneration(population) == 150 || getGeneration(population) == 200 || 
+            		getGeneration(population) == 2 ) && logger.isDebugEnabled()) {
+            	sigmoidfitnessValuesGen.add((double) evaluatedPhenotype.fitness());
             }
+            
             relativeFitnessPopulation.add(evaluatedPhenotype);
         }
 
+        // information for info/debug to create diagrams with distribution of fitness in complete population
+        if (getGeneration(population) == 50 && logger.isDebugEnabled()) {
+        	String genFitness = "generation 50, actual fitness values: ";
+        	for (Double actualFitness : actualfitnessValuesGen) {
+        		genFitness = genFitness + actualFitness + ", ";
+        	}
+        	String gensigmoidFitness = "generation 50, logarithmic fitness values: ";
+        	for (Double actualFitness : sigmoidfitnessValuesGen) {
+        		gensigmoidFitness = gensigmoidFitness + actualFitness + ", ";
+        	}
+        	logger.debug(genFitness);
+        	logger.debug(gensigmoidFitness);
+        } else if (getGeneration(population) == 150 && logger.isDebugEnabled()) {
+        	String genFitness = "generation 150, actual fitness values: ";
+        	for (Double actualFitness : actualfitnessValuesGen) {
+        		genFitness = genFitness + actualFitness + ", ";
+        	}
+        	String gensigmoidFitness = "generation 150, logarithmic fitness values: ";
+        	for (Double actualFitness : sigmoidfitnessValuesGen) {
+        		gensigmoidFitness = gensigmoidFitness + actualFitness + ", ";
+        	}
+        	logger.debug(genFitness);
+        	logger.debug(gensigmoidFitness);
+        } else if (getGeneration(population) == 200 && logger.isDebugEnabled()) {
+        	String genFitness = "generation 200, actual fitness values: ";
+        	for (Double actualFitness : actualfitnessValuesGen) {
+        		genFitness = genFitness + actualFitness + ", ";
+        	}
+        	String gensigmoidFitness = "generation 200, logarithmic fitness values: ";
+        	for (Double actualFitness : sigmoidfitnessValuesGen) {
+        		gensigmoidFitness = gensigmoidFitness + actualFitness + ", ";
+        	}
+        	logger.debug(genFitness);
+        	logger.debug(gensigmoidFitness);
+        } else if (getGeneration(population) == 2 && logger.isDebugEnabled()) {
+        	String genFitness = "generation 2, actual fitness values: ";
+        	for (Double actualFitness : actualfitnessValuesGen) {
+        		genFitness = genFitness + actualFitness + ", ";
+        	}
+        	String gensigmoidFitness = "generation 2, logarithmic fitness values: ";
+        	for (Double actualFitness : sigmoidfitnessValuesGen) {
+        		gensigmoidFitness = gensigmoidFitness + actualFitness + ", ";
+        	}
+        	logger.debug(genFitness);
+        	logger.debug(gensigmoidFitness);
+        }
         
         logger.debug("Population evaluated.");
 
         return ISeq.of(relativeFitnessPopulation);
+    }
+    
+    /**
+     * Returns the current generation of the given population or -1 for errors.
+     */
+    private static int getGeneration(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
+    	int currentGen = -1;
+    	for (Phenotype<EnumGene<Integer>, Integer> phenotype: population) {
+    		if (phenotype.generation() > currentGen) {
+    			currentGen = (int) phenotype.generation();
+    		}
+    	}
+    	return currentGen;
     }
 }
