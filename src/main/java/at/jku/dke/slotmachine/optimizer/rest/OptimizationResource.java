@@ -145,7 +145,7 @@ public class OptimizationResource {
     }
 
     @ApiOperation(value = "Delete the result of an optimization, if available, and the optimization data.")
-    @GetMapping(path = {"/optimizations/{optId}/remove"}, produces = "application/json")
+    @DeleteMapping(path = {"/optimizations/{optId}"}, produces = "application/json")
     @ApiResponses(
             value = {
                     @ApiResponse(code = 200, message = "OK"),
