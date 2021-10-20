@@ -1,6 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.rest;
 
 import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
+import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineRestService;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
@@ -10,6 +11,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,9 @@ public class OptimizationResource {
     private static final Logger logger = LogManager.getLogger();
 
     private final OptimizationService optimizationService;
+    
+    @Autowired
+    private PrivacyEngineRestService peService;
 
     public OptimizationResource(OptimizationService optimizationService) {
         this.optimizationService = optimizationService;
@@ -49,10 +54,14 @@ public class OptimizationResource {
                 optimizationService.createAndInitializeOptimization(optimization);
 
             optimizationResponse = new ResponseEntity<>(optimizationDto, HttpStatus.OK);
+            
+            peService.createClearSession(optimizationDto);
         } catch (Exception e) {
             optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.BAD_REQUEST);
         }
 
+
+        
         return optimizationResponse;
     }
 
