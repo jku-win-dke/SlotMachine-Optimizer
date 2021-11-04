@@ -129,7 +129,7 @@ public class OptimizationResource {
         return null;
     }
 
-    @ApiOperation(value = "Get the result of an optimization, if available.", response = OptimizationResultDTO.class)
+    @ApiOperation(value = "Get the result of an optimization, if available.", response = OptimizationResultDTO[].class)
     @GetMapping(path = {"/optimizations/{optId}/result"}, produces = "application/json")
     @ApiResponses(
             value = {
@@ -137,12 +137,12 @@ public class OptimizationResource {
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<OptimizationResultDTO> getOptimizationResult(@PathVariable UUID optId) {
+    public ResponseEntity<OptimizationResultDTO[]> getOptimizationResult(@PathVariable UUID optId) {
         // margins will be returned if they were submitted upon creation of optimization session
-        OptimizationResultDTO optimizationResult =
+        OptimizationResultDTO[] optimizationResult =
                 optimizationService.getOptimizationResult(optId);
 
-        ResponseEntity<OptimizationResultDTO> response;
+        ResponseEntity<OptimizationResultDTO[]> response;
 
         if (optimizationResult != null) {
             response = new ResponseEntity<>(optimizationResult, HttpStatus.OK);
