@@ -132,15 +132,17 @@ public class OptimizationService {
 	 * @param optId the optimization identifier
 	 * @return the result of the optimization
 	 */
-	public OptimizationResultDTO getOptimizationResult(UUID optId) {
+	public OptimizationResultDTO[] getOptimizationResult(UUID optId) {
 		// TODO retrieve intermediate result if the optimization has not finished
 		OptimizationResultDTO optimizationResultDto = optimizationResultDTOs.get(optId);
 
 		if(optimizationResultDto == null) {
 			logger.info("No result found for " + optId);
 		}
+		// TODO get a defined number of best results, ordered (best result is first element in array)
+		OptimizationResultDTO[] optResArray = {optimizationResultDto, optimizationResultDto, optimizationResultDto};
 
-		return optimizationResultDto;
+		return optResArray;
 	}
 	
 	/**
