@@ -19,12 +19,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /***
- * The OptimizationResource relays the REST calls to the {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
+ * The OptimizationController relays the REST calls to the {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
  * in order to to initiate and manage an optimization.
  */
 @Api(value = "SlotMachine Optimization")
 @RestController
-public class OptimizationResource {
+public class OptimizationEndpoint {
     private static final Logger logger = LogManager.getLogger();
 
     private final OptimizationService optimizationService;
@@ -32,7 +32,7 @@ public class OptimizationResource {
     @Autowired
     private PrivacyEngineRestService peService;
 
-    public OptimizationResource(OptimizationService optimizationService) {
+    public OptimizationEndpoint(OptimizationService optimizationService) {
         this.optimizationService = optimizationService;
     }
 
