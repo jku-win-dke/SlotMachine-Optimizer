@@ -1,6 +1,6 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -8,12 +8,12 @@ import java.util.Map;
 
 public class Flight implements Comparable<Flight> {
     private String flightId;
-    private Instant scheduledTime;
-    private int[] weights;
-    private Map<Slot, Integer> weightMap;
+    private LocalDateTime scheduledTime;
+    private double[] weights;
+    private Map<Slot, Double> weightMap;
     private Margins margins;
 
-    public Flight(String flightId, Instant scheduledTime, int[] weights) {
+    public Flight(String flightId, LocalDateTime scheduledTime, double[] weights) {
         this.flightId = flightId;
         this.scheduledTime = scheduledTime;
         this.weights = weights;
@@ -27,11 +27,11 @@ public class Flight implements Comparable<Flight> {
         this.flightId = flightId;
     }
 
-    public Instant getScheduledTime() {
+    public LocalDateTime getScheduledTime() {
         return scheduledTime;
     }
 
-    public void setScheduledTime(Instant scheduledTime) {
+    public void setScheduledTime(LocalDateTime scheduledTime) {
         this.scheduledTime = scheduledTime;
     }
 
@@ -51,8 +51,8 @@ public class Flight implements Comparable<Flight> {
         }
     }
 
-    public int getWeight(Slot s) {
-        int weight = Integer.MIN_VALUE;
+    public double getWeight(Slot s) {
+        double weight = Double.MIN_VALUE;
 
         if(weightMap != null && weightMap.containsKey(s)) {
             weight = weightMap.get(s);
@@ -61,11 +61,11 @@ public class Flight implements Comparable<Flight> {
         return weight;
     }
 
-    public int[] getWeights() {
+    public double[] getWeights() {
         return weights;
     }
 
-    public void setWeightMap(int[] weights) {
+    public void setWeightMap(double[] weights) {
         this.weights = weights;
     }
 

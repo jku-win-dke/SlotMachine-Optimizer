@@ -84,8 +84,15 @@
 	    	<groupId>org.optaplanner</groupId>
 	    	<artifactId>optaplanner-benchmark</artifactId>
 	    	<version>8.1.0.Final</version>
-	  	</dependency> 
+	  	</dependency>
+
+        <dependency>
+            <groupId>com.frequentis.slotmachine</groupId>
+            <artifactId>slma-object</artifactId>
+            <version>1.0.3</version>
+        </dependency>
     </dependencies>
+
 
     <build>
         <plugins>

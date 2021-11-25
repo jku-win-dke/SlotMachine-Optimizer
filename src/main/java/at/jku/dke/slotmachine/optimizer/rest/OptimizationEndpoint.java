@@ -1,7 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.rest;
 
 import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
-import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineRestService;
+import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
@@ -16,10 +16,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /***
- * The OptimizationController relays the REST calls to the {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
+ * The OptimizationEndpoint relays the REST calls to the {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
  * in order to to initiate and manage an optimization.
  */
 @Api(value = "SlotMachine Optimization")
@@ -28,15 +31,21 @@ public class OptimizationEndpoint {
     private static final Logger logger = LogManager.getLogger();
 
     private final OptimizationService optimizationService;
+
+    private Map<UUID, CompletableFuture<OptimizationResultDTO>> futures = new ConcurrentHashMap<>();
     
     @Autowired
-    private PrivacyEngineRestService peService;
+    private PrivacyEngineService peService;
 
     public OptimizationEndpoint(OptimizationService optimizationService) {
         this.optimizationService = optimizationService;
     }
 
-    @ApiOperation(value = "Create and initialize a (heuristic) optimization with flights and preferences.", response = OptimizationDTO.class)
+    @ApiOperation(
+            value = "Create and initialize a (heuristic) optimization with flights and preferences.",
+            response = OptimizationDTO.class,
+            produces = "application/json"
+    )
     @PostMapping(path = "/optimizations", consumes = "application/json")
     @ApiResponses(
             value = {
@@ -45,7 +54,7 @@ public class OptimizationEndpoint {
             }
     )
     public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization) {
-        logger.debug("Given parameter to initialize optimization: " + optimization.toString());
+        logger.debug("Initializing optimization using the following parameters: " + optimization.toString());
 
         ResponseEntity<OptimizationDTO> optimizationResponse;
 
@@ -69,22 +78,40 @@ public class OptimizationEndpoint {
     @PutMapping(path = "/optimizations/{optId}/start")
     @ApiResponses(
             value = {
+                    @ApiResponse(code = 200, message = "OK"),
                     @ApiResponse(code = 202, message = "Accepted"),
+                    @ApiResponse(code = 303, message = "See Other"),
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<Void> startOptimization(@PathVariable UUID optId) {
-        ResponseEntity<Void> optimizationResponse;
+    public ResponseEntity<OptimizationDTO> startOptimization(@PathVariable UUID optId) {
+        ResponseEntity<OptimizationDTO> optimizationResponse;
 
         if (!optimizationService.existsOptimizationWithId(optId)) {
             logger.info("Optimization with id " + optId + " not found.");
             optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
-            optimizationService.runOptimizationAsynchronously(optId);
+            OptimizationDTO optimization = optimizationService.getOptimization(optId);
+            CompletableFuture<OptimizationResultDTO> future = futures.get(optId);
 
-            optimizationResponse = new ResponseEntity<>(HttpStatus.ACCEPTED);
+            if(future == null) {
+                future = optimizationService.runOptimizationAsynchronously(optId);
 
-            logger.info("Optimization with id " + optId + " has successfully started.");
+                optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.ACCEPTED);
+
+                futures.put(optId, future);
+
+                logger.info("Optimization with id " + optId + " has successfully started.");
+            } else {
+                if(future.isDone()) {
+                    logger.info("Optimization with id " + optId + " has finished running.");
+                    optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.SEE_OTHER);
+                    optimizationResponse.getHeaders().set("Location", "/optimizations/" + optId + "/result");
+                } else {
+                    logger.info("Optimization with id " + optId + " currently running.");
+                    optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.OK);
+                }
+            }
         }
 
         return optimizationResponse;
@@ -94,7 +121,7 @@ public class OptimizationEndpoint {
     @PutMapping(path = "/optimizations/{optId}/start/wait")
     @ApiResponses(
             value = {
-                    @ApiResponse(code = 202, message = "Accepted"),
+                    @ApiResponse(code = 200, message = "OK"),
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
@@ -120,13 +147,20 @@ public class OptimizationEndpoint {
     @ApiResponses(
             value = {
                     @ApiResponse(code = 200, message = "OK"),
-                    @ApiResponse(code = 404, message = "Not Found"),
-                    @ApiResponse(code = 409, message = "Conflict")
+                    @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<Void> abortOptimization(@PathVariable UUID optId) {
-        // TODO implement abortOptimization method.
-        return null;
+    public ResponseEntity<OptimizationDTO> abortOptimization(@PathVariable UUID optId) {
+        ResponseEntity<OptimizationDTO> response;
+
+        OptimizationDTO optimization = optimizationService.getOptimization(optId);
+        CompletableFuture<OptimizationResultDTO> future = futures.get(optId);
+
+        if(!future.isDone()) {
+            future.cancel(true);
+        }
+
+        return response;
     }
 
     @ApiOperation(value = "Get the result of an optimization, if available.", response = OptimizationResultDTO[].class)

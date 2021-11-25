@@ -111,7 +111,7 @@ public class HungarianOptimization extends Optimization {
     		logger.debug(out);
     	}
 
-    	int sumOfWeights = 0;
+    	double sumOfWeights = 0;
     	Map<Flight, Slot> resultMap = new HashMap<Flight, Slot>();
     	for (int i = 0; i < result.length; i++) {
     		resultMap.put(flights[result[i]], slots[i]);

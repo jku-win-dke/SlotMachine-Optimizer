@@ -1,23 +1,21 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
-import java.time.Instant;
-
-import org.optaplanner.core.api.domain.lookup.PlanningId;
+import java.time.chrono.ChronoLocalDateTime;
 
 public class Slot implements Comparable<Slot> {
-    private Instant time;
+    private ChronoLocalDateTime<?> time;
 
-    public Slot(Instant time) {
+    public Slot(ChronoLocalDateTime<?> time) {
         this.time = time;
     }
 
     public Slot() { }
 
-    public Instant getTime() {
+    public ChronoLocalDateTime<?> getTime() {
         return time;
     }
 
-    public void setTime(Instant time) {
+    public void setTime(ChronoLocalDateTime<?> time) {
         this.time = time;
     }
 

@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class OptimizationService {
 	private static final Logger logger = LogManager.getLogger();
 
 	private final Map<UUID, OptimizationDTO> optimizationDTOs;
-	private final Map<UUID, OptimizationResultDTO> optimizationResultDTOs;
+	private final Map<UUID, OptimizationResultDTO[]> optimizationResultDTOs;
 	private final Map<UUID, Optimization> optimizations;
 
 	public OptimizationService() {
@@ -134,23 +135,22 @@ public class OptimizationService {
 	 */
 	public OptimizationResultDTO[] getOptimizationResult(UUID optId) {
 		// TODO retrieve intermediate result if the optimization has not finished
-		OptimizationResultDTO optimizationResultDto = optimizationResultDTOs.get(optId);
+		OptimizationResultDTO[] optimizationResultDTOs = this.optimizationResultDTOs.get(optId);
 
-		if(optimizationResultDto == null) {
+		if(optimizationResultDTOs == null) {
 			logger.info("No result found for " + optId);
 		}
-		// TODO get a defined number of best results, ordered (best result is first element in array)
-		OptimizationResultDTO[] optResArray = {optimizationResultDto, optimizationResultDto, optimizationResultDto};
 
-		return optResArray;
+		return optimizationResultDTOs;
 	}
 	
 	/**
-	 * Deletes the result of the optimiziation, if already available and the optimization data as well
+	 * Deletes an optimization and all its associated data. If the optimization is currently running, the optimization
+	 * will be aborted.
 	 * @param optId the optimization identifier
-	 * @return nothing
+	 * @return true if successful; false otherwise.
 	 */
-	public boolean deleteOptimizationResult(UUID optId) {
+	public boolean deleteOptimization(UUID optId) {
 		OptimizationResultDTO optimizationResultDto = optimizationResultDTOs.remove(optId);
 		OptimizationDTO optimizationDto = optimizationDTOs.remove(optId); //already checked at OptimizationResource.java
 		Optimization optimizationValue = optimizations.remove(optId);
@@ -197,7 +197,7 @@ public class OptimizationService {
 			logger.info("Optimization " + optId + " has finished.");
 
 			logger.info("Convert the result map into the required format.");
-			optimizationResultDto = OptimizationResultDTO.fromResultMap(optId, resultMap);
+			optimizationResultDto = this.convertResultMapToOptimizationResultMapDto(optId, resultMap);
 
 			MarginsDTO[] margins = optimizationDto.getMargins();
 			if(margins != null) {
@@ -218,4 +218,24 @@ public class OptimizationService {
 
 		return optimizationResultDto;
 	}
+
+	/**
+	 * Create a new instance from a result map between flights and slots.
+	 * @param optId the optimization identifier
+	 * @param resultMap a mapping between flights and slots
+	 * @return an OptimizationResultDTO based on the input mapping
+	 */
+	private static OptimizationResultDTO convertResultMapToOptimizationResultMapDto(UUID optId, Map<Flight, Slot> resultMap) {
+		// sort the flights by slot instant
+		String[] optimizedFlightSequence = resultMap.entrySet().stream()
+				.sorted(Map.Entry.comparingByValue())
+				.map(Map.Entry::getKey)
+				.map(Flight::getFlightId)
+				.toArray(String[]::new);
+
+		LocalDateTime[] slots = resultMap.values().stream().sorted().map(Slot::getTime).toArray(LocalDateTime[]::new);
+
+		return new OptimizationResultDTO(optId, optimizedFlightSequence, slots);
+	}
+
 }

@@ -2,7 +2,7 @@ package at.jku.dke.slotmachine.optimizer.optimization;
 
 public class OptimizationStatistics {
 
-    private int solutionFitness = Integer.MIN_VALUE;
+    private double solutionFitness = Integer.MIN_VALUE;
     private int fitnessFunctionInvocations = Integer.MIN_VALUE;
 
     public int getFitnessFunctionInvocations() {
@@ -13,11 +13,11 @@ public class OptimizationStatistics {
         this.fitnessFunctionInvocations = fitnessFunctionInvocations;
     }
 
-    public int getSolutionFitness() {
+    public double getSolutionFitness() {
         return solutionFitness;
     }
 
-    public void setSolutionFitness(int solutionFitness) {
+    public void setSolutionFitness(double solutionFitness) {
         this.solutionFitness = solutionFitness;
     }
 }

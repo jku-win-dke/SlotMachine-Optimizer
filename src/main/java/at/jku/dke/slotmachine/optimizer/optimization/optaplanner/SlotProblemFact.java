@@ -3,7 +3,7 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import org.optaplanner.core.api.domain.lookup.PlanningId;
 
-import java.time.Instant;
+import java.time.chrono.ChronoLocalDateTime;
 import java.util.Objects;
 
 public class SlotProblemFact implements Comparable<SlotProblemFact> {
@@ -11,7 +11,7 @@ public class SlotProblemFact implements Comparable<SlotProblemFact> {
 
     // PlanningId is used for OptaPlanner (move thread count)
     @PlanningId
-    private Instant time;
+    private ChronoLocalDateTime<?> time;
 
     public SlotProblemFact(Slot wrappedSlot) {
         this.wrappedSlot = wrappedSlot;
@@ -20,11 +20,11 @@ public class SlotProblemFact implements Comparable<SlotProblemFact> {
 
     public SlotProblemFact() { }
 
-    public Instant getTime() {
+    public ChronoLocalDateTime<?> getTime() {
         return time;
     }
 
-    public void setTime(Instant time) {
+    public void setTime(ChronoLocalDateTime<?> time) {
         this.time = time;
     }
 

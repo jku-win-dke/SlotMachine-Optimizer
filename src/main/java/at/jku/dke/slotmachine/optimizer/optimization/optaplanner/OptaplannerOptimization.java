@@ -73,6 +73,7 @@ public class OptaplannerOptimization extends Optimization {
         FlightPrioritization solvedFlightPrioritization = null;
 
         try {
+            // TODO implement as "solve and listen"
             solvedFlightPrioritization = solver.solve(unsolvedFlightPrioritization);
         } catch (Exception e) {
             logger.error(e);

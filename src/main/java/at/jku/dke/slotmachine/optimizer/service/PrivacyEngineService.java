@@ -19,13 +19,13 @@ import at.jku.dke.slotmachine.optimizer.domain.PopulationOrder;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 
 @Service
-public class PrivacyEngineRestService {
+public class PrivacyEngineService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	private final RestTemplate restTemplate;
 	private String host = null;
 	private ObjectMapper objectMapper = null;
 	
-	public PrivacyEngineRestService(RestTemplateBuilder restTemplateBuilder) {
+	public PrivacyEngineService(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
         String hostName = "localhost"; //TODO set correct hostname
     	Integer hostPort = 8089; //TODO set correct port
