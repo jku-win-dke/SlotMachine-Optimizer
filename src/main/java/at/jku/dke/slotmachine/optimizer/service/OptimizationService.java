@@ -7,36 +7,37 @@ import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationFactory;
-import at.jku.dke.slotmachine.optimizer.service.dto.MarginsDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
 
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
+import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatusEnum;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 @Service
 public class OptimizationService {
 	private static final Logger logger = LogManager.getLogger();
 
 	private final Map<UUID, OptimizationDTO> optimizationDTOs;
-	private final Map<UUID, OptimizationResultDTO[]> optimizationResultDTOs;
 	private final Map<UUID, Optimization> optimizations;
+	private final Map<UUID, Future> threads;
 
 	public OptimizationService() {
-		this.optimizationDTOs = new HashMap<>();
-		this.optimizationResultDTOs = new HashMap<>();
-		this.optimizations = new HashMap<>();
+		this.optimizationDTOs = new ConcurrentHashMap<>();
+		this.optimizations = new ConcurrentHashMap<>();
+		this.threads = new ConcurrentHashMap<>();
 	}
 
 	/**
@@ -54,7 +55,6 @@ public class OptimizationService {
 			logger.info("Found duplicate optimization entry for optimization with id " + optId + ". Deleting old entry.");
 			optimizationDTOs.remove(optId);
 			optimizations.remove(optId);
-			optimizationResultDTOs.remove(optId);
 		}
 
 		try {
@@ -107,10 +107,6 @@ public class OptimizationService {
 			logger.debug("Listing available optimization sessions ...");
 			for (Optimization o : optimizations.values()) {
 				logger.debug(o.getOptId().toString());
-
-				if (optimizationResultDTOs.containsKey(optId)) {
-					logger.debug("Results for optimization with id " + optId + " are available.");
-				}
 			}
 		}
 
@@ -122,10 +118,12 @@ public class OptimizationService {
 	 * @param optId optId of the optimization session
 	 */
 	@Async("threadPoolTaskExecutor")
-	public CompletableFuture<OptimizationResultDTO> runOptimizationAsynchronously(UUID optId) {
+	public Future<OptimizationResultDTO> runOptimizationAsynchronously(UUID optId) {
+		logger.info("Current thread: " + Thread.currentThread().toString());
+
 		OptimizationResultDTO optimizationResultDto = this.runOptimization(optId);
 
-		return CompletableFuture.completedFuture(optimizationResultDto);
+		return new AsyncResult<OptimizationResultDTO>(optimizationResultDto);
 	}
 
 	/**
@@ -133,15 +131,8 @@ public class OptimizationService {
 	 * @param optId the optimization identifier
 	 * @return the result of the optimization
 	 */
-	public OptimizationResultDTO[] getOptimizationResult(UUID optId) {
-		// TODO retrieve intermediate result if the optimization has not finished
-		OptimizationResultDTO[] optimizationResultDTOs = this.optimizationResultDTOs.get(optId);
-
-		if(optimizationResultDTOs == null) {
-			logger.info("No result found for " + optId);
-		}
-
-		return optimizationResultDTOs;
+	public OptimizationResultDTO[] getOptimizationResult(UUID optId, int noOfResults) {
+		return null;
 	}
 	
 	/**
@@ -151,11 +142,10 @@ public class OptimizationService {
 	 * @return true if successful; false otherwise.
 	 */
 	public boolean deleteOptimization(UUID optId) {
-		OptimizationResultDTO optimizationResultDto = optimizationResultDTOs.remove(optId);
-		OptimizationDTO optimizationDto = optimizationDTOs.remove(optId); //already checked at OptimizationResource.java
+		OptimizationDTO optimizationDto = optimizationDTOs.remove(optId);
 		Optimization optimizationValue = optimizations.remove(optId);
 		
-		if (optimizationResultDto == null || optimizationDto == null || optimizationValue == null) {
+		if (optimizationDto == null || optimizationValue == null) {
 			return false;
 		}
 		
@@ -172,7 +162,13 @@ public class OptimizationService {
 	 * @return the optimization DTO with the specified identifier, if it exists; null otherwise.
 	 */
 	public OptimizationDTO getOptimization(UUID optId) {
-		return optimizationDTOs.get(optId);
+		OptimizationDTO optimizationDto = optimizationDTOs.get(optId);
+
+		if(optimizationDto != null) {
+			optimizationDto.setOptimizationStatus(OptimizationStatusEnum.INITIALIZED);
+		}
+
+		return optimizationDto;
 	}
 
 	public OptimizationStatisticsDTO getOptimizationStatistics(UUID optId) {
@@ -182,6 +178,8 @@ public class OptimizationService {
 	}
 
 	public OptimizationResultDTO runOptimization(UUID optId) {
+		logger.info("Current thread: " + Thread.currentThread().toString());
+
 		// search for optId
 		Optimization optimization = this.optimizations.get(optId);
 		OptimizationDTO optimizationDto = this.optimizationDTOs.get(optId);
@@ -199,19 +197,13 @@ public class OptimizationService {
 			logger.info("Convert the result map into the required format.");
 			optimizationResultDto = this.convertResultMapToOptimizationResultMapDto(optId, resultMap);
 
-			MarginsDTO[] margins = optimizationDto.getMargins();
-			if(margins != null) {
-				logger.info("Since the margins were in the original submission include the margins also in the result.");
-				optimizationResultDto.setMargins(margins);
-			}
-
 			// get the fitness from the statistics and include it in the results
 			logger.info("Including basic statistics in the response.");
 			optimizationResultDto.setFitness(optimization.getStatistics().getSolutionFitness());
 			optimizationResultDto.setFitnessFunctionInvocations(optimization.getStatistics().getFitnessFunctionInvocations());
 
-			logger.info("Register the result for optimization " + optId + ".");
-			optimizationResultDTOs.put(optId, optimizationResultDto);
+			//logger.info("Register the result for optimization " + optId + ".");
+			//optimizationResultDTOs.put(optId, optimizationResultDto);
 		} else {
 			logger.info("Optimization " + optId + " not found.");
 		}
@@ -238,4 +230,24 @@ public class OptimizationService {
 		return new OptimizationResultDTO(optId, optimizedFlightSequence, slots);
 	}
 
+	public void abortOptimization(UUID optId) {
+		Future future = this.threads.get(optId);
+
+		logger.info("Cancel the running optimization " + optId);
+
+		if(future.cancel(true)) {
+			logger.info("Cancelation succesfully triggered.");
+		} else {
+			logger.info("Could not cancel.");
+		}
+	}
+
+	public OptimizationDTO registerThread(UUID optId, Future<OptimizationResultDTO> future) {
+		this.threads.put(optId, future);
+
+		OptimizationDTO optimizationDto = this.getOptimization(optId);
+		optimizationDto.setOptimizationStatus(OptimizationStatusEnum.RUNNING);
+
+		return optimizationDto;
+	}
 }

@@ -2,6 +2,7 @@ package at.jku.dke.slotmachine.optimizer.optimization;
 
 import at.jku.dke.slotmachine.optimizer.domain.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,6 +13,7 @@ public abstract class Optimization {
 	private UUID optId;
     private Flight[] flights;
     private Slot[] slots;
+	private List<Map<Flight, Slot>> results = null;
 
 	public Optimization(Flight[] flights, Slot[] slots) {
 		this.flights = flights;
@@ -23,6 +25,19 @@ public abstract class Optimization {
 	 * @return an optimized mapping from flight to slots
 	 */
 	public abstract Map<Flight, Slot> run();
+
+	/**
+	 * Get the current list of best results. This method will also return intermediate results
+	 * of a running optimization.
+	 * @return a list of mappings from flights to slots
+	 */
+	public List<Map<Flight, Slot>> getResults(){
+		return results;
+	}
+
+	public void setResults(List<Map<Flight, Slot>> results) {
+		this.results = results;
+	}
 
 	public Flight[] getFlights() {
 		return flights;

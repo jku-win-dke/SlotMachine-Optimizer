@@ -1,25 +1,23 @@
 package at.jku.dke.slotmachine.optimizer.rest;
 
 import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
-import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationResultDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatisticsDTO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+
+import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationStatusEnum;
+import io.swagger.annotations.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 /***
  * The OptimizationEndpoint relays the REST calls to the {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
@@ -32,28 +30,25 @@ public class OptimizationEndpoint {
 
     private final OptimizationService optimizationService;
 
-    private Map<UUID, CompletableFuture<OptimizationResultDTO>> futures = new ConcurrentHashMap<>();
-    
-    @Autowired
-    private PrivacyEngineService peService;
-
     public OptimizationEndpoint(OptimizationService optimizationService) {
         this.optimizationService = optimizationService;
     }
 
     @ApiOperation(
-            value = "Create and initialize a (heuristic) optimization with flights and preferences.",
+
+            value = "Create and initialize a (heuristic) optimization for flights and slots.",
             response = OptimizationDTO.class,
-            produces = "application/json"
+            produces = "application/json",
+            consumes = "application/json"
     )
-    @PostMapping(path = "/optimizations", consumes = "application/json")
+    @PostMapping(path = "/optimizations", produces = "application/json", consumes = "application/json")
     @ApiResponses(
             value = {
                     @ApiResponse(code = 201, message = "Created"),
                     @ApiResponse(code = 400, message = "Bad Request")
             }
     )
-    public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization) {
+    public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody @ApiParam(value = "The parameters of the optimization.") OptimizationDTO optimization) {
         logger.debug("Initializing optimization using the following parameters: " + optimization.toString());
 
         ResponseEntity<OptimizationDTO> optimizationResponse;
@@ -63,8 +58,7 @@ public class OptimizationEndpoint {
                 optimizationService.createAndInitializeOptimization(optimization);
 
             optimizationResponse = new ResponseEntity<>(optimizationDto, HttpStatus.OK);
-            
-            peService.createClearSession(optimizationDto);
+
         } catch (Exception e) {
             optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.BAD_REQUEST);
         }
@@ -74,13 +68,34 @@ public class OptimizationEndpoint {
         return optimizationResponse;
     }
 
-    @ApiOperation(value = "Start a specific optimization that was previously created and initialized.")
-    @PutMapping(path = "/optimizations/{optId}/start")
+
+
+    @ApiOperation(
+            value = "Get descriptions of all currently registered optimizations.",
+            response = OptimizationDTO[].class,
+            produces = "application/json"
+    )
+    @PostMapping(path = "/optimizations", consumes = "application/json")
     @ApiResponses(
             value = {
-                    @ApiResponse(code = 200, message = "OK"),
-                    @ApiResponse(code = 202, message = "Accepted"),
-                    @ApiResponse(code = 303, message = "See Other"),
+                    @ApiResponse(code = 201, message = "Created"),
+                    @ApiResponse(code = 400, message = "Bad Request")
+            }
+    )
+    public ResponseEntity<OptimizationDTO[]> getOptimizations() {
+        return null;
+    }
+
+    @ApiOperation(
+            value = "Start a specific optimization that was previously created and initialized.",
+            response = OptimizationDTO.class
+    )
+    @PutMapping(path = "/optimizations/{optId}/start", produces = "application/json")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "OK; the optimization is already running."),
+                    @ApiResponse(code = 202, message = "Accepted; if the optimization was successfully started."),
+                    @ApiResponse(code = 303, message = "See Other; if the optimization has already finished, returns link to result."),
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
@@ -92,18 +107,17 @@ public class OptimizationEndpoint {
             optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
             OptimizationDTO optimization = optimizationService.getOptimization(optId);
-            CompletableFuture<OptimizationResultDTO> future = futures.get(optId);
 
-            if(future == null) {
-                future = optimizationService.runOptimizationAsynchronously(optId);
+            if(optimization.getOptimizationStatus() == OptimizationStatusEnum.INITIALIZED) {
+                Future<OptimizationResultDTO> future = optimizationService.runOptimizationAsynchronously(optId);
+
+                optimization = optimizationService.registerThread(optId, future);
 
                 optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.ACCEPTED);
 
-                futures.put(optId, future);
-
-                logger.info("Optimization with id " + optId + " has successfully started.");
+                logger.info("The start of optimization with id " + optId + " was triggered.");
             } else {
-                if(future.isDone()) {
+                if(optimization.getOptimizationStatus() == OptimizationStatusEnum.DONE) {
                     logger.info("Optimization with id " + optId + " has finished running.");
                     optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.SEE_OTHER);
                     optimizationResponse.getHeaders().set("Location", "/optimizations/" + optId + "/result");
@@ -117,8 +131,12 @@ public class OptimizationEndpoint {
         return optimizationResponse;
     }
 
-    @ApiOperation(value = "Run a specific optimization that was previously created and initialized in a synchronized way, waiting for the response.")
-    @PutMapping(path = "/optimizations/{optId}/start/wait")
+    @ApiOperation(
+            value = "Run a previously created and initialized optimization in a synchronized way, waiting for the response.",
+            response = OptimizationResultDTO.class,
+            produces = "application/json"
+    )
+    @PutMapping(path = "/optimizations/{optId}/start/wait", produces = "application/json")
     @ApiResponses(
             value = {
                     @ApiResponse(code = 200, message = "OK"),
@@ -154,16 +172,19 @@ public class OptimizationEndpoint {
         ResponseEntity<OptimizationDTO> response;
 
         OptimizationDTO optimization = optimizationService.getOptimization(optId);
-        CompletableFuture<OptimizationResultDTO> future = futures.get(optId);
 
-        if(!future.isDone()) {
-            future.cancel(true);
+        if(optimization != null) {
+            optimizationService.abortOptimization(optId);
+
+            response = new ResponseEntity<>(optimization, HttpStatus.OK);
+        } else {
+            response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         return response;
     }
 
-    @ApiOperation(value = "Get the result of an optimization, if available.", response = OptimizationResultDTO[].class)
+    @ApiOperation(value = "Get the n best solutions found by an optimization run, if available.", response = OptimizationResultDTO[].class)
     @GetMapping(path = {"/optimizations/{optId}/result"}, produces = "application/json")
     @ApiResponses(
             value = {
@@ -171,10 +192,15 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<OptimizationResultDTO[]> getOptimizationResult(@PathVariable UUID optId) {
+    public ResponseEntity<OptimizationResultDTO[]> getOptimizationResult(@PathVariable(required = true)
+                                                                         @ApiParam(value = "the optimization's identifier")
+                                                                                     UUID optId,
+                                                                         @RequestParam(name = "limit")
+                                                                         @ApiParam(value = "the number of solutions to be returned")
+                                                                                 int noOfResults) {
         // margins will be returned if they were submitted upon creation of optimization session
         OptimizationResultDTO[] optimizationResult =
-                optimizationService.getOptimizationResult(optId);
+                optimizationService.getOptimizationResult(optId, noOfResults);
 
         ResponseEntity<OptimizationResultDTO[]> response;
 
@@ -187,7 +213,7 @@ public class OptimizationEndpoint {
         return response;
     }
 
-    @ApiOperation(value = "Delete the result of an optimization, if available, and the optimization data.")
+    @ApiOperation(value = "Delete an optimization and its results, if available. Abort a running optimization. ")
     @DeleteMapping(path = {"/optimizations/{optId}"}, produces = "application/json")
     @ApiResponses(
             value = {
@@ -202,7 +228,7 @@ public class OptimizationEndpoint {
             logger.info("Optimization with id " + optId + " not found.");
             optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
-            boolean removed = optimizationService.deleteOptimizationResult(optId);
+            boolean removed = optimizationService.deleteOptimization(optId);
 
             optimizationResponse = new ResponseEntity<>(HttpStatus.ACCEPTED);
 
@@ -219,7 +245,7 @@ public class OptimizationEndpoint {
         return optimizationResponse;
     }
 
-    @ApiOperation(value = "Get current statistics for a specific optimization and its result.", response = OptimizationStatisticsDTO.class)
+    @ApiOperation(value = "Get current statistics for a specific optimization and its results, if available.", response = OptimizationStatisticsDTO.class)
     @GetMapping(path = "/optimizations/{optId}/stats", produces = "application/json")
     @ApiResponses(
             value = {

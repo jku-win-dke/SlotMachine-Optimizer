@@ -144,6 +144,11 @@ public class JeneticsOptimization extends Optimization {
             stream = stream.limit(terminationCondition);
         }
 
+        logger.info("Current thread: " + Thread.currentThread().toString());
+
+        // add a termination condition that truncates the result if the current thread was interrupted
+        stream = stream.limit(result -> !Thread.currentThread().isInterrupted());
+
         Phenotype<EnumGene<Integer>, Integer> result = stream
                 .peek(statistics)
                 .collect(EvolutionResult.toBestPhenotype());
@@ -169,6 +174,8 @@ public class JeneticsOptimization extends Optimization {
         logger.info("Fitness of best solution: " + this.getStatistics().getSolutionFitness());
         logger.info("Number of generations: " + this.getStatistics().getGenerations());
         logger.info("Generation of best solution: " + this.getStatistics().getSolutionGeneration());
+
+        logger.info(Thread.currentThread().toString() + " was interrupted: " + Thread.currentThread().isInterrupted());
 
         return resultMap;
     }

@@ -9,11 +9,11 @@ import java.util.Map;
 public class Flight implements Comparable<Flight> {
     private String flightId;
     private LocalDateTime scheduledTime;
-    private double[] weights;
-    private Map<Slot, Double> weightMap;
+    private int[] weights;
+    private Map<Slot, Integer> weightMap;
     private Margins margins;
 
-    public Flight(String flightId, LocalDateTime scheduledTime, double[] weights) {
+    public Flight(String flightId, LocalDateTime scheduledTime, int[] weights) {
         this.flightId = flightId;
         this.scheduledTime = scheduledTime;
         this.weights = weights;
@@ -51,8 +51,8 @@ public class Flight implements Comparable<Flight> {
         }
     }
 
-    public double getWeight(Slot s) {
-        double weight = Double.MIN_VALUE;
+    public int getWeight(Slot s) {
+        int weight = Integer.MIN_VALUE;
 
         if(weightMap != null && weightMap.containsKey(s)) {
             weight = weightMap.get(s);
@@ -61,11 +61,11 @@ public class Flight implements Comparable<Flight> {
         return weight;
     }
 
-    public double[] getWeights() {
+    public int[] getWeights() {
         return weights;
     }
 
-    public void setWeightMap(double[] weights) {
+    public void setWeights(int[] weights) {
         this.weights = weights;
     }
 
