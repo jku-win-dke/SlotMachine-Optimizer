@@ -15,13 +15,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 /***
  * The OptimizationEndpoint relays the REST calls to the {@link at.jku.dke.slotmachine.optimizer.service.OptimizationService}
- * in order to to initiate and manage an optimization.
+ * in order to initiate and manage an optimization.
  */
 @Api(value = "SlotMachine Optimization")
 @RestController
@@ -35,7 +35,6 @@ public class OptimizationEndpoint {
     }
 
     @ApiOperation(
-
             value = "Create and initialize a (heuristic) optimization for flights and slots.",
             response = OptimizationDTO.class,
             produces = "application/json",
@@ -48,7 +47,7 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 400, message = "Bad Request")
             }
     )
-    public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody @ApiParam(value = "The parameters of the optimization.") OptimizationDTO optimization) {
+    public ResponseEntity<OptimizationDTO> createAndInitializeOptimization(@RequestBody OptimizationDTO optimization) {
         logger.debug("Initializing optimization using the following parameters: " + optimization.toString());
 
         ResponseEntity<OptimizationDTO> optimizationResponse;
@@ -63,8 +62,6 @@ public class OptimizationEndpoint {
             optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.BAD_REQUEST);
         }
 
-
-        
         return optimizationResponse;
     }
 
@@ -95,14 +92,14 @@ public class OptimizationEndpoint {
             value = {
                     @ApiResponse(code = 200, message = "OK; the optimization is already running."),
                     @ApiResponse(code = 202, message = "Accepted; if the optimization was successfully started."),
-                    @ApiResponse(code = 303, message = "See Other; if the optimization has already finished, returns link to result."),
+                    @ApiResponse(code = 303, message = "See Other; returns location of result in header, if cancelled or already done."),
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
     public ResponseEntity<OptimizationDTO> startOptimization(@PathVariable UUID optId) {
-        ResponseEntity<OptimizationDTO> optimizationResponse;
+        ResponseEntity<OptimizationDTO> optimizationResponse = null;
 
-        if (!optimizationService.existsOptimizationWithId(optId)) {
+        if (!optimizationService.existsOptimization(optId)) {
             logger.info("Optimization with id " + optId + " not found.");
             optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
@@ -111,17 +108,22 @@ public class OptimizationEndpoint {
             if(optimization.getOptimizationStatus() == OptimizationStatusEnum.INITIALIZED) {
                 Future<OptimizationResultDTO> future = optimizationService.runOptimizationAsynchronously(optId);
 
-                optimization = optimizationService.registerThread(optId, future);
+                // register the thread (future) with the optimization service so that abort works
+                optimizationService.registerThread(optId, future);
 
-                optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.ACCEPTED);
+                // get an updated optimization
+                optimization = optimizationService.getOptimization(optId);
+                optimization.setOptimizationStatus(OptimizationStatusEnum.RUNNING);
 
                 logger.info("The start of optimization with id " + optId + " was triggered.");
+                optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.ACCEPTED);
             } else {
-                if(optimization.getOptimizationStatus() == OptimizationStatusEnum.DONE) {
+                if(optimization.getOptimizationStatus() == OptimizationStatusEnum.DONE ||
+                        optimization.getOptimizationStatus() == OptimizationStatusEnum.CANCELLED) {
                     logger.info("Optimization with id " + optId + " has finished running.");
                     optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.SEE_OTHER);
-                    optimizationResponse.getHeaders().set("Location", "/optimizations/" + optId + "/result");
-                } else {
+                    ResponseEntity.status(HttpStatus.SEE_OTHER).location(URI.create("http://localhost:8080/" + "optimization/" + optId + "/result"));
+                } else if(optimization.getOptimizationStatus() == OptimizationStatusEnum.RUNNING) {
                     logger.info("Optimization with id " + optId + " currently running.");
                     optimizationResponse = new ResponseEntity<>(optimization, HttpStatus.OK);
                 }
@@ -146,7 +148,7 @@ public class OptimizationEndpoint {
     public ResponseEntity<OptimizationResultDTO> startOptimizationSync(@PathVariable UUID optId) {
         ResponseEntity<OptimizationResultDTO> optimizationResponse;
 
-        if (!optimizationService.existsOptimizationWithId(optId)) {
+        if (!optimizationService.existsOptimization(optId)) {
             logger.info("Optimization with id " + optId + " not found.");
             optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
@@ -176,6 +178,9 @@ public class OptimizationEndpoint {
         if(optimization != null) {
             optimizationService.abortOptimization(optId);
 
+            // get updated optimization object with new status
+            optimization = optimizationService.getOptimization(optId);
+
             response = new ResponseEntity<>(optimization, HttpStatus.OK);
         } else {
             response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -189,18 +194,18 @@ public class OptimizationEndpoint {
     @ApiResponses(
             value = {
                     @ApiResponse(code = 200, message = "OK"),
-                    @ApiResponse(code = 404, message = "Not Found")
+                    @ApiResponse(code = 404, message = "Not Found; no result available or optimization does not exist")
             }
     )
     public ResponseEntity<OptimizationResultDTO[]> getOptimizationResult(@PathVariable(required = true)
                                                                          @ApiParam(value = "the optimization's identifier")
-                                                                                     UUID optId,
-                                                                         @RequestParam(name = "limit")
+                                                                                 UUID optId,
+                                                                         @RequestParam(name = "limit", defaultValue = "1")
                                                                          @ApiParam(value = "the number of solutions to be returned")
-                                                                                 int noOfResults) {
+                                                                                 int noOfSolutions) {
         // margins will be returned if they were submitted upon creation of optimization session
         OptimizationResultDTO[] optimizationResult =
-                optimizationService.getOptimizationResult(optId, noOfResults);
+                optimizationService.getOptimizationResult(optId, noOfSolutions);
 
         ResponseEntity<OptimizationResultDTO[]> response;
 
@@ -224,22 +229,14 @@ public class OptimizationEndpoint {
     public ResponseEntity<Void> deleteOptimizationResult(@PathVariable UUID optId) {
     	ResponseEntity<Void> optimizationResponse;
 
-        if (!optimizationService.existsOptimizationWithId(optId)) {
+        if (!optimizationService.existsOptimization(optId)) {
             logger.info("Optimization with id " + optId + " not found.");
             optimizationResponse = new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
-            boolean removed = optimizationService.deleteOptimization(optId);
+            optimizationService.deleteOptimization(optId);
 
             optimizationResponse = new ResponseEntity<>(HttpStatus.ACCEPTED);
-
-            if (removed) {
-            	logger.info("Optimization + result with id " + optId + " has successfully been removed.");
-            } else {
-            	logger.info("Optimization result with id " + optId + " has not been found.");
-            	if (!(optimizationService.existsOptimizationWithId(optId))) {
-            		logger.info("Optimization with id " + optId + " has been removed.");
-            	}
-            }
+            logger.info("Optimization and result with id " + optId + " removed.");
         }
 
         return optimizationResponse;

@@ -15,10 +15,12 @@ import java.util.List;
 public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     private static final Logger logger = LogManager.getLogger();
 
+	private JeneticsOptimization optimization; // needed to register new solutions
     private SlotAllocationProblem problem;
 
-    public BatchEvaluator(SlotAllocationProblem problem) {
-        this.problem = problem;
+    public BatchEvaluator(SlotAllocationProblem problem, JeneticsOptimization optimization) {
+		this.problem = problem;
+		this.optimization = optimization;
     }
 
     @Override

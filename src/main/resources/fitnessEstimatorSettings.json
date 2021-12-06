@@ -1,0 +1,4 @@
+{
+  "LINEAR":"at.jku.dke.slotmachine.optimizer.optimization.LinearFitnessEstimator",
+  "SIGMOID":"at.jku.dke.slotmachine.optimizer.optimization.SigmoidFitnessEstimator"
+}

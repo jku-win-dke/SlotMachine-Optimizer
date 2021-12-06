@@ -14,6 +14,12 @@ public abstract class Optimization {
     private Flight[] flights;
     private Slot[] slots;
 	private List<Map<Flight, Slot>> results = null;
+	private FitnessEstimator fitnessEstimator;
+
+	private OptimizationMode mode = OptimizationMode.NON_PRIVACY_PRESERVING;
+	private OptimizationStatus status = OptimizationStatus.CREATED;
+
+	private String privacyEngineEndpoint = null;
 
 	public Optimization(Flight[] flights, Slot[] slots) {
 		this.flights = flights;
@@ -31,13 +37,15 @@ public abstract class Optimization {
 	 * of a running optimization.
 	 * @return a list of mappings from flights to slots
 	 */
-	public List<Map<Flight, Slot>> getResults(){
-		return results;
+	public Map<Flight, Slot>[] getResults(){
+		return results.stream().toArray(Map[]::new);
 	}
 
 	public void setResults(List<Map<Flight, Slot>> results) {
 		this.results = results;
 	}
+
+
 
 	public Flight[] getFlights() {
 		return flights;
@@ -70,4 +78,36 @@ public abstract class Optimization {
 	public abstract void newConfiguration(Map<String, Object> parameters) throws InvalidOptimizationParameterTypeException;
 
 	public abstract OptimizationStatistics getStatistics();
+
+	public OptimizationStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(OptimizationStatus status) {
+		this.status = status;
+	}
+
+	public OptimizationMode getMode() {
+		return mode;
+	}
+
+	public void setMode(OptimizationMode mode) {
+		this.mode = mode;
+	}
+
+	public FitnessEstimator getFitnessEstimator() {
+		return fitnessEstimator;
+	}
+
+	public void setFitnessEstimator(FitnessEstimator fitnessEstimator) {
+		this.fitnessEstimator = fitnessEstimator;
+	}
+
+    public void setPrivacyEngineEndpoint(String privacyEngineEndpoint) {
+		this.privacyEngineEndpoint = privacyEngineEndpoint;
+	}
+
+	public String getPrivacyEngineEndpoint() {
+		return this.privacyEngineEndpoint;
+	}
 }

@@ -112,8 +112,7 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info("Build the genetic algorithm engine.");
 
-        BatchEvaluator evaluator = new BatchEvaluator(problem);
-
+        BatchEvaluator evaluator = new BatchEvaluator(problem, this);
 
         Engine.Builder<EnumGene<Integer>, Integer> builder;
 
@@ -156,6 +155,8 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info("Finished optimization");
 
+        logger.info(Thread.currentThread().toString() + " was interrupted: " + Thread.currentThread().isInterrupted());
+
         Map<Flight, Slot> resultMap = problem.decode(result.genotype());
 
         logger.info("Statistics: \n" + statistics);
@@ -174,8 +175,6 @@ public class JeneticsOptimization extends Optimization {
         logger.info("Fitness of best solution: " + this.getStatistics().getSolutionFitness());
         logger.info("Number of generations: " + this.getStatistics().getGenerations());
         logger.info("Generation of best solution: " + this.getStatistics().getSolutionGeneration());
-
-        logger.info(Thread.currentThread().toString() + " was interrupted: " + Thread.currentThread().isInterrupted());
 
         return resultMap;
     }

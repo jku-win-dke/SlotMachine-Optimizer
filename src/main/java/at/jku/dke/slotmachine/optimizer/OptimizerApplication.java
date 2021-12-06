@@ -14,6 +14,7 @@ public class OptimizerApplication {
 
     public static final String FACTORY_PROPERTY = "slotmachine.optimization.factory";
     public static final String OPTAPLANNER_CONFIGURATIONS = "slotmachine.optimization.optaplanner.settings";
+    public static final String FITNESS_ESTIMATOR = "slotmachine.optimization.estimator";
 
     public static void main(String[] args) {
         final String resourceName = "optimizationFactorySettings.json";
@@ -27,6 +28,7 @@ public class OptimizerApplication {
             logger.error("Could not read optimization factory settings.", e);
         }
 
+
         final String optaplannerResourceName = "optaplannerConfigurations.json";
 
         try(InputStream resourceStream = loader.getResourceAsStream(optaplannerResourceName)) {
@@ -34,6 +36,16 @@ public class OptimizerApplication {
             System.setProperty(OPTAPLANNER_CONFIGURATIONS, optaplannerConfigurations);
         } catch (IOException e) {
             logger.error("Could not read OptaPlanner configurations.", e);
+        }
+
+
+        final String estimatorResourceName = "fitnessEstimatorSettings.json";
+
+        try(InputStream resourceStream = loader.getResourceAsStream(estimatorResourceName)) {
+            String estimatorSettings = new String(resourceStream.readAllBytes());
+            System.setProperty(FITNESS_ESTIMATOR, estimatorSettings);
+        } catch (IOException e) {
+            logger.error("Could not read fitness estimator settings.", e);
         }
 
         SpringApplication.run(OptimizerApplication.class, args);

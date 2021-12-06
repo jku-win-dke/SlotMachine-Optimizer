@@ -1,21 +1,21 @@
 package at.jku.dke.slotmachine.optimizer.domain;
 
-import java.time.chrono.ChronoLocalDateTime;
+import java.time.LocalDateTime;
 
 public class Slot implements Comparable<Slot> {
-    private ChronoLocalDateTime<?> time;
+    private LocalDateTime time;
 
-    public Slot(ChronoLocalDateTime<?> time) {
+    public Slot(LocalDateTime time) {
         this.time = time;
     }
 
     public Slot() { }
 
-    public ChronoLocalDateTime<?> getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(ChronoLocalDateTime<?> time) {
+    public void setTime(LocalDateTime time) {
         this.time = time;
     }
 

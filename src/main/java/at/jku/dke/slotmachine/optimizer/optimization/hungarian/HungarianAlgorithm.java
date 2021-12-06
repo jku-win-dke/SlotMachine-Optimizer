@@ -6,6 +6,7 @@ package at.jku.dke.slotmachine.optimizer.optimization.hungarian;
 import java.util.Arrays;
 
 /* Copyright (c) 2012 Kevin L. Stern
+ * Copyright (c) 2021 Samuel Jaburek, Christoph G. Schuetz
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
