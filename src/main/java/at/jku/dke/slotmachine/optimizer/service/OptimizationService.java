@@ -9,6 +9,7 @@ import at.jku.dke.slotmachine.optimizer.service.dto.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,11 @@ public class OptimizationService {
 	private final Map<UUID, Optimization> optimizations;
 	private final Map<UUID, Future<OptimizationResultDTO>> threads;
 
-	public OptimizationService() {
+	private final PrivacyEngineService privacyEngineService;
+
+	public OptimizationService(PrivacyEngineService privacyEngineService) {
+		this.privacyEngineService = privacyEngineService;
+
 		this.optimizationDTOs = new ConcurrentHashMap<>();
 		this.optimizations = new ConcurrentHashMap<>();
 		this.threads = new ConcurrentHashMap<>();
@@ -75,6 +80,7 @@ public class OptimizationService {
 			}
 
 			// get flights array from the DTO
+			// preserve original order (important to receive correct results from Privacy Engine)
 			Flight[] flights = Arrays.stream(optimizationDto.getFlights())
 					.map(f -> new Flight(f.getFlightId(), f.getScheduledTime(), f.getWeightMap()))
 					.toArray(Flight[]::new);
@@ -98,42 +104,43 @@ public class OptimizationService {
 				logger.info("Store optimization " + optId + " for later invocation");
 				optimizations.put(optId, newOptimization);
 
-				if (optimizationDto.getOptimizationMode() == OptimizationModeEnum.PRIVACY_PRESERVING) {
-					String estimatorName = optimizationDto.getFitnessEstimator();
-					String estimatorClassName;
+				String estimatorName = optimizationDto.getFitnessEstimator();
+				String estimatorClassName;
 
-					logger.info("Read the fitness estimator class from the JSON properties file.");
-					String estimatorClasses = System.getProperty(OptimizerApplication.FITNESS_ESTIMATOR);
+				logger.info("Read the fitness estimator class from the JSON properties file.");
+				String estimatorClasses = System.getProperty(OptimizerApplication.FITNESS_ESTIMATOR);
 
-					if(estimatorName == null) {
-						estimatorClassName =
-								Utils.getMapFromJson(estimatorClasses).get("LINEAR");
-					} else {
-						estimatorClassName =
-								Utils.getMapFromJson(estimatorClasses).get(optimizationDto.getFitnessEstimator());
-					}
+				if(estimatorName == null) {
+					estimatorClassName =
+							Utils.getMapFromJson(estimatorClasses).get("LINEAR");
+				} else {
+					estimatorClassName =
+							Utils.getMapFromJson(estimatorClasses).get(optimizationDto.getFitnessEstimator());
+				}
 
-					try {
-						logger.info("Setting fitness estimator to " + estimatorClassName);
-						FitnessEstimator estimator =
+				try {
+					logger.info("Setting fitness estimator to " + estimatorClassName);
+					FitnessEstimator estimator =
 							(FitnessEstimator) Class.forName(estimatorClassName).getDeclaredConstructor().newInstance();
 
-						newOptimization.setFitnessEstimator(estimator);
-					} catch (ClassNotFoundException |
-							InvocationTargetException |
-							InstantiationException |
-							IllegalAccessException |
-							NoSuchMethodException e) {
-						logger.error("Could not instantiate fitness estimator.", e);
-						throw e;
-					}
-
-					String privacyEngineEndpoint = optimizationDto.getPrivacyEngineEndpoint();
-					logger.info("Set the endpoint URI for connection with the PrivacyEngine: " + privacyEngineEndpoint);
-					newOptimization.setPrivacyEngineEndpoint(privacyEngineEndpoint);
+					newOptimization.setFitnessEstimator(estimator);
+				} catch (ClassNotFoundException |
+						InvocationTargetException |
+						InstantiationException |
+						IllegalAccessException |
+						NoSuchMethodException e) {
+					logger.error("Could not instantiate fitness estimator.", e);
+					throw e;
 				}
 
 				if (optimizationDto.getOptimizationMode() == OptimizationModeEnum.PRIVACY_PRESERVING) {
+					String privacyEngineEndpoint = optimizationDto.getPrivacyEngineEndpoint();
+					logger.info("Set the endpoint URI for connection with the PrivacyEngine: " + privacyEngineEndpoint);
+					newOptimization.setPrivacyEngineEndpoint(privacyEngineEndpoint);
+
+					logger.debug("Setting the Privacy Engine service using the class " + this.privacyEngineService.getClass());
+					newOptimization.setPrivacyEngineService(this.privacyEngineService);
+
 					logger.info("Setting optimization mode to PRIVACY_PRESERVING.");
 					newOptimization.setMode(OptimizationMode.PRIVACY_PRESERVING);
 				} else {
@@ -174,7 +181,7 @@ public class OptimizationService {
 	}
 	
 	/**
-	 * Start the optimization session. The method runs asynchronously in a separate thread.
+	 * Start the optimization run. The method runs asynchronously in a separate thread.
 	 * @param optId optId of the optimization session
 	 */
 	@Async("threadPoolTaskExecutor")

@@ -75,8 +75,7 @@ public class OptimizationEndpoint {
     @PostMapping(path = "/optimizations", consumes = "application/json")
     @ApiResponses(
             value = {
-                    @ApiResponse(code = 201, message = "Created"),
-                    @ApiResponse(code = 400, message = "Bad Request")
+                    @ApiResponse(code = 200, message = "OK")
             }
     )
     public ResponseEntity<OptimizationDTO[]> getOptimizations() {
@@ -96,7 +95,7 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<OptimizationDTO> startOptimization(@PathVariable UUID optId) {
+    public ResponseEntity<OptimizationDTO> startOptimization(@PathVariable @ApiParam(value = "the optimization's identifier") UUID optId) {
         ResponseEntity<OptimizationDTO> optimizationResponse = null;
 
         if (!optimizationService.existsOptimization(optId)) {
@@ -145,7 +144,7 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<OptimizationResultDTO> startOptimizationSync(@PathVariable UUID optId) {
+    public ResponseEntity<OptimizationResultDTO> startOptimizationSync(@PathVariable @ApiParam(value = "the optimization's identifier") UUID optId) {
         ResponseEntity<OptimizationResultDTO> optimizationResponse;
 
         if (!optimizationService.existsOptimization(optId)) {
@@ -170,7 +169,7 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<OptimizationDTO> abortOptimization(@PathVariable UUID optId) {
+    public ResponseEntity<OptimizationDTO> abortOptimization(@PathVariable @ApiParam(value = "the optimization's identifier") UUID optId) {
         ResponseEntity<OptimizationDTO> response;
 
         OptimizationDTO optimization = optimizationService.getOptimization(optId);
@@ -197,7 +196,7 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 404, message = "Not Found; no result available or optimization does not exist")
             }
     )
-    public ResponseEntity<OptimizationResultDTO[]> getOptimizationResult(@PathVariable(required = true)
+    public ResponseEntity<OptimizationResultDTO[]> getOptimizationResult(@PathVariable
                                                                          @ApiParam(value = "the optimization's identifier")
                                                                                  UUID optId,
                                                                          @RequestParam(name = "limit", defaultValue = "1")
@@ -226,7 +225,7 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<Void> deleteOptimizationResult(@PathVariable UUID optId) {
+    public ResponseEntity<Void> deleteOptimizationResult(@PathVariable @ApiParam(value = "the optimization's identifier") UUID optId) {
     	ResponseEntity<Void> optimizationResponse;
 
         if (!optimizationService.existsOptimization(optId)) {
@@ -250,7 +249,7 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<OptimizationStatisticsDTO> getOptimizationStatistics(@PathVariable UUID optId) {
+    public ResponseEntity<OptimizationStatisticsDTO> getOptimizationStatistics(@PathVariable @ApiParam(value = "the optimization's identifier") UUID optId) {
         OptimizationStatisticsDTO optimizationStatistics = optimizationService.getOptimizationStatistics(optId);
 
         ResponseEntity<OptimizationStatisticsDTO> response;
@@ -264,7 +263,7 @@ public class OptimizationEndpoint {
         return response;
     }
 
-    @ApiOperation(value = "Get the description of a specific optimization.", response = OptimizationStatisticsDTO.class)
+    @ApiOperation(value = "Get the description of a specific optimization.", response = OptimizationDTO.class)
     @GetMapping(path = "/optimizations/{optId}", produces = "application/json")
     @ApiResponses(
             value = {
@@ -272,7 +271,7 @@ public class OptimizationEndpoint {
                     @ApiResponse(code = 404, message = "Not Found")
             }
     )
-    public ResponseEntity<OptimizationDTO> getOptimization(@PathVariable UUID optId) {
+    public ResponseEntity<OptimizationDTO> getOptimization(@PathVariable @ApiParam(value = "the optimization's identifier") UUID optId) {
         // include margins as well (only for development purposes, not meant as production feature)
         OptimizationDTO optimization =
                 optimizationService.getOptimization(optId);

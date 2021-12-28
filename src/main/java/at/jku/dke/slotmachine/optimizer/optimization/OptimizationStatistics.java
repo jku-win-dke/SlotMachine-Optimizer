@@ -1,9 +1,13 @@
 package at.jku.dke.slotmachine.optimizer.optimization;
 
+import java.time.Duration;
+
 public class OptimizationStatistics {
 
     private double solutionFitness = Integer.MIN_VALUE;
     private int fitnessFunctionInvocations = Integer.MIN_VALUE;
+
+    private Duration runTime;
 
     public int getFitnessFunctionInvocations() {
         return fitnessFunctionInvocations;

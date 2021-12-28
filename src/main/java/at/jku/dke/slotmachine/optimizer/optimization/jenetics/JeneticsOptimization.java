@@ -22,23 +22,22 @@ public class JeneticsOptimization extends Optimization {
 
     private JeneticsOptimizationConfiguration configuration = null;
     private JeneticsOptimizationStatistics statistics;
+    private final SlotAllocationProblem problem;
 
     public JeneticsOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
 
         this.statistics = new JeneticsOptimizationStatistics();
+
+        this.problem = new SlotAllocationProblem(
+                ISeq.of(this.getFlights()),
+                ISeq.of(this.getSlots())
+        );
+        logger.info("Slot allocation problem initialized.");
     }
 
     @Override
     public Map<Flight, Slot> run() {
-
-        SlotAllocationProblem problem = new SlotAllocationProblem(
-            ISeq.of(this.getFlights()),
-            ISeq.of(this.getSlots())
-        );
-
-        logger.info("Slot allocation problem initialized.");
-
         int populationSize;
         Mutator<EnumGene<Integer>, Integer> mutator;
         Crossover<EnumGene<Integer>, Integer> crossover;
@@ -333,4 +332,8 @@ public class JeneticsOptimization extends Optimization {
         return this.statistics;
     }
 
+
+    public SlotAllocationProblem getProblem() {
+        return problem;
+    }
 }

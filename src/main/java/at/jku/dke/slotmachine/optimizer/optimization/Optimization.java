@@ -1,6 +1,8 @@
 package at.jku.dke.slotmachine.optimizer.optimization;
 
 import at.jku.dke.slotmachine.optimizer.domain.*;
+import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,8 @@ public abstract class Optimization {
 	private OptimizationStatus status = OptimizationStatus.CREATED;
 
 	private String privacyEngineEndpoint = null;
+
+	private PrivacyEngineService privacyEngineService;
 
 	public Optimization(Flight[] flights, Slot[] slots) {
 		this.flights = flights;
@@ -109,5 +113,13 @@ public abstract class Optimization {
 
 	public String getPrivacyEngineEndpoint() {
 		return this.privacyEngineEndpoint;
+	}
+
+	public void setPrivacyEngineService(PrivacyEngineService privacyEngineService) {
+		this.privacyEngineService = privacyEngineService;
+	}
+
+	public PrivacyEngineService getPrivacyEngineService() {
+		return this.privacyEngineService;
 	}
 }
