@@ -15,6 +15,7 @@
     <description>The Heuristic Optimizer of the SlotMachine system</description>
     <properties>
         <java.version>16</java.version>
+        <log4j2.version>2.17.0</log4j2.version>
     </properties>
     <dependencies>
 		<dependency>
@@ -58,12 +59,12 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.14.1</version>
+            <version>${log4j2.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.14.1</version>
+            <version>${log4j2.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jenetics</groupId>

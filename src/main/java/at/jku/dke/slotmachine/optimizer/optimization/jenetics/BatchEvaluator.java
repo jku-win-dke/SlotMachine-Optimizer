@@ -1,22 +1,20 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
-import at.jku.dke.slotmachine.optimizer.domain.Flight;
-import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
-import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
 import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
+
 import io.jenetics.EnumGene;
 import io.jenetics.Phenotype;
 import io.jenetics.engine.Evaluator;
 import io.jenetics.util.ISeq;
 import io.jenetics.util.Seq;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     private static final Logger logger = LogManager.getLogger();
@@ -73,15 +71,26 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
         minFitness = maxFitness - (2 * Math.abs(maxFitness)) - (Math.abs(maxFitness) * 0.0001);
         logger.info("Estimated minimum fitness of the population: " + minFitness);
 
-        logger.info("Getting estimated fitness value from estimator: " + this.optimization.getFitnessEstimator().getClass());
-        double[] estimatedFitnessValues =
-                this.optimization.getFitnessEstimator().estimateFitnessDistribution(population.size(), maxFitness, minFitness);
+        List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation = null;
 
-        logger.info("Assign each solution in the population an estimated fitness value.");
-        List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation =
-            evaluatedPopulation.stream()
-                    .map(phenotype -> phenotype.withFitness((int) estimatedFitnessValues[evaluatedPopulation.indexOf(phenotype)]))
-                    .toList();
+        if(this.optimization.getFitnessEstimator() != null) {
+            logger.info("Getting estimated fitness value from estimator: " + this.optimization.getFitnessEstimator().getClass());
+            double[] estimatedFitnessValues =
+                    this.optimization.getFitnessEstimator().estimateFitnessDistribution(population.size(), maxFitness, minFitness);
+
+            logger.info("Assign each solution in the population an estimated fitness value.");
+            estimatedPopulation =
+                    evaluatedPopulation.stream()
+                            .map(phenotype -> phenotype.withFitness((int) estimatedFitnessValues[evaluatedPopulation.indexOf(phenotype)]))
+                            .toList();
+        } else {
+            logger.info("No estimator specified. Using exact fitness (if available).");
+
+            if(this.optimization.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING){
+                logger.info("Running in non-privacy-preserving mode. Exact fitness values available.");
+                estimatedPopulation = evaluatedPopulation;
+            }
+        }
 
         return ISeq.of(estimatedPopulation);
     }
