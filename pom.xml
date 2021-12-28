@@ -11,11 +11,15 @@
     <groupId>at.jku.dke.slotmachine</groupId>
     <artifactId>optimizer</artifactId>
     <version>0.5</version>
-    <name>Slotmachine-Optimizer</name>
+    <name>SlotMachine-Optimizer</name>
     <description>The Heuristic Optimizer of the SlotMachine system</description>
     <properties>
         <java.version>16</java.version>
         <log4j2.version>2.17.0</log4j2.version>
+        <springfox.version>2.6.1</springfox.version>
+        <jenetics.version>6.1.0</jenetics.version>
+        <optaplanner.version>8.1.0.Final</optaplanner.version>
+        <slma-object.version>1.0.6</slma-object.version>
     </properties>
     <dependencies>
 		<dependency>
@@ -47,13 +51,13 @@
         <dependency>
 	       <groupId>io.springfox</groupId>
 	       <artifactId>springfox-swagger2</artifactId>
-	       <version>2.6.1</version>
+	       <version>${springfox.version}</version>
 	    </dependency>
 
 	   <dependency>
 	       <groupId>io.springfox</groupId>
 	       <artifactId>springfox-swagger-ui</artifactId>
-	       <version>2.6.1</version>
+           <version>${springfox.version}</version>
 	   </dependency>
 
         <dependency>
@@ -69,28 +73,28 @@
         <dependency>
             <groupId>io.jenetics</groupId>
             <artifactId>jenetics</artifactId>
-            <version>6.1.0</version>
+            <version>${jenetics.version}</version>
         </dependency>
         <dependency>
             <groupId>org.optaplanner</groupId>
             <artifactId>optaplanner-core</artifactId>
-            <version>8.1.0.Final</version>
+            <version>${optaplanner.version}</version>
         </dependency>
         <dependency>
             <groupId>org.optaplanner</groupId>
             <artifactId>optaplanner-persistence-jpa</artifactId>
-            <version>8.1.0.Final</version>
+            <version>${optaplanner.version}</version>
         </dependency>       
         <dependency>
 	    	<groupId>org.optaplanner</groupId>
 	    	<artifactId>optaplanner-benchmark</artifactId>
-	    	<version>8.1.0.Final</version>
+            <version>${optaplanner.version}</version>
 	  	</dependency>
 
         <dependency>
             <groupId>com.frequentis.slotmachine</groupId>
             <artifactId>slma-object</artifactId>
-            <version>1.0.6</version>
+            <version>${slma-object.version}</version>
         </dependency>
     </dependencies>
 
