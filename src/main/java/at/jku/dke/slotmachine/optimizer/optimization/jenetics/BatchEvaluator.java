@@ -32,9 +32,9 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     }
 
     /**
-     *
-     * @param population
-     * @return
+     * Takes a population of (unevaluated) candidate solutions and returns a sequence of evaluated solutions.
+     * @param population the population of candidate solutions
+     * @return an evaluated population
      */
     @Override
     public ISeq<Phenotype<EnumGene<Integer>, Integer>> eval(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
@@ -75,6 +75,8 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                           .toList();
 
             maxFitness = evaluatedPopulation.get(0).fitness();
+
+            logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
         }
 
         logger.debug("Actual maximum fitness of the population: " + maxFitness);
@@ -111,13 +113,17 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
 
         if(maxFitness >= this.optimization.getMaximumFitness() && estimatedPopulationStream != null) {
             logger.debug("Best fitness of current generation better than current best fitness. Adding intermediate result to the optimization run");
-            this.optimization.setResults(estimatedPopulation.stream().map(phenotype -> this.problem.decode(phenotype.genotype())).toList());
+            this.optimization.setResults(estimatedPopulation.stream().distinct().map(phenotype -> this.problem.decode(phenotype.genotype())).toList());
 
             // set the optimization's maximum fitness to this generation's maximum fitness
             this.optimization.setMaximumFitness(maxFitness);
         }
 
         logger.debug("Finished evaluation");
+
+        logger.debug("Update statistics.");
+        this.optimization.getStatistics().setFitnessFunctionInvocations(problem.getFitnessFunctionApplications());
+        this.optimization.getStatistics().setResultFitness(this.optimization.getMaximumFitness());
 
         return ISeq.of(estimatedPopulation);
     }

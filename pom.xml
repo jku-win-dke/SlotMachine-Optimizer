@@ -10,15 +10,15 @@
     </parent>
     <groupId>at.jku.dke.slotmachine</groupId>
     <artifactId>optimizer</artifactId>
-    <version>0.5</version>
+    <version>1.0.0</version>
     <name>SlotMachine-Optimizer</name>
     <description>The Heuristic Optimizer of the SlotMachine system</description>
     <properties>
         <java.version>16</java.version>
         <log4j2.version>2.17.0</log4j2.version>
         <springfox.version>2.6.1</springfox.version>
-        <jenetics.version>6.1.0</jenetics.version>
-        <optaplanner.version>8.1.0.Final</optaplanner.version>
+        <jenetics.version>6.3.0</jenetics.version>
+        <optaplanner.version>8.14.0.Final</optaplanner.version>
         <slma-object.version>1.0.6</slma-object.version>
     </properties>
     <dependencies>

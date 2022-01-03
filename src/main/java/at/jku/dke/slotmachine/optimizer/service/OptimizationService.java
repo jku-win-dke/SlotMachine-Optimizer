@@ -9,7 +9,7 @@ import at.jku.dke.slotmachine.optimizer.service.dto.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
@@ -101,6 +101,9 @@ public class OptimizationService {
 
 				newOptimization.setOptId(optId);
 
+				// set the creation time in the optimization's statistics
+				newOptimization.getStatistics().setTimeCreated(LocalDateTime.now());
+
 				logger.info("Store optimization " + optId + " for later invocation");
 				optimizations.put(optId, newOptimization);
 
@@ -175,6 +178,8 @@ public class OptimizationService {
 				logger.debug(o.getOptId().toString());
 			}
 		}
+
+		// TODO set initial solution's fitness in optimization statistics; only available in non-privacy-preserving mode.
 
 		return optimizationDto;
 	}
@@ -273,10 +278,51 @@ public class OptimizationService {
 		return optimizationDto;
 	}
 
+	/**
+	 * Get the current statistics for an optimization. Statistics are updated constantly during the optimization run.
+	 * @param optId the optimization id
+	 * @return the current optimization statistics
+	 */
 	public OptimizationStatisticsDTO getOptimizationStatistics(UUID optId) {
-		// TODO implement the retrieval of statistics
+		// search for optId
+		Optimization optimization = this.optimizations.get(optId);
 
-		return null;
+		OptimizationStatisticsDTO stats = new OptimizationStatisticsDTO();
+
+		stats.setOptId(optimization.getOptId().toString());
+
+		stats.setRequestTime(LocalDateTime.now());
+
+		switch(optimization.getStatus()) {
+			case CREATED -> {
+				stats.setStatus(OptimizationStatusEnum.CREATED);
+			}
+			case INITIALIZED -> {
+				stats.setStatus(OptimizationStatusEnum.INITIALIZED);
+			}
+			case RUNNING -> {
+				stats.setStatus(OptimizationStatusEnum.RUNNING);
+			}
+			case CANCELLED -> {
+				stats.setStatus(OptimizationStatusEnum.CANCELLED);
+			}
+			case DONE -> {
+				stats.setStatus(OptimizationStatusEnum.DONE);
+			}
+		}
+
+		stats.setTimeCreated(optimization.getStatistics().getTimeCreated());
+		stats.setTimeStarted(optimization.getStatistics().getTimeStarted());
+		stats.setTimeFinished(optimization.getStatistics().getTimeFinished());
+		stats.setTimeAborted(optimization.getStatistics().getTimeAborted());
+		stats.setDuration(optimization.getStatistics().getDuration());
+
+		stats.setIterations(optimization.getStatistics().getIterations());
+		stats.setResultFitness(optimization.getStatistics().getResultFitness());
+
+		stats.setInitialFitness(optimization.getStatistics().getInitialFitness());
+
+		return stats;
 	}
 
 	/**
@@ -309,9 +355,9 @@ public class OptimizationService {
 			logger.info("Convert the result map into the required format.");
 			optimizationResultDto = this.convertResultMapToOptimizationResultMapDto(optId, resultMap);
 
-			// get the fitness from the statistics and include it in the results
+			// get the fitness and fitness function invocations from the statistics and include it in the results
 			logger.info("Including basic statistics in the response.");
-			optimizationResultDto.setFitness(optimization.getStatistics().getSolutionFitness());
+			optimizationResultDto.setFitness(optimization.getStatistics().getResultFitness());
 			optimizationResultDto.setFitnessFunctionInvocations(optimization.getStatistics().getFitnessFunctionInvocations());
 		} else {
 			logger.info("Optimization " + optId + " not found.");
@@ -352,6 +398,8 @@ public class OptimizationService {
 		if(future != null && future.cancel(true)) {
             optimization.setStatus(OptimizationStatus.CANCELLED);
 			logger.info("Cancellation successfully triggered.");
+
+			optimization.getStatistics().setTimeAborted(LocalDateTime.now()); // set the abort time in the statistics
 		} else {
 			logger.info("Could not cancel.");
 		}

@@ -2,6 +2,7 @@ package at.jku.dke.slotmachine.optimizer.rest.legacy;
 
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.MarginsDTO;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -13,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -68,10 +68,14 @@ public class ConversionEndpoint {
                         newFlight.setScheduledTime(LocalDateTime.ofInstant(flight.getScheduledTime(), ZoneOffset.UTC));
                         newFlight.setWeightMap(flight.getWeightMap());
 
-                        Optional<at.jku.dke.slotmachine.optimizer.rest.legacy.MarginsDTO> oldMargins =
-                                Arrays.stream(input.getMargins()).filter(marginsOpt -> marginsOpt.getFlightId().equals(flight.getFlightId())).findFirst();
+                        Optional<at.jku.dke.slotmachine.optimizer.rest.legacy.MarginsDTO> oldMargins = null;
 
-                        if(oldMargins.isPresent()) {
+                        if(input.getMargins() != null) {
+                            oldMargins =
+                                    Arrays.stream(input.getMargins()).filter(marginsOpt -> marginsOpt.getFlightId().equals(flight.getFlightId())).findFirst();
+                        }
+
+                        if(oldMargins != null && oldMargins.isPresent()) {
                             MarginsDTO newMargins =
                                     new MarginsDTO();
 
