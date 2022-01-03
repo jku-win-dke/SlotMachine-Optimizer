@@ -1,8 +1,8 @@
 package at.jku.dke.slotmachine.optimizer.optimization;
 
-import at.jku.dke.slotmachine.optimizer.domain.*;
+import at.jku.dke.slotmachine.optimizer.domain.Flight;
+import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +25,8 @@ public abstract class Optimization {
 
 	private PrivacyEngineService privacyEngineService;
 
+	private double maximumFitness = Double.MIN_VALUE;
+
 	public Optimization(Flight[] flights, Slot[] slots) {
 		this.flights = flights;
 		this.slots = slots;
@@ -42,7 +44,7 @@ public abstract class Optimization {
 	 * @return a list of mappings from flights to slots
 	 */
 	public Map<Flight, Slot>[] getResults(){
-		return results.stream().toArray(Map[]::new);
+		return results.toArray(Map[]::new);
 	}
 
 	public void setResults(List<Map<Flight, Slot>> results) {
@@ -121,5 +123,13 @@ public abstract class Optimization {
 
 	public PrivacyEngineService getPrivacyEngineService() {
 		return this.privacyEngineService;
+	}
+
+    public double getMaximumFitness() {
+		return this.maximumFitness;
+    }
+
+	public void setMaximumFitness(double maxFitness) {
+		this.maximumFitness = maxFitness;
 	}
 }

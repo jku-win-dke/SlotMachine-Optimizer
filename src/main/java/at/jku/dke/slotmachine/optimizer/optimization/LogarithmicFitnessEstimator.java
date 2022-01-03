@@ -23,10 +23,10 @@ public class LogarithmicFitnessEstimator extends FitnessEstimator {
         double[] fitnessValues = new double[populationSize];
 
         for(int i = 0; i < populationSize; i++) {
-            fitnessValues[i] = a * Math.log(b * (i+1));
+            fitnessValues[i] = a * Math.log(b * (i + 1));
         }
 
-        return IntStream.range(1, fitnessValues.length)
+        return IntStream.range(1, fitnessValues.length + 1)
                         .mapToDouble(i -> fitnessValues[fitnessValues.length - i])
                         .toArray();
     }

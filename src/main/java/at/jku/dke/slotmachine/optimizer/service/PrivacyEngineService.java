@@ -37,10 +37,10 @@ public class PrivacyEngineService {
 	 * @param input the populations to be ranked
 	 * @return the ranked population and the maximum fitness value
 	 */
-	public PopulationOrderDTO computePopulationOrder(Optimization optimization, int[][] input) {
+	public PopulationOrderDTO computePopulationOrder(Optimization optimization, Integer[][] input) {
 		String url =  optimization.getPrivacyEngineEndpoint() + "/computePopulationOrder";
 
-		RequestEntity<int[][]> request =
+		RequestEntity<Integer[][]> request =
 			RequestEntity.put(url)
 						 .accept(MediaType.APPLICATION_JSON)
 						 .body(input);

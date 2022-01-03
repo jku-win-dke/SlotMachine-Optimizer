@@ -23,7 +23,7 @@ public class SigmoidFitnessEstimator extends FitnessEstimator {
         }
 
 
-        return IntStream.range(1, fitnessValues.length)
+        return IntStream.range(1, fitnessValues.length + 1)
                         .mapToDouble(i -> fitnessValues[fitnessValues.length - i])
                         .toArray();
     }

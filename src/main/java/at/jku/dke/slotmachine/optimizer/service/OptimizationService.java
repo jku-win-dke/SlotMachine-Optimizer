@@ -110,27 +110,26 @@ public class OptimizationService {
 				logger.info("Read the fitness estimator class from the JSON properties file.");
 				String estimatorClasses = System.getProperty(OptimizerApplication.FITNESS_ESTIMATOR);
 
-				if(estimatorName == null) {
-					estimatorClassName =
-							Utils.getMapFromJson(estimatorClasses).get("LINEAR");
-				} else {
+				if(estimatorName != null) {
 					estimatorClassName =
 							Utils.getMapFromJson(estimatorClasses).get(optimizationDto.getFitnessEstimator());
-				}
 
-				try {
-					logger.info("Setting fitness estimator to " + estimatorClassName);
-					FitnessEstimator estimator =
-							(FitnessEstimator) Class.forName(estimatorClassName).getDeclaredConstructor().newInstance();
+					try {
+						logger.info("Setting fitness estimator to " + estimatorClassName);
+						FitnessEstimator estimator =
+								(FitnessEstimator) Class.forName(estimatorClassName).getDeclaredConstructor().newInstance();
 
-					newOptimization.setFitnessEstimator(estimator);
-				} catch (ClassNotFoundException |
-						InvocationTargetException |
-						InstantiationException |
-						IllegalAccessException |
-						NoSuchMethodException e) {
-					logger.error("Could not instantiate fitness estimator.", e);
-					throw e;
+						newOptimization.setFitnessEstimator(estimator);
+					} catch (ClassNotFoundException |
+							InvocationTargetException |
+							InstantiationException |
+							IllegalAccessException |
+							NoSuchMethodException e) {
+						logger.error("Could not instantiate fitness estimator.", e);
+						throw e;
+					}
+				} else {
+					logger.info("No fitness estimator specified. Trying to use absolute fitness.");
 				}
 
 				if (optimizationDto.getOptimizationMode() == OptimizationModeEnum.PRIVACY_PRESERVING) {
@@ -210,6 +209,11 @@ public class OptimizationService {
 				for(int i = 0; i < resultMaps.length && i < noOfSolutions; i++) {
 					Map<Flight, Slot> resultMap = resultMaps[i];
 					results.add(this.convertResultMapToOptimizationResultMapDto(optId, resultMap));
+
+					if(i == 0) {
+						// For the best result, we know the fitness
+						results.get(i).setFitness(optimization.getMaximumFitness());
+					}
 				}
 			}
 		}

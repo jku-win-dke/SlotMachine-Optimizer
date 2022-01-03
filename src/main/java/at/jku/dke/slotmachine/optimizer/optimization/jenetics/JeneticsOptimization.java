@@ -14,6 +14,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -142,39 +144,47 @@ public class JeneticsOptimization extends Optimization {
             stream = stream.limit(terminationCondition);
         }
 
-        logger.info("Current thread: " + Thread.currentThread().toString());
+        logger.info("Current thread: " + Thread.currentThread());
 
         // add a termination condition that truncates the result if the current thread was interrupted
         stream = stream.limit(result -> !Thread.currentThread().isInterrupted());
 
-        Phenotype<EnumGene<Integer>, Integer> result = stream
+        EvolutionResult<EnumGene<Integer>, Integer> result = stream
                 .peek(statistics)
-                .collect(EvolutionResult.toBestPhenotype());
+                .collect(EvolutionResult.toBestEvolutionResult());
 
 
         logger.info("Finished optimization");
 
-        logger.info(Thread.currentThread().toString() + " was interrupted: " + Thread.currentThread().isInterrupted());
+        logger.info(Thread.currentThread() + " was interrupted: " + Thread.currentThread().isInterrupted());
 
-        Map<Flight, Slot> resultMap = problem.decode(result.genotype());
+        Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
         logger.info("Statistics: \n" + statistics);
 
         logger.info("Setting statistics for this optimization.");
         this.statistics = new JeneticsOptimizationStatistics();
 
-        // get number of fitness function invocations first so as to not distort statistics because we
+        // get the number of fitness function invocations first in order to not distort statistics because we
         // invoke the fitness function
         this.getStatistics().setFitnessFunctionInvocations(problem.getFitnessFunctionApplications());
-        this.getStatistics().setSolutionFitness(problem.fitness(result.genotype()));
+        this.getStatistics().setSolutionFitness(problem.fitness(result.bestPhenotype().genotype()));
         this.getStatistics().setGenerations(statistics.altered().count());
-        this.getStatistics().setSolutionGeneration(result.generation());
+        this.getStatistics().setSolutionGeneration(result.bestPhenotype().generation());
 
         logger.info("Number of fitness function applications: " + this.getStatistics().getFitnessFunctionInvocations());
         logger.info("Fitness of best solution: " + this.getStatistics().getSolutionFitness());
         logger.info("Number of generations: " + this.getStatistics().getGenerations());
         logger.info("Generation of best solution: " + this.getStatistics().getSolutionGeneration());
 
+        // set the results
+        List<Map<Flight, Slot>> resultList = new LinkedList<>();
+        for(Genotype<EnumGene<Integer>> genotype : result.genotypes()) {
+            resultList.add(problem.decode(genotype));
+        }
+        this.setResults(resultList);
+
+        // return only the best result
         return resultMap;
     }
 
