@@ -438,4 +438,12 @@ public class OptimizationService {
 		logger.info("Registering future for optimization with id " + optId);
 		this.threads.put(optId, future);
 	}
+
+	/**
+	 * Return all the optimizations currently known to the Optimizer
+	 * @return a list of optimizations
+	 */
+    public OptimizationDTO[] getOptimizations() {
+		return this.optimizationDTOs.values().toArray(OptimizationDTO[]::new);
+    }
 }

@@ -72,14 +72,19 @@ public class OptimizationEndpoint {
             response = OptimizationDTO[].class,
             produces = "application/json"
     )
-    @PostMapping(path = "/optimizations", consumes = "application/json")
+    @GetMapping(path = "/optimizations", consumes = "application/json")
     @ApiResponses(
             value = {
                     @ApiResponse(code = 200, message = "OK")
             }
     )
     public ResponseEntity<OptimizationDTO[]> getOptimizations() {
-        return null;
+        OptimizationDTO[] optimizations =
+                optimizationService.getOptimizations();
+
+        ResponseEntity<OptimizationDTO[]> response = new ResponseEntity<>(optimizations, HttpStatus.OK);
+
+        return response;
     }
 
     @ApiOperation(
