@@ -1,8 +1,9 @@
 package at.jku.dke.slotmachine.optimizer.rest.legacy;
 
+import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
+import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.MarginsDTO;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -10,7 +11,7 @@ import io.swagger.annotations.ApiResponses;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -27,6 +28,9 @@ import java.util.Optional;
 @RestController
 public class LegacyEndpoint {
     private static final Logger logger = LogManager.getLogger();
+    
+    @Autowired
+    OptimizationService optimizationService;
 
     @ApiOperation(
             value = "Convert an optimization in the legacy representation to the new format.",
@@ -119,5 +123,41 @@ public class LegacyEndpoint {
         return optimizationResponse;
     }
 
-    // TODO add legacy creation interface
+    @ApiOperation(
+            value = "Create an optimization session with an optimization in the legacy representation as input.",
+            response = at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO.class,
+            produces = "application/json",
+            consumes = "application/json"
+    )
+    @PostMapping(path = "/legacy/optimizations", produces = "application/json", consumes = "application/json")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "OK"),
+                    @ApiResponse(code = 400, message = "Bad Request")
+            }
+    )
+    public ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> createAndInitializeOptimizationLegacy(@RequestBody OptimizationDTO input) {
+    	at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO optDto;
+    	
+    	ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> optimizationConvertResponse = this.convertOptimization(input);
+    	if (optimizationConvertResponse.getStatusCode().equals(HttpStatus.OK)) {
+    		optDto = optimizationConvertResponse.getBody();
+    	} else {
+    		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    	}
+    	
+        ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> optimizationResponse;
+
+        try {
+        	at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO optimizationDto =
+                optimizationService.createAndInitializeOptimization(optDto);
+
+            optimizationResponse = new ResponseEntity<>(optimizationDto, HttpStatus.OK);
+
+        } catch (Exception e) {
+            optimizationResponse = new ResponseEntity<>(optDto, HttpStatus.BAD_REQUEST);
+        }
+
+        return optimizationResponse;
+    }
 }
