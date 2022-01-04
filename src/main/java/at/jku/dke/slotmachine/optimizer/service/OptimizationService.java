@@ -224,7 +224,11 @@ public class OptimizationService {
 
 					if(i == 0) {
 						// For the best result, we know the fitness
+						logger.info("Set fitness of solution " + i + " to " + optimization.getMaximumFitness());
 						results.get(i).setFitness(optimization.getMaximumFitness());
+					} else {
+						logger.info("Set fitness of solution " + i + " to null.");
+						results.get(i).setFitness(null);
 					}
 				}
 			}
@@ -387,7 +391,6 @@ public class OptimizationService {
 			// get the fitness and fitness function invocations from the statistics and include it in the results
 			logger.info("Including basic statistics in the response.");
 			optimizationResultDto.setFitness(optimization.getStatistics().getResultFitness());
-			optimizationResultDto.setFitnessFunctionInvocations(optimization.getStatistics().getFitnessFunctionInvocations());
 		} else {
 			logger.info("Optimization " + optId + " not found.");
 		}

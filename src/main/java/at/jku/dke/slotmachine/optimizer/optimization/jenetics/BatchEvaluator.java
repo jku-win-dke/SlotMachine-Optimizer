@@ -139,14 +139,19 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
 
         if(fitnessEvolutionStep != null) {
             fitnessEvolutionStep.setEstimatedPopulation(
-                    estimatedPopulation.stream().map(phenotype -> (double) phenotype.fitness()).toArray(Double[]::new)
+                    estimatedPopulation.stream()
+                            .map(phenotype -> (double) phenotype.fitness())
+                            .sorted(Comparator.reverseOrder()) // sort fitness values in descending order
+                            .toArray(Double[]::new)
             );
             logger.debug("Tracing fitness evolution. Size of estimated population: " + fitnessEvolutionStep.getEstimatedPopulation().length);
         }
 
-        if(maxFitness >= this.optimization.getMaximumFitness() && estimatedPopulationStream != null) {
-            logger.debug("Best fitness of current generation better than current best fitness. Adding intermediate result to the optimization run");
-            this.optimization.setResults(estimatedPopulation.stream().distinct().map(phenotype -> this.problem.decode(phenotype.genotype())).toList());
+        if(maxFitness >= this.optimization.getMaximumFitness() && estimatedPopulation != null) {
+            logger.debug("Best fitness of current generation better than current best fitness. Attaching intermediate result to the optimization run.");
+            this.optimization.setResults(
+                    estimatedPopulation.stream().distinct().map(phenotype -> this.problem.decode(phenotype.genotype())).toList()
+            );
 
             // set the optimization's maximum fitness to this generation's maximum fitness
             this.optimization.setMaximumFitness(maxFitness);

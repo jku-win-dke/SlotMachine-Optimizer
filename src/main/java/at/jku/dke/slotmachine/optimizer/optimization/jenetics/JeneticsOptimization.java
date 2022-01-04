@@ -14,10 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class JeneticsOptimization extends Optimization {
@@ -179,7 +176,13 @@ public class JeneticsOptimization extends Optimization {
 
         // set the results
         List<Map<Flight, Slot>> resultList =
-                result.genotypes().stream().distinct().map(genotype -> problem.decode(genotype)).toList();
+                result.population().stream()
+                        .sorted(Comparator.comparingInt(Phenotype::fitness))
+                        .sorted(Comparator.reverseOrder())
+                        .map(phenotype -> phenotype.genotype())
+                        .distinct()
+                        .map(genotype -> problem.decode(genotype))
+                        .toList();
 
         this.setResults(resultList);
 
