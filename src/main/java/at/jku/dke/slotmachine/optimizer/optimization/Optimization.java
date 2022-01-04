@@ -45,7 +45,13 @@ public abstract class Optimization {
 	 * @return a list of mappings from flights to slots
 	 */
 	public Map<Flight, Slot>[] getResults(){
-		return results.toArray(Map[]::new);
+		Map<Flight, Slot>[] resultArray = null;
+
+		if(this.results != null) {
+			resultArray = results.toArray(Map[]::new);
+		}
+
+		return resultArray;
 	}
 
 	public void setResults(List<Map<Flight, Slot>> results) {

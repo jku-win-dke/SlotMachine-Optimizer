@@ -140,7 +140,7 @@ public class LegacyEndpoint {
             @RequestParam(name = "optimizationMode", required = false)
             @ApiParam(value = "the optimization mode")
             OptimizationModeEnum optimizationMode,
-            @RequestParam(name = "optimizationMode", required = false)
+            @RequestParam(name = "fitnessEstimator", required = false)
             @ApiParam(value = "the fitness estimator used to determine the fitness (logarithmic, sigmoid, linear, etc.)")
             String fitnessEstimator,
             @RequestParam(name = "traceFitnessEvolution", defaultValue = "true")

@@ -104,6 +104,10 @@ public class OptimizationService {
 				// set the benchmarking mode (whether evolution of fitness is tracked)
 				newOptimization.setTraceFitnessEvolution(optimizationDto.isTraceFitnessEvolution());
 
+				if(optimizationDto.isTraceFitnessEvolution()) {
+					newOptimization.getStatistics().setFitnessEvolution(new LinkedList<>());
+				}
+
 				// set the creation time in the optimization's statistics
 				newOptimization.getStatistics().setTimeCreated(LocalDateTime.now());
 
