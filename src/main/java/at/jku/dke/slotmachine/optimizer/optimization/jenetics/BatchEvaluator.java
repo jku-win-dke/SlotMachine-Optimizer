@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
@@ -52,7 +53,16 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
         if(this.optimization.isTraceFitnessEvolution()) {
             fitnessEvolutionStep = new FitnessEvolutionStep();
 
-            fitnessEvolutionStep.setGeneration(BatchEvaluator.getGeneration(population));
+            logger.debug("Adding fitness evolution to statistics");
+            this.optimization.getStatistics().getFitnessEvolution().add(fitnessEvolutionStep);
+
+            Optional<Long> generation = population.stream().map(phenotype -> phenotype.generation()).max(Long::compareTo);
+
+            if(generation.isPresent()) {
+                fitnessEvolutionStep.setGeneration(generation.get().intValue());
+
+                logger.debug("Tracing fitness evolution. Generation: " + fitnessEvolutionStep.getGeneration());
+            }
         }
 
         if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
@@ -91,6 +101,7 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                 fitnessEvolutionStep.setEvaluatedPopulation(
                         evaluatedPopulation.stream().map(phenotype -> (double) phenotype.fitness()).toArray(Double[]::new)
                 );
+                logger.debug("Tracing fitness evolution. Size of evaluated population: " + fitnessEvolutionStep.getEvaluatedPopulation().length);
             }
         }
 
@@ -130,6 +141,7 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
             fitnessEvolutionStep.setEstimatedPopulation(
                     estimatedPopulation.stream().map(phenotype -> (double) phenotype.fitness()).toArray(Double[]::new)
             );
+            logger.debug("Tracing fitness evolution. Size of estimated population: " + fitnessEvolutionStep.getEstimatedPopulation().length);
         }
 
         if(maxFitness >= this.optimization.getMaximumFitness() && estimatedPopulationStream != null) {
@@ -168,22 +180,5 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                           .map(flight -> this.problem.getFlights().indexOf(flight))
                           .toArray(Integer[]::new)
                   ).toArray(Integer[][]::new);
-    }
-
-    /**
-     * Returns the generation of the given population, or -1 in case of error. If different individuals have
-     * different generation numbers, it returns the maximum (youngest) generation.
-     * @param population the population of individuals
-     * @return the current generation, or -1 in case of error
-     */
-    private static int getGeneration(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
-    	int currentGen = -1;
-
-    	for (Phenotype<EnumGene<Integer>, Integer> phenotype: population) {
-    		if (phenotype.generation() > currentGen) {
-    			currentGen = (int) phenotype.generation();
-    		}
-    	}
-    	return currentGen;
     }
 }

@@ -330,6 +330,7 @@ public class OptimizationService {
 		stats.setInitialFitness(optimization.getStatistics().getInitialFitness());
 
 		if(optimization.isTraceFitnessEvolution()) {
+			logger.debug("Tracing fitness evolution. Including fitness evolution in statistics.");
 			stats.setFitnessEvolution(
 					optimization.getStatistics().getFitnessEvolution().stream()
 							.map(fitnessEvolutionStep -> {

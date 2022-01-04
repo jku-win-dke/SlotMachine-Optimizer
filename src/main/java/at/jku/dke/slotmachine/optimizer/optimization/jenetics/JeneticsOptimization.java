@@ -181,6 +181,8 @@ public class JeneticsOptimization extends Optimization {
         List<Map<Flight, Slot>> resultList =
                 result.genotypes().stream().distinct().map(genotype -> problem.decode(genotype)).toList();
 
+        this.setResults(resultList);
+
         // return only the best result
         return resultMap;
     }
