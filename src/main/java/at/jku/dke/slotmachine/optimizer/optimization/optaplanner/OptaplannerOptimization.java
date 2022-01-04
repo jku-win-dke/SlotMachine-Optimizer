@@ -90,7 +90,7 @@ public class OptaplannerOptimization extends Optimization {
             logger.info("Setting statistics for this optimization.");
             this.statistics = new OptaplannerOptimizationStatistics();
 
-            this.getStatistics().setSolutionFitness(solvedFlightPrioritization.getScore().getSoftScore());
+            this.getStatistics().setResultFitness(solvedFlightPrioritization.getScore().getSoftScore());
             this.getStatistics().setFitnessFunctionInvocations(solvedFlightPrioritization.getFitnessFunctionInvocations());
 
             logger.info("Number of fitness function invocations: " + this.getStatistics().getFitnessFunctionInvocations());

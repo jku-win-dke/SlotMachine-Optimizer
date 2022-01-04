@@ -4,6 +4,8 @@ import org.springframework.lang.Nullable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
 
 public class OptimizationStatistics {
 
@@ -17,6 +19,8 @@ public class OptimizationStatistics {
     private LocalDateTime timeStarted;
     private LocalDateTime timeAborted;
     private LocalDateTime timeFinished;
+
+    private List<FitnessEvolutionStep> fitnessEvolution = null;
 
     public double getInitialFitness() {
         return initialFitness;
@@ -90,5 +94,13 @@ public class OptimizationStatistics {
 
     public void setFitnessFunctionInvocations(int fitnessFunctionInvocations) {
         this.fitnessFunctionInvocations = fitnessFunctionInvocations;
+    }
+
+    public List<FitnessEvolutionStep> getFitnessEvolution() {
+        return fitnessEvolution;
+    }
+
+    public void setFitnessEvolution(List<FitnessEvolutionStep> fitnessEvolution) {
+        this.fitnessEvolution = fitnessEvolution;
     }
 }

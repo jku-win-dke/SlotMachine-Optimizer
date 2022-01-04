@@ -101,6 +101,9 @@ public class OptimizationService {
 
 				newOptimization.setOptId(optId);
 
+				// set the benchmarking mode (whether evolution of fitness is tracked)
+				newOptimization.setTraceFitnessEvolution(optimizationDto.isTraceFitnessEvolution());
+
 				// set the creation time in the optimization's statistics
 				newOptimization.getStatistics().setTimeCreated(LocalDateTime.now());
 
@@ -321,6 +324,27 @@ public class OptimizationService {
 		stats.setResultFitness(optimization.getStatistics().getResultFitness());
 
 		stats.setInitialFitness(optimization.getStatistics().getInitialFitness());
+
+		if(optimization.isTraceFitnessEvolution()) {
+			stats.setFitnessEvolution(
+					optimization.getStatistics().getFitnessEvolution().stream()
+							.map(fitnessEvolutionStep -> {
+								FitnessEvolutionStepDTO newStep = new FitnessEvolutionStepDTO();
+
+								newStep.setGeneration(fitnessEvolutionStep.getGeneration());
+
+								newStep.setEstimatedPopulation(
+										Arrays.stream(fitnessEvolutionStep.getEstimatedPopulation()).mapToDouble(Double::doubleValue).toArray()
+								);
+
+								newStep.setEvaluatedPopulation(
+										Arrays.stream(fitnessEvolutionStep.getEvaluatedPopulation()).mapToDouble(Double::doubleValue).toArray()
+								);
+
+								return newStep;
+							}).toArray(FitnessEvolutionStepDTO[]::new)
+			);
+		}
 
 		return stats;
 	}

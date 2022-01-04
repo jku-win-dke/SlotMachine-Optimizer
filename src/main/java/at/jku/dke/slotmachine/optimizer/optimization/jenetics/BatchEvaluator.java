@@ -1,5 +1,6 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
+import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import io.jenetics.EnumGene;
@@ -46,6 +47,14 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
         double maxFitness;
         double minFitness;
 
+        FitnessEvolutionStep fitnessEvolutionStep = null;
+
+        if(this.optimization.isTraceFitnessEvolution()) {
+            fitnessEvolutionStep = new FitnessEvolutionStep();
+
+            fitnessEvolutionStep.setGeneration(BatchEvaluator.getGeneration(population));
+        }
+
         if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
             logger.debug("Running in privacy-preserving mode: Evaluate the population using the Privacy Engine.");
 
@@ -77,6 +86,12 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
             maxFitness = evaluatedPopulation.get(0).fitness();
 
             logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
+
+            if(fitnessEvolutionStep != null) {
+                fitnessEvolutionStep.setEvaluatedPopulation(
+                        evaluatedPopulation.stream().map(phenotype -> (double) phenotype.fitness()).toArray(Double[]::new)
+                );
+            }
         }
 
         logger.debug("Actual maximum fitness of the population: " + maxFitness);
@@ -109,6 +124,12 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                 logger.debug("Running in non-privacy-preserving mode. Exact fitness values available.");
                 estimatedPopulation = evaluatedPopulation;
             }
+        }
+
+        if(fitnessEvolutionStep != null) {
+            fitnessEvolutionStep.setEstimatedPopulation(
+                    estimatedPopulation.stream().map(phenotype -> (double) phenotype.fitness()).toArray(Double[]::new)
+            );
         }
 
         if(maxFitness >= this.optimization.getMaximumFitness() && estimatedPopulationStream != null) {

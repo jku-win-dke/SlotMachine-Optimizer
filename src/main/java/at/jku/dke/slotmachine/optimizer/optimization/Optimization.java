@@ -26,6 +26,7 @@ public abstract class Optimization {
 	private PrivacyEngineService privacyEngineService;
 
 	private double maximumFitness = Double.MIN_VALUE;
+	private boolean traceFitnessEvolution = false;
 
 	public Optimization(Flight[] flights, Slot[] slots) {
 		this.flights = flights;
@@ -131,5 +132,14 @@ public abstract class Optimization {
 
 	public void setMaximumFitness(double maxFitness) {
 		this.maximumFitness = maxFitness;
+	}
+
+
+	public boolean isTraceFitnessEvolution() {
+		return traceFitnessEvolution;
+	}
+
+	public void setTraceFitnessEvolution(boolean traceFitnessEvolution) {
+		this.traceFitnessEvolution = traceFitnessEvolution;
 	}
 }

@@ -25,7 +25,7 @@ import java.util.Optional;
 
 @Api(value = "SlotMachine Optimization Legacy")
 @RestController
-public class ConversionEndpoint {
+public class LegacyEndpoint {
     private static final Logger logger = LogManager.getLogger();
 
     @ApiOperation(
@@ -118,4 +118,6 @@ public class ConversionEndpoint {
 
         return optimizationResponse;
     }
+
+    // TODO add legacy creation interface
 }

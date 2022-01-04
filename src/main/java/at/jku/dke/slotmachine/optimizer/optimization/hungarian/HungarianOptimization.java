@@ -126,7 +126,7 @@ public class HungarianOptimization extends Optimization {
     		this.statistics = new HungarianOptimizationStatistics();
     	}
 
-    	this.getStatistics().setSolutionFitness(sumOfWeights);
+    	this.getStatistics().setResultFitness(sumOfWeights);
 
         return resultMap;
     }
