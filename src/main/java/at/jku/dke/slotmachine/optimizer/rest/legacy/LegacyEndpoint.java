@@ -4,10 +4,8 @@ import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
 import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.MarginsDTO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationModeEnum;
+import io.swagger.annotations.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -136,26 +135,51 @@ public class LegacyEndpoint {
                     @ApiResponse(code = 400, message = "Bad Request")
             }
     )
-    public ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> createAndInitializeOptimizationLegacy(@RequestBody OptimizationDTO input) {
-    	at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO optDto;
+    public ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> createAndInitializeOptimizationLegacy(
+            @RequestBody OptimizationDTO input,
+            @RequestParam(name = "optimizationMode", required = false)
+            @ApiParam(value = "the optimization mode")
+            OptimizationModeEnum optimizationMode,
+            @RequestParam(name = "optimizationMode", required = false)
+            @ApiParam(value = "the fitness estimator used to determine the fitness (logarithmic, sigmoid, linear, etc.)")
+            String fitnessEstimator,
+            @RequestParam(name = "traceFitnessEvolution", defaultValue = "true")
+            @ApiParam(value = "true if evolution of fitness should be included in stats; used for evaluation.")
+            boolean traceFitnessEvolution
+    ) {
+        ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> optimizationResponse = null;
+
+    	at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO optDto = null;
     	
-    	ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> optimizationConvertResponse = this.convertOptimization(input);
+    	ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> optimizationConvertResponse =
+                this.convertOptimization(input);
+
     	if (optimizationConvertResponse.getStatusCode().equals(HttpStatus.OK)) {
     		optDto = optimizationConvertResponse.getBody();
     	} else {
-    		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            optimizationResponse = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-    	
-        ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> optimizationResponse;
 
-        try {
-        	at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO optimizationDto =
-                optimizationService.createAndInitializeOptimization(optDto);
+        if(optimizationResponse == null) {
+            if (optimizationMode != null) {
+                optDto.setOptimizationMode(optimizationMode);
+            }
 
-            optimizationResponse = new ResponseEntity<>(optimizationDto, HttpStatus.OK);
+            if (fitnessEstimator != null) {
+                optDto.setFitnessEstimator(fitnessEstimator);
+            }
 
-        } catch (Exception e) {
-            optimizationResponse = new ResponseEntity<>(optDto, HttpStatus.BAD_REQUEST);
+            optDto.setTraceFitnessEvolution(traceFitnessEvolution);
+
+            try {
+                at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO optimizationDto =
+                        optimizationService.createAndInitializeOptimization(optDto);
+
+                optimizationResponse = new ResponseEntity<>(optimizationDto, HttpStatus.OK);
+
+            } catch (Exception e) {
+                optimizationResponse = new ResponseEntity<>(optDto, HttpStatus.BAD_REQUEST);
+            }
         }
 
         return optimizationResponse;
