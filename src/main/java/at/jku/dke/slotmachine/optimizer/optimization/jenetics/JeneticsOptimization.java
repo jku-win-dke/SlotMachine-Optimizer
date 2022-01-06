@@ -106,8 +106,7 @@ public class JeneticsOptimization extends Optimization {
         }
 
         logger.info("Initial population consists of " + initialPopulation.length() + " individuals.");
-
-        logger.info("-- Optimization --");
+        logger.info("Initial population consists of " + initialPopulation.stream().distinct().toList().size() + " distinct individuals.");
 
         logger.info("Build the genetic algorithm engine.");
 

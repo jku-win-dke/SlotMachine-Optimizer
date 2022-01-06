@@ -209,20 +209,35 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
         genotypes[0] = genotype;
 
-        logger.info("Swap neighboring flights in initial allocation.");
-        for(int i = 1; i < genotypes.length; i++) {
-            for(int j = 0; j < flights.length; j++) {
-                Map<Flight, Slot> swappedAllocation = new HashMap<>(initialAllocation);
+        logger.info("Swap flights for initial allocation.");
+        int ratioGenotypesToFlights = (int) Math.ceil(genotypes.length / flights.length);
+        logger.debug("ratioGenotypesToFlights = " + ratioGenotypesToFlights);
+        for (int i = 0; i < genotypes.length; i++) {
+            Map<Flight, Slot> swappedAllocation = new HashMap<>(initialAllocation);
 
-                if(j+1 < flights.length) {
-                    Slot s1 = swappedAllocation.get(flights[j]);
-                    Slot s2 = swappedAllocation.get(flights[j+1]);
-                    swappedAllocation.put(flights[j], s2);
-                    swappedAllocation.put(flights[j+1], s1);
+            int ratioCurrentGenotypeIndexToFlights = (int) Math.ceil(i / flights.length);
+            logger.debug("ratioCurrentGenotypeIndexToFlights = " + ratioCurrentGenotypeIndexToFlights);
+            for(int k = 0; k <= ratioCurrentGenotypeIndexToFlights; k++) {
+                int swap1 = i - (ratioCurrentGenotypeIndexToFlights * flights.length) + (2 * k);
+                int swap2 = swap1 + 1;
+
+                if(swap2 >= flights.length) {
+                    swap1 = swap1 - flights.length + 1;
+                    swap2 = swap2 - flights.length + 2;
                 }
-                genotype = problem.codec().encode(swappedAllocation);
-                genotypes[i] = genotype;
+
+                if(swap2 < flights.length) {
+                    logger.debug("Swapping " + swap1 + " with " + swap2);
+                    Slot s1 = swappedAllocation.get(flights[swap1]);
+                    Slot s2 = swappedAllocation.get(flights[swap2]);
+
+                    swappedAllocation.put(flights[swap1], s2);
+                    swappedAllocation.put(flights[swap2], s1);
+                }
             }
+
+            genotype = problem.codec().encode(swappedAllocation);
+            genotypes[i] = genotype;
         }
 
         return ISeq.of(genotypes);

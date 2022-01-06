@@ -50,13 +50,15 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
 
         FitnessEvolutionStep fitnessEvolutionStep = null;
 
+        logger.debug("Number of distinct solutions in population: " + population.stream().distinct().count());
+
         if(this.optimization.isTraceFitnessEvolution()) {
             fitnessEvolutionStep = new FitnessEvolutionStep();
 
             logger.debug("Adding fitness evolution to statistics");
             this.optimization.getStatistics().getFitnessEvolution().add(fitnessEvolutionStep);
 
-            Optional<Long> generation = population.stream().map(phenotype -> phenotype.generation()).max(Long::compareTo);
+            Optional<Long> generation = population.stream().map(Phenotype::generation).max(Long::compareTo);
 
             if(generation.isPresent()) {
                 fitnessEvolutionStep.setGeneration(generation.get().intValue());
@@ -93,6 +95,11 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                           .sorted(Comparator.reverseOrder())
                           .toList();
 
+//            System.out.println("Evaluated Population");
+//            for(Phenotype phenotype : evaluatedPopulation){
+//                System.out.println(phenotype.fitness());
+//            }
+
             maxFitness = evaluatedPopulation.get(0).fitness();
 
             logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
@@ -110,22 +117,34 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
         minFitness = maxFitness - (2 * Math.abs(maxFitness)) - (Math.abs(maxFitness) * 0.0001);
         logger.debug("Estimated minimum fitness of the population: " + minFitness);
 
-        Stream<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
+        Stream<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream;
 
         if(this.optimization.getFitnessEstimator() != null) {
             logger.debug("Getting estimated fitness value from estimator: " + this.optimization.getFitnessEstimator().getClass());
             double[] estimatedFitnessValues =
                     this.optimization.getFitnessEstimator().estimateFitnessDistribution(population.size(), maxFitness, minFitness);
 
+//            System.out.println("Estimated Fitness Values");
+//            for(double estimatedFitnessValue : estimatedFitnessValues){
+//                System.out.println(estimatedFitnessValue);
+//            }
+
             logger.debug("Assign each solution in the population an estimated fitness value.");
             estimatedPopulationStream = evaluatedPopulation.stream()
                     .map(phenotype -> phenotype.withFitness((int) estimatedFitnessValues[evaluatedPopulation.indexOf(phenotype)]));
+            // Note: If the population contains duplicates, the duplicates will be assigned the same fitness.
 
-            try {
-                estimatedPopulation = estimatedPopulationStream.toList();
-            } catch(Exception e) {
-                logger.error(e);
-            }
+            estimatedPopulation = estimatedPopulationStream
+                    .sorted(Comparator.comparingInt(Phenotype::fitness))
+                    .sorted(Comparator.reverseOrder())
+                    .toList();
+
+//            System.out.println("Estimated Population");
+//            for(Phenotype phenotype : estimatedPopulation){
+//                System.out.println(phenotype.fitness());
+//            }
+//
+//            System.out.println("---");
 
             logger.debug("Assigned estimated fitness values.");
         } else {
@@ -141,7 +160,6 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
             fitnessEvolutionStep.setEstimatedPopulation(
                     estimatedPopulation.stream()
                             .map(phenotype -> (double) phenotype.fitness())
-                            .sorted(Comparator.reverseOrder()) // sort fitness values in descending order
                             .toArray(Double[]::new)
             );
             logger.debug("Tracing fitness evolution. Size of estimated population: " + fitnessEvolutionStep.getEstimatedPopulation().length);
