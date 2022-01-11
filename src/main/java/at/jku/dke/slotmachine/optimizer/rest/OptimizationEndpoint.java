@@ -207,7 +207,6 @@ public class OptimizationEndpoint {
                                                                          @RequestParam(name = "limit", defaultValue = "1")
                                                                          @ApiParam(value = "the number of solutions to be returned")
                                                                                  int noOfSolutions) {
-        // margins will be returned if they were submitted upon creation of optimization session
         OptimizationResultDTO[] optimizationResult =
                 optimizationService.getOptimizationResult(optId, noOfSolutions);
 
