@@ -131,7 +131,11 @@ public class BatchEvaluatorDecile implements Evaluator<EnumGene<Integer>, Intege
             
             logger.debug("Assign each solution in the population an estimated fitness value.");
             estimatedPopulationStream = evaluatedPopulation.stream()
-                    .map(phenotype -> phenotype.withFitness((int) estimatedFitnessValues[(int)(evaluatedPopulation.indexOf(phenotype) / population.size() * 10)]));
+                    .map(phenotype -> phenotype.withFitness((int) estimatedFitnessValues[
+                                                                                         (int)(
+                                                                                        		 (double) (evaluatedPopulation.indexOf(phenotype)) / (double) (population.size()) * 10
+                                                                                        		 )
+                                                                                         ]));
             // Note: If the population contains duplicates, the duplicates will be assigned the same fitness.
 
             estimatedPopulation = estimatedPopulationStream
