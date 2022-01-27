@@ -115,6 +115,18 @@ public class JeneticsOptimization extends Optimization {
 
         // builder = Engine.builder(problem);
 
+        if(this.getConfiguration().isDeduplicate()){
+            int maxRetries = this.getConfiguration().getDeduplicateMaxRetries();
+
+            if (maxRetries > 0) {
+                logger.debug("The engine should deduplicate the population; maxRetries: " + maxRetries);
+                builder = builder.interceptor(EvolutionResult.toUniquePopulation(maxRetries));
+            } else {
+                logger.debug("The engine should deduplicate the population");
+                builder = builder.interceptor(EvolutionResult.toUniquePopulation());
+            }
+        }
+
         Engine<EnumGene<Integer>, Integer> engine = builder
                 .optimize(Optimize.MAXIMUM)
                 .populationSize(populationSize)
@@ -203,6 +215,7 @@ public class JeneticsOptimization extends Optimization {
         defaultConfiguration.setSurvivorsSelector("TOURNAMENT_SELECTOR");
         defaultConfiguration.setOffspringSelector("TOURNAMENT_SELECTOR");
         defaultConfiguration.setTerminationConditions(terminationConditionParameters);
+        defaultConfiguration.setDeduplicate(false);
 
         return defaultConfiguration;
     }
@@ -228,6 +241,8 @@ public class JeneticsOptimization extends Optimization {
         Object survivorsSelector = parameters.get("survivorsSelector");
         Object survivorsSelectorParameter = parameters.get("survivorsSelectorParameter");
         Object terminationConditions = parameters.get("terminationConditions");
+        Object deduplicate = parameters.get("deduplicate");
+        Object deduplicateMaxRetries = parameters.get("deduplicateMaxRetries");
 
         // set the parameters
         try {
@@ -328,6 +343,23 @@ public class JeneticsOptimization extends Optimization {
             }
         } catch (Exception e) {
             throw new InvalidOptimizationParameterTypeException("survivorsSelectorParameter", Number.class);
+        }
+
+
+        try {
+            if (deduplicate != null) {
+                newConfiguration.setDeduplicate((boolean) deduplicate);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("deduplicate", Boolean.class);
+        }
+
+        try {
+            if (deduplicateMaxRetries != null) {
+                newConfiguration.setDeduplicateMaxRetries((int) deduplicateMaxRetries);
+            }
+        } catch (Exception e) {
+            throw new InvalidOptimizationParameterTypeException("deduplicateMaxRetries", Integer.class);
         }
 
 

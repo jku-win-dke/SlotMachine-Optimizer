@@ -69,4 +69,16 @@ public abstract class OptimizationConfiguration {
 
         return longValue;
     }
+
+    protected boolean getBooleanParameter(String param) {
+        Object value = this.getParameter(param);
+
+        boolean booleanValue = false;
+
+        if(value != null) {
+            booleanValue = (boolean) value;
+        }
+
+        return booleanValue;
+    }
 }

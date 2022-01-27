@@ -320,6 +320,15 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         return mapValue;
     }
 
+    public boolean isDeduplicate() {
+        return this.getBooleanParameter("deduplicate");
+    }
+
+
+    public int getDeduplicateMaxRetries() {
+        return this.getIntegerParameter("deduplicateMaxRetries");
+    }
+
     public void setTerminationConditions(Map<String,Object> terminationConditionParameters) {
         this.setParameter("terminationConditions", terminationConditionParameters);
     }
@@ -358,5 +367,13 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
     public void setSurvivorsSelectorParameter(Number survivorsSelectorParameter) {
         this.setParameter("survivorsSelectorParameter", survivorsSelectorParameter);
+    }
+
+    public void setDeduplicate(boolean deduplicate) {
+        this.setParameter("deduplicate", deduplicate);
+    }
+
+    public void setDeduplicateMaxRetries(int maxRetries) {
+        this.setParameter("deduplicateMaxRetries", maxRetries);
     }
 }
