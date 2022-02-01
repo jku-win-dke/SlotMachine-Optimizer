@@ -107,7 +107,7 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info("Build the genetic algorithm engine.");
 
-        Evaluator evaluator = new BatchEvaluatorDecile(problem, this);
+        Evaluator evaluator = new BatchEvaluator(problem, this);
 
         Engine.Builder<EnumGene<Integer>, Integer> builder;
 

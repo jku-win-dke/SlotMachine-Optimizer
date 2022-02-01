@@ -1,6 +1,8 @@
 package at.jku.dke.slotmachine.optimizer.service;
 
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
+import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,4 +52,9 @@ public class PrivacyEngineService {
 		
 		return response.getBody();
 	}
+
+    public FitnessQuantilesDTO computeFitnessQuantiles(JeneticsOptimization optimization, Integer[][] input) {
+
+		return null;
+    }
 }

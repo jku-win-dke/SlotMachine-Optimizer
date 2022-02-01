@@ -2,6 +2,7 @@ package at.jku.dke.slotmachine.optimizer.rest.legacy;
 
 import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
 import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
+import at.jku.dke.slotmachine.optimizer.service.dto.FitnessMethodEnum;
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.MarginsDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationModeEnum;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 @Api(value = "SlotMachine Optimization Legacy")
@@ -145,7 +147,17 @@ public class LegacyEndpoint {
             String fitnessEstimator,
             @RequestParam(name = "traceFitnessEvolution", defaultValue = "true")
             @ApiParam(value = "true if evolution of fitness should be included in stats; used for evaluation.")
-            boolean traceFitnessEvolution
+            boolean traceFitnessEvolution,
+            @RequestParam(name = "fitnessMethod", required = false)
+            @ApiParam(value = "the fitness method used by the Privacy Engine or Optimizer")
+            FitnessMethodEnum fitnessMethod,
+            @RequestParam(name = "fitnessPrecision", required = false)
+            @ApiParam(value = "the precision of the fitness computation")
+            Integer fitnessPrecision,
+            @RequestParam(name = "additionalParameters", required = false)
+            @ApiParam(value = "Additional parameters for the optimization")
+            Map<String, Object> additionalParameters
+
     ) {
         ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> optimizationResponse = null;
 
@@ -167,6 +179,18 @@ public class LegacyEndpoint {
 
             if (fitnessEstimator != null) {
                 optDto.setFitnessEstimator(fitnessEstimator);
+            }
+
+            if(fitnessMethod != null) {
+                optDto.setFitnessMethod(fitnessMethod);
+            }
+
+            if(fitnessPrecision != null) {
+                optDto.setFitnessPrecision(fitnessPrecision);
+            }
+
+            if(additionalParameters != null) {
+                optDto.getParameters().putAll(additionalParameters);
             }
 
             optDto.setTraceFitnessEvolution(traceFitnessEvolution);

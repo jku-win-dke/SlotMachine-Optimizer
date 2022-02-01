@@ -25,6 +25,9 @@ public abstract class Optimization {
 
 	private PrivacyEngineService privacyEngineService;
 
+	private FitnessMethod fitnessMethod = null;
+	private int fitnessPrecision = Integer.MIN_VALUE;
+
 	private double maximumFitness = Double.MIN_VALUE;
 	private boolean traceFitnessEvolution = false;
 
@@ -147,5 +150,22 @@ public abstract class Optimization {
 
 	public void setTraceFitnessEvolution(boolean traceFitnessEvolution) {
 		this.traceFitnessEvolution = traceFitnessEvolution;
+	}
+
+
+	public FitnessMethod getFitnessMethod() {
+		return fitnessMethod;
+	}
+
+	public void setFitnessMethod(FitnessMethod fitnessMethod) {
+		this.fitnessMethod = fitnessMethod;
+	}
+
+	public int getFitnessPrecision() {
+		return fitnessPrecision;
+	}
+
+	public void setFitnessPrecision(int fitnessPrecision) {
+		this.fitnessPrecision = fitnessPrecision;
 	}
 }

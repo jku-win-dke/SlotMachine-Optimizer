@@ -157,6 +157,35 @@ public class OptimizationService {
 					newOptimization.setMode(OptimizationMode.NON_PRIVACY_PRESERVING);
 				}
 
+				if(optimizationDto.getFitnessMethod() != null) {
+					logger.info("Set fitness method: " + optimizationDto.getFitnessMethod());
+					switch(optimizationDto.getFitnessMethod()) {
+						case FITNESS_RANGE_QUANTILES -> {
+							newOptimization.setFitnessMethod(FitnessMethod.FITNESS_RANGE_QUANTILES);
+						}
+						case ABOVE_RELATIVE_THRESHOLD -> {
+							newOptimization.setFitnessMethod(FitnessMethod.ABOVE_RELATIVE_THRESHOLD);
+						}
+						case ABOVE_ABSOLUTE_THRESHOLD -> {
+							newOptimization.setFitnessMethod(FitnessMethod.ABOVE_ABSOLUTE_THRESHOLD);
+						}
+						case ORDER -> {
+							newOptimization.setFitnessMethod(FitnessMethod.ORDER);
+						}
+						case ORDER_QUANTILES -> {
+							newOptimization.setFitnessMethod(FitnessMethod.ORDER_QUANTILES);
+						}
+						case ACTUAL_VALUES -> {
+							newOptimization.setFitnessMethod(FitnessMethod.ACTUAL_VALUES);
+						}
+					}
+				}
+
+				if(optimizationDto.getFitnessPrecision() != null) {
+					logger.info("Set fitness precision: " + optimizationDto.getFitnessPrecision());
+					newOptimization.setFitnessPrecision(optimizationDto.getFitnessPrecision());
+				}
+
 				logger.info("Set optimization status to INITIALIZED");
 				newOptimization.setStatus(OptimizationStatus.INITIALIZED);
 				optimizationDto.setOptimizationStatus(OptimizationStatusEnum.INITIALIZED);
