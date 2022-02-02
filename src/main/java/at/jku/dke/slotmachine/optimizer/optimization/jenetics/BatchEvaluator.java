@@ -17,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     private static final Logger logger = LogManager.getLogger();
@@ -125,25 +124,25 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
 
                 double difference = maxFitness - actualMinFitness;
 
-                double windowLength = difference / this.optimization.getFitnessPrecision();
+                double windowLength = (difference / this.optimization.getFitnessPrecision()) + 0.01;
+
+                logger.debug("Diff: " + difference + ", windowLength: " + windowLength);
 
                 Map<Integer, List<Phenotype<EnumGene<Integer>, Integer>>> quantilePopulations = evaluatedPopulation.stream()
-                        .collect(Collectors.groupingBy(phenotype -> (int) ((maxFitness - (double) phenotype.fitness()) / difference)));
+                        .collect(Collectors.groupingBy(phenotype -> (int) ((maxFitness - (double) phenotype.fitness()) / windowLength)));
 
-                fitnessQuantilesPopulation = quantilePopulations.values().stream()
-                        .flatMap(List::stream)
-                        .collect(Collectors.toMap(
-                                        phenotype -> phenotype,
-                                        phenotype -> {
-                                            Optional<Integer> quantile = quantilePopulations.entrySet().stream()
-                                                    .filter(entry -> entry.getValue().contains(phenotype))
-                                                    .map(entry -> entry.getKey())
-                                                    .findFirst();
+                logger.debug("Map phenotype to quantile");
+                fitnessQuantilesPopulation = new HashMap<>();
 
-                                            return quantile.get();
-                                        }
-                                )
-                        );
+                for(int quantile : quantilePopulations.keySet()) {
+                    List<Phenotype<EnumGene<Integer>, Integer>> quantilePopulation = quantilePopulations.get(quantile);
+
+                    for(Phenotype<EnumGene<Integer>, Integer> phenotype : quantilePopulation) {
+                        fitnessQuantilesPopulation.put(phenotype, quantile);
+                    }
+                }
+
+                logger.debug("Mapped phenotypes to quantile");
             }
         }
 
@@ -152,7 +151,7 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
         minFitness = maxFitness - (2 * Math.abs(maxFitness)) - (Math.abs(maxFitness) * 0.0001);
         logger.debug("Estimated minimum fitness of the population: " + minFitness);
 
-        Stream<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
+        List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
 
         if(this.optimization.getFitnessEstimator() != null ||
                 (this.optimization.getFitnessMethod() != null && this.optimization.getFitnessMethod() != FitnessMethod.ACTUAL_VALUES)) {
@@ -162,7 +161,7 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
             if(this.optimization.getFitnessMethod() == FitnessMethod.ORDER_QUANTILES ||
                     this.optimization.getFitnessMethod() == FitnessMethod.FITNESS_RANGE_QUANTILES) {
                 estimatedPopulationSize = this.optimization.getFitnessPrecision();
-                logger.info("Estimated population size: " + estimatedPopulationSize);
+                logger.debug("Estimated population size: " + estimatedPopulationSize);
             }
 
             if(this.optimization.getFitnessMethod() == FitnessMethod.ORDER ||
@@ -177,7 +176,7 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                 estimatedPopulationStream = evaluatedPopulation.stream()
                         .map(phenotype -> phenotype.withFitness((int) estimatedFitnessValues[
                                 (int)((double) (evaluatedPopulation.indexOf(phenotype)) / (double) (population.size()) * finalEstimatedPopulationSize)
-                             ]));
+                             ])).collect(Collectors.toList());
             } else if(this.optimization.getFitnessMethod() == FitnessMethod.FITNESS_RANGE_QUANTILES) {
                 // for this we need a change of the Privacy Engine interface
 
@@ -185,13 +184,15 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                 double[] estimatedFitnessValues =
                         this.optimization.getFitnessEstimator().estimateFitnessDistribution(estimatedPopulationSize, maxFitness, minFitness);
 
-                // assign the estimated fitness of the phenotype's fitness quantile
+                logger.debug("Assign the estimated fitness of the phenotype's fitness quantile");
                 final Map<Phenotype<EnumGene<Integer>, Integer>, Integer> finalFitnessQuantilesPopulation = fitnessQuantilesPopulation;
                 estimatedPopulationStream = evaluatedPopulation.stream()
-                        .map(phenotype -> phenotype.withFitness(
-                                (int) estimatedFitnessValues[finalFitnessQuantilesPopulation.get(phenotype)]
-                             )
-                         );
+                        .map(phenotype -> {
+                                    int fitness = (int) estimatedFitnessValues[finalFitnessQuantilesPopulation.get(phenotype)];
+                                    return phenotype.withFitness(fitness);
+                                }
+                         ).collect(Collectors.toList());
+                logger.debug("Assigned the fitness quantiles");
             } else if(this.optimization.getFitnessMethod() == FitnessMethod.ABOVE_ABSOLUTE_THRESHOLD ||
                         this.optimization.getFitnessMethod() == FitnessMethod.ABOVE_RELATIVE_THRESHOLD) {
                 List<Genotype<EnumGene<Integer>>> evaluatedGenotypes =
@@ -203,10 +204,10 @@ public class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
                                 evaluatedGenotypes.contains(phenotype.genotype())?
                                         phenotype.withFitness((int) maxFitness) :
                                         phenotype.withFitness((int) minFitness)
-                        );
+                        ).collect(Collectors.toList());
             }
 
-            estimatedPopulation = estimatedPopulationStream
+            estimatedPopulation = estimatedPopulationStream.stream()
                     .sorted(Comparator.comparingInt(Phenotype::fitness))
                     .sorted(Comparator.reverseOrder())
                     .toList();

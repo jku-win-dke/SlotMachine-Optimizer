@@ -76,6 +76,12 @@
             <version>${jenetics.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.jenetics</groupId>
+            <artifactId>jenetics.ext</artifactId>
+            <version>${jenetics.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.optaplanner</groupId>
             <artifactId>optaplanner-core</artifactId>
             <version>${optaplanner.version}</version>

@@ -6,6 +6,8 @@ import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
 import io.jenetics.*;
 import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.Limits;
+import io.jenetics.ext.HPRMutator;
+import io.jenetics.ext.RSMutator;
 import io.jenetics.util.ISeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,16 +48,34 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
         logger.info("-- Mutator --");
 
         if(mutatorType != null) {
+            double alterProbability = this.getMutatorAlterProbability();
+
             switch (mutatorType) {
                 case "SWAP_MUTATOR":
-                    double alterProbability = this.getMutatorAlterProbability();
-
                     if(alterProbability >= 0) {
                         logger.info("Use swap mutator with alter probability: " + alterProbability);
                         mutator = new SwapMutator<>(alterProbability);
                     } else {
                         logger.info("Use swap mutator with default alter probability.");
                         mutator = new SwapMutator<>();
+                    }
+                    break;
+                case "REVERSE_SEQUENCE_MUTATOR":
+                    if(alterProbability >= 0) {
+                        logger.info("Use reverse sequence mutator with alter probability: " + alterProbability);
+                        mutator = new RSMutator<>(alterProbability);
+                    } else {
+                        logger.info("Use reverse sequence mutator with default alter probability.");
+                        mutator = new RSMutator<>();
+                    }
+                    break;
+                case "HYBRID_SWAP_REVERSE_SEQUENCE_MUTATOR":
+                    if(alterProbability >= 0) {
+                        logger.info("Use a hybrid between swap mutator and reverse sequence mutator with alter probability: " + alterProbability);
+                        mutator = new HPRMutator<>(alterProbability);
+                    } else {
+                        logger.info("Use a hybrid between swap mutator and reverse sequence mutator with default alter probability.");
+                        mutator = new HPRMutator<>();
                     }
                     break;
                 default:
@@ -156,6 +176,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                     }
                     break;
                 case "ROULETTE_WHEEL_SELECTOR":
+                    logger.info("Using roulette wheel selector without parameter.");
                     selector = new RouletteWheelSelector<>();
                     break;
                 case "STOCHASTIC_UNIVERSAL_SELECTOR":
@@ -273,7 +294,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                         nextPredicate = Limits.bySteadyFitness(generations);
                         break;
                     }
-                    case "BY_FIXED_GENERATION": {
+                        case "BY_FIXED_GENERATION": {
                         int generation = (int) terminationConditionParameters.get("BY_FIXED_GENERATION");
 
                         nextPredicate = Limits.byFixedGeneration(generation);
