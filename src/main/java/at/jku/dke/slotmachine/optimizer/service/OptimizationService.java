@@ -326,6 +326,10 @@ public class OptimizationService {
 	public OptimizationStatisticsDTO getOptimizationStatistics(UUID optId) {
 		// search for optId
 		Optimization optimization = this.optimizations.get(optId);
+		if (optimization == null) {
+			logger.info("Optimization with id " + optId + " not found.");
+			return null;
+		}
 
 		OptimizationStatisticsDTO stats = new OptimizationStatisticsDTO();
 
