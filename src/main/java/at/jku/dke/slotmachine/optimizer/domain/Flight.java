@@ -42,6 +42,12 @@ public class Flight implements Comparable<Flight> {
             weightMap = new HashMap<>();
         }
 
+        if (weights == null) {
+        	// in SECRET mode no weights are stored in Flight and the
+        	// weight map cannot be computed
+        	return;
+        }
+        
         // sort the slots by their time
         List<Slot> slotList = Arrays.stream(slots).sorted().toList();
 
