@@ -97,15 +97,29 @@ public class OptaplannerOptimization extends Optimization {
             }
 
             // Todo: Check why i had to add these lines so that asynchronous optimization works
+
+            //Get potentially existing results
             var existingResults = this.getResults();
             var resultList = new ArrayList<Map<Flight, Slot>>();
+
+            // Add results to new list
             if(existingResults != null){
                 resultList.addAll(Arrays.asList(existingResults));
             }
-            resultList.add(resultMap);
-            this.setResults(resultList);
+            // Get score of current result
             var score = solvedFlightPrioritization.getScore().getSoftScore();
-            this.setMaximumFitness(score > this.getMaximumFitness() ? score : this.getMaximumFitness());
+
+            // Update maximum fitness of this and add prepend result if score > this.maximumFitness
+            if(score > this.getMaximumFitness()){
+                resultList.add(0, resultMap);
+                this.setMaximumFitness(score);
+            }else{
+                resultList.add(resultMap);
+            }
+            // Set updated list of results
+            this.setResults(resultList);
+
+            // Update result fitness of statistics
             this.getStatistics().setResultFitness(this.getMaximumFitness());
 
             // End of changes
