@@ -11,6 +11,7 @@ import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.solver.SolverConfig;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -91,9 +92,24 @@ public class OptaplannerOptimization extends Optimization {
             resultMap = solvedFlightPrioritization.getResultMap();
 
             logger.info("Setting statistics for this optimization.");
-            this.statistics = new OptaplannerOptimizationStatistics();
+            if(this.statistics != null){
+                this.statistics = new OptaplannerOptimizationStatistics();
+            }
 
-            this.getStatistics().setResultFitness(solvedFlightPrioritization.getScore().getSoftScore());
+            // Todo: Check why i had to add these lines so that asynchronous optimization works
+            var existingResults = this.getResults();
+            var resultList = new ArrayList<Map<Flight, Slot>>();
+            if(existingResults != null){
+                resultList.addAll(Arrays.asList(existingResults));
+            }
+            resultList.add(resultMap);
+            this.setResults(resultList);
+            var score = solvedFlightPrioritization.getScore().getSoftScore();
+            this.setMaximumFitness(score > this.getMaximumFitness() ? score : this.getMaximumFitness());
+            this.getStatistics().setResultFitness(this.getMaximumFitness());
+
+            // End of changes
+
             this.getStatistics().setFitnessFunctionInvocations(solvedFlightPrioritization.getFitnessFunctionInvocations());
 
             logger.info("Number of fitness function invocations: " + this.getStatistics().getFitnessFunctionInvocations());

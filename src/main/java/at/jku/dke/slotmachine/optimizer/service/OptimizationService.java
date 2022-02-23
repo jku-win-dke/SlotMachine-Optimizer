@@ -409,6 +409,9 @@ public class OptimizationService {
 			logger.info("Starting optimization " + optId + " and running optimization algorithm.");
 			resultMap = optimization.run();
 
+
+
+
 			logger.info("Optimization " + optId + " has finished.");
 			if(optimization.getStatus() != OptimizationStatus.CANCELLED) {
 				optimization.setStatus(OptimizationStatus.DONE);
