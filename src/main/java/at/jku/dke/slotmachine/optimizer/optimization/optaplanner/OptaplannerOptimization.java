@@ -4,6 +4,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
+import at.jku.dke.slotmachine.optimizer.optimization.OptimizationStatistics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.optaplanner.core.api.solver.Solver;
@@ -22,6 +23,8 @@ public class OptaplannerOptimization extends Optimization {
 
     public OptaplannerOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
+
+        this.statistics = new OptaplannerOptimizationStatistics();
     }
 
     @Override

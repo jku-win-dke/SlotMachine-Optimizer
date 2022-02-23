@@ -1,0 +1,91 @@
+17:37:48.517 [main] INFO  at.jku.dke.slotmachine.optimizer.OptimizerApplication - Starting OptimizerApplication using Java 17 on DESKTOP-AQQHG1H with PID 19696 (C:\Users\pc\Documents\GitHub\SlotMachine-Optimizer\target\classes started by pc in C:\Users\pc\Documents\GitHub\SlotMachine-Optimizer)
+17:37:48.535 [main] INFO  at.jku.dke.slotmachine.optimizer.OptimizerApplication - No active profile set, falling back to default profiles: default
+17:37:51.441 [main] INFO  org.springframework.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+17:37:51.466 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+17:37:51.467 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+17:37:51.468 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.43]
+17:37:51.618 [main] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+17:37:51.618 [main] INFO  org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2932 ms
+17:37:52.369 [main] INFO  org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor - Initializing ExecutorService
+17:37:52.372 [main] INFO  org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor - Initializing ExecutorService 'threadPoolTaskExecutor'
+17:37:52.628 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+17:37:52.696 [main] INFO  org.springframework.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+17:37:52.697 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+17:37:52.717 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+17:37:52.735 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+17:37:53.165 [main] INFO  at.jku.dke.slotmachine.optimizer.OptimizerApplication - Started OptimizerApplication in 5.33 seconds (JVM running for 8.211)
+17:40:27.932 [http-nio-8080-exec-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+17:40:27.932 [http-nio-8080-exec-1] INFO  org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+17:40:27.934 [http-nio-8080-exec-1] INFO  org.springframework.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+17:42:23.740 [http-nio-8080-exec-7] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+17:42:32.249 [http-nio-8080-exec-7] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+17:42:58.653 [http-nio-8080-exec-7] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+17:43:05.653 [http-nio-8080-exec-7] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+17:43:29.758 [http-nio-8080-exec-7] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+17:43:29.758 [http-nio-8080-exec-7] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+17:43:29.758 [http-nio-8080-exec-7] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+17:43:29.758 [http-nio-8080-exec-7] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
+17:44:51.809 [http-nio-8080-exec-8] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+17:44:51.810 [http-nio-8080-exec-8] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+17:44:51.811 [http-nio-8080-exec-8] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+17:44:55.218 [http-nio-8080-exec-8] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+17:45:52.320 [http-nio-8080-exec-8] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+17:45:52.320 [http-nio-8080-exec-8] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+17:45:52.320 [http-nio-8080-exec-8] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+17:45:52.320 [http-nio-8080-exec-8] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
+17:46:00.659 [http-nio-8080-exec-9] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+17:46:00.659 [http-nio-8080-exec-9] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+17:46:00.659 [http-nio-8080-exec-9] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+17:46:02.048 [http-nio-8080-exec-9] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+17:47:51.148 [http-nio-8080-exec-9] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+17:48:39.064 [http-nio-8080-exec-9] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+17:49:12.956 [http-nio-8080-exec-9] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+17:50:23.860 [http-nio-8080-exec-9] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
+17:52:30.335 [http-nio-8080-exec-10] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+17:52:30.335 [http-nio-8080-exec-10] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+17:52:30.335 [http-nio-8080-exec-10] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+17:52:34.563 [http-nio-8080-exec-10] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+17:52:35.943 [http-nio-8080-exec-10] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+17:52:39.939 [http-nio-8080-exec-10] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+17:52:39.939 [http-nio-8080-exec-10] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+17:52:39.939 [http-nio-8080-exec-10] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
+17:55:30.948 [http-nio-8080-exec-1] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+17:55:30.948 [http-nio-8080-exec-1] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+17:55:30.979 [http-nio-8080-exec-1] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+17:55:30.979 [http-nio-8080-exec-1] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+17:55:30.979 [http-nio-8080-exec-1] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+17:55:30.979 [http-nio-8080-exec-1] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+17:55:30.979 [http-nio-8080-exec-1] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+17:55:30.979 [http-nio-8080-exec-1] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
+18:00:19.565 [http-nio-8080-exec-3] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+18:00:19.565 [http-nio-8080-exec-3] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+18:00:19.565 [http-nio-8080-exec-3] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+18:00:19.565 [http-nio-8080-exec-3] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+18:00:19.565 [http-nio-8080-exec-3] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+18:00:19.565 [http-nio-8080-exec-3] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+18:00:19.565 [http-nio-8080-exec-3] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+18:00:19.565 [http-nio-8080-exec-3] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
+18:00:43.804 [http-nio-8080-exec-6] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+18:00:43.804 [http-nio-8080-exec-6] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+18:00:43.836 [http-nio-8080-exec-6] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+18:00:43.851 [http-nio-8080-exec-6] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+18:00:43.851 [http-nio-8080-exec-6] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+18:00:43.851 [http-nio-8080-exec-6] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+18:00:43.851 [http-nio-8080-exec-6] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+18:00:43.851 [http-nio-8080-exec-6] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
+18:01:44.349 [http-nio-8080-exec-2] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+18:01:44.349 [http-nio-8080-exec-2] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+18:01:44.349 [http-nio-8080-exec-2] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+18:01:44.349 [http-nio-8080-exec-2] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+18:01:44.349 [http-nio-8080-exec-2] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+18:01:44.349 [http-nio-8080-exec-2] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+18:01:44.349 [http-nio-8080-exec-2] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+18:01:44.349 [http-nio-8080-exec-2] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
+18:04:04.978 [http-nio-8080-exec-4] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Converting base data ...
+18:04:04.978 [http-nio-8080-exec-4] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting flights ...
+18:04:04.978 [http-nio-8080-exec-4] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done. Converting slots ...
+18:04:04.978 [http-nio-8080-exec-4] INFO  at.jku.dke.slotmachine.optimizer.rest.legacy.LegacyEndpoint - Done.
+18:04:04.978 [http-nio-8080-exec-4] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Starting process to initialize optimization session.
+18:04:04.978 [http-nio-8080-exec-4] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Read the factory class from the JSON properties file.
+18:04:04.978 [http-nio-8080-exec-4] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Instantiate at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationFactory for optimization framework OPTAPLANNER
+18:04:04.978 [http-nio-8080-exec-4] INFO  at.jku.dke.slotmachine.optimizer.service.OptimizationService - Create a new optimization with the specified characteristics
