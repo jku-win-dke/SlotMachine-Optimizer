@@ -2,7 +2,7 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner;
 
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
-
+// TODO: Implement and use different calculator for privacy-preserving mode
 public class FlightPrioritizationEasyScoreCalculator implements EasyScoreCalculator<FlightPrioritization, HardSoftScore> {
     @Override
     public HardSoftScore calculateScore(FlightPrioritization flightPrioritization) {

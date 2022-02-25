@@ -13,7 +13,8 @@ import org.optaplanner.core.impl.solver.scope.SolverScope;
 import java.util.List;
 
 /**
- * A privacy preserving forager that uses the privacy-engine to evaluate the candidates of the search steps
+ * A privacy preserving forager that uses the privacy-engine to evaluate the candidates of the search steps.
+ * This will probably be the class that implements search algorithms
  * @param <Solution_>
  */
 public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchForager<Solution_> implements LocalSearchForager<Solution_> {
@@ -34,7 +35,10 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
     protected long selectedMoveCount;
     protected long acceptedMoveCount;
 
-    protected LocalSearchMoveScope<Solution_> earlyPickedMoveScope;
+    // TODO: maybe also safe other good solutions
+    /**
+     * Holds the currently winning solution of the search phase for comparison with new candidates
+     */
     protected LocalSearchMoveScope<Solution_> currentlyWinningMoveScope;
 
     public PrivacyPreservingForager(FinalistPodium<Solution_> finalistPodium,
@@ -71,15 +75,22 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
         finalistPodium.phaseStarted(phaseScope);
     }
 
+    /**
+     * Resets the move counts and notifies the finalistPodium
+     * @param stepScope the step scope
+     */
     @Override
     public void stepStarted(LocalSearchStepScope<Solution_> stepScope) {
         super.stepStarted(stepScope);
         finalistPodium.stepStarted(stepScope);
         selectedMoveCount = 0L;
         acceptedMoveCount = 0L;
-        earlyPickedMoveScope = null;
     }
 
+    /**
+     * Required to check compliance with a never ending move selector, otherwise steps would never end
+     * @return boolean indicating if acceptedCountLimit has been set
+     */
     @Override
     public boolean supportsNeverEndingMoveSelector() {
         // TODO FIXME magical value Integer.MAX_VALUE coming from ForagerConfig
@@ -115,9 +126,7 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
         pickedMoves++;
         stepScope.setSelectedMoveCount(selectedMoveCount);
         stepScope.setAcceptedMoveCount(acceptedMoveCount);
-        if (earlyPickedMoveScope != null) {
-            return earlyPickedMoveScope;
-        }
+
         List<LocalSearchMoveScope<Solution_>> finalistList = finalistPodium.getFinalistList();
         if (finalistList.isEmpty()) {
             return null;
@@ -150,7 +159,6 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
         finalistPodium.phaseEnded(phaseScope);
         selectedMoveCount = 0L;
         acceptedMoveCount = 0L;
-        earlyPickedMoveScope = null;
     }
 
     @Override
