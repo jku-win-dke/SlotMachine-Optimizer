@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <solver>
-	<moveThreadCount>NONE</moveThreadCount> <!-- how many threads act parallel  -->
-	<environmentMode>REPRODUCIBLE</environmentMode>
+    <environmentMode>REPRODUCIBLE</environmentMode>
     <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization</solutionClass>
     <entityClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPlanningEntity</entityClass>
     <scoreDirectorFactory>
@@ -10,20 +9,16 @@
 
     <!-- Termination -->
     <termination>
-        <secondsSpentLimit>10000</secondsSpentLimit>
+        <secondsSpentLimit>60</secondsSpentLimit>
     </termination>
 
     <!-- Construction Heuristic Phase -->
     <constructionHeuristic>
-    	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+        <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
     </constructionHeuristic>
+
     <!-- Local Search Phase -->
     <localSearch>
-    	<acceptor>
-    		<lateAcceptanceSize>50</lateAcceptanceSize>
-    	</acceptor>
-    	<forager class="at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingForager">
-    		<acceptedCountLimit>100</acceptedCountLimit>
-    	</forager>
+        <localSearchType>HILL_CLIMBING</localSearchType>
     </localSearch>
 </solver>

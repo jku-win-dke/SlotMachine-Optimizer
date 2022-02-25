@@ -4,7 +4,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
-import at.jku.dke.slotmachine.optimizer.optimization.OptimizationStatistics;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingSolverFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.optaplanner.core.api.solver.Solver;
@@ -46,8 +46,14 @@ public class OptaplannerOptimization extends Optimization {
         }
 
         logger.info("Create the solver factory.");
-        SolverFactory<FlightPrioritization> solverFactory = SolverFactory.create(solverConfig);
 
+        // TODO: only use PrivacyPreservingFactory in Privacy_Preserving_Mode
+        SolverFactory<FlightPrioritization> solverFactory = null;
+        if(this.getConfiguration().getConfigurationName().contains("CUSTOM")){
+            solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig);
+        }else{
+           SolverFactory.create(solverConfig);
+        }
 
         logger.info("Build the solver.");
         Solver<FlightPrioritization> solver = solverFactory.buildSolver();
