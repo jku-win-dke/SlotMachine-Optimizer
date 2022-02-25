@@ -47,11 +47,11 @@ public class OptaplannerOptimization extends Optimization {
 
         logger.info("Create the solver factory.");
 
-        // TODO: only use PrivacyPreservingFactory in Privacy_Preserving_Mode
+        // Use custom solver factory if configuration-name indicates it
         SolverFactory<FlightPrioritization> solverFactory = null;
         if(this.getConfiguration().getConfigurationName().contains("CUSTOM")){
             solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig);
-        }else{
+        }else{ // Otherwise use default factory
            SolverFactory.create(solverConfig);
         }
 

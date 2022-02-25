@@ -12,28 +12,36 @@ import org.optaplanner.core.impl.solver.scope.SolverScope;
 
 import java.util.List;
 
+/**
+ * A privacy preserving forager that uses the privacy-engine to evaluate the candidates of the search steps
+ * @param <Solution_>
+ */
 public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchForager<Solution_> implements LocalSearchForager<Solution_> {
     protected final FinalistPodium<Solution_> finalistPodium;
-    protected final LocalSearchPickEarlyType pickEarlyType;
     protected final boolean breakTieRandomly;
 
+    /**
+     * Specifies how many moves are gathered before a winner is picked
+     */
     protected int acceptedCountLimit;
 
+    // Helper fields for debugging
     protected int increasedCountLimit;
     protected int addedMoves;
     protected int pickedMoves;
 
+
     protected long selectedMoveCount;
     protected long acceptedMoveCount;
+
     protected LocalSearchMoveScope<Solution_> earlyPickedMoveScope;
     protected LocalSearchMoveScope<Solution_> currentlyWinningMoveScope;
 
     public PrivacyPreservingForager(FinalistPodium<Solution_> finalistPodium,
-                                    LocalSearchPickEarlyType pickEarlyType, int acceptedCountLimit, boolean breakTieRandomly){
+                                    int acceptedCountLimit, boolean breakTieRandomly){
         logger.info("Initialized " + this.getClass());
         this.finalistPodium = finalistPodium;
-        this.pickEarlyType = LocalSearchPickEarlyType.NEVER;
-        this.acceptedCountLimit = 50;
+        this.acceptedCountLimit = acceptedCountLimit;
 
         this.increasedCountLimit = 0;
         this.addedMoves = 0;
@@ -84,38 +92,24 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
         addedMoves++;
         if (moveScope.getAccepted()) {
             acceptedMoveCount++;
-            checkPickEarly(moveScope);
         }
         finalistPodium.addMove(moveScope);
     }
 
-    protected void checkPickEarly(LocalSearchMoveScope<Solution_> moveScope) {
-        switch (pickEarlyType) {
-            case NEVER:
-                break;
-            case FIRST_BEST_SCORE_IMPROVING:
-                Score bestScore = moveScope.getStepScope().getPhaseScope().getBestScore();
-                if (((Score) moveScope.getScore()).compareTo(bestScore) > 0) {
-                    earlyPickedMoveScope = moveScope;
-                }
-                break;
-            case FIRST_LAST_STEP_SCORE_IMPROVING:
-                Score lastStepScore = moveScope.getStepScope().getPhaseScope()
-                        .getLastCompletedStepScope().getScore();
-                if (((Score) moveScope.getScore()).compareTo(lastStepScore) > 0) {
-                    earlyPickedMoveScope = moveScope;
-                }
-                break;
-            default:
-                throw new IllegalStateException("The pickEarlyType (" + pickEarlyType + ") is not implemented.");
-        }
-    }
-
+    /**
+     * Checks if enough moves have been gathered according to the limit of accepted moves
+     * @return boolean indicating if limit has been reached
+     */
     @Override
     public boolean isQuitEarly() {
-        return earlyPickedMoveScope != null || acceptedMoveCount >= acceptedCountLimit;
+        return acceptedMoveCount >= acceptedCountLimit;
     }
 
+    /**
+     * Picks a move from all the candidates for the next step
+     * @param stepScope the scope of the step
+     * @return the winning move
+     */
     @Override
     public LocalSearchMoveScope<Solution_> pickMove(LocalSearchStepScope<Solution_> stepScope) {
         pickedMoves++;
@@ -170,7 +164,7 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + pickEarlyType + ", " + acceptedCountLimit + ")";
+        return getClass().getSimpleName() + "(" + acceptedCountLimit + ")";
     }
 
 }

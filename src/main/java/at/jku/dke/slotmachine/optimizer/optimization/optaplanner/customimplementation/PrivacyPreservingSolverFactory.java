@@ -36,6 +36,12 @@ import java.util.*;
 
 // Cannot inherit form final default implementation
 
+/**
+ * Implementation of the SolverFactory facilitating privacy-preserving optimization
+ * by setting the implementation of the {@link org.optaplanner.core.impl.phase.AbstractPhaseFactory}
+ * for the local search phase to the custom {@link PrivacyPreservingLocalSearchPhaseFactory}
+ * @param <Solution_>
+ */
 public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<Solution_> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PrivacyPreservingSolverFactory.class);
     private static final long DEFAULT_RANDOM_SEED = 0L;
@@ -43,9 +49,12 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
     private final SolverConfig solverConfig;
 
     // TODO: Check if this is really a good idea
+
+    /**
+     * The default solver factory to use implemented methods that do not require changes for privacy-preserving optimization
+     */
     private final DefaultSolverFactory<Solution_> defaultSolverFactory;
 
-    // TODO: maybe add DefaultSolverFactory as instance-variable to relay unchanged methods
     public PrivacyPreservingSolverFactory(SolverConfig solverConfig) {
         if (solverConfig == null) {
             throw new IllegalStateException("The solverConfig (" + solverConfig + ") cannot be null.");
@@ -58,6 +67,11 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
         return buildScoreDirectorFactory(solverConfig.determineEnvironmentMode());
     }
 
+    /**
+     * Builds a {@link DefaultSolver} with the custom {@link PrivacyPreservingLocalSearchPhaseFactory}
+     * that facilitates the privacy-preserving optimization regarding the local-search step
+     * @return the solver
+     */
     @Override
     public Solver<Solution_> buildSolver() {
         EnvironmentMode environmentMode_ = solverConfig.determineEnvironmentMode();
@@ -101,11 +115,10 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
         Termination<Solution_> termination = TerminationFactory.<Solution_> create(terminationConfig_)
                 .buildTermination(configPolicy, basicPlumbingTermination);
         List<Phase<Solution_>> phaseList = buildPhaseList(configPolicy, bestSolutionRecaller, termination);
-        Solver<Solution_> out =
-                new DefaultSolver<>(environmentMode_, randomFactory, bestSolutionRecaller, basicPlumbingTermination,
+
+        return new DefaultSolver<>(environmentMode_, randomFactory, bestSolutionRecaller, basicPlumbingTermination,
                         termination, phaseList, solverScope,
                         moveThreadCount_ == null ? SolverConfig.MOVE_THREAD_COUNT_NONE : Integer.toString(moveThreadCount_));
-        return out;
     }
 
     /**
@@ -145,7 +158,13 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
         return randomFactory;
     }
 
-    // Altered Method to return custom phase factory
+    /**
+     * Builds the custom phase list with the {@link PrivacyPreservingLocalSearchPhaseFactory} for the local-search-phase
+     * @param configPolicy the config policy
+     * @param bestSolutionRecaller the recaller of the best solution
+     * @param termination the terminator
+     * @return the phase list
+     */
     protected List<Phase<Solution_>> buildPhaseList(HeuristicConfigPolicy<Solution_> configPolicy,
                                                     BestSolutionRecaller<Solution_> bestSolutionRecaller, Termination<Solution_> termination) {
         List<PhaseConfig> phaseConfigList_ = solverConfig.getPhaseConfigList();
@@ -156,7 +175,7 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
         int phaseIndex = 0;
         for (PhaseConfig phaseConfig : phaseConfigList_) {
             PhaseFactory<Solution_> phaseFactory = null;
-            // Setting Custom LocalSearchPhaseFactory
+            // Setting Custom LocalSearchPhaseFactory for local search phase
             if (LocalSearchPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
                 phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig);
             }else if (ConstructionHeuristicPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {

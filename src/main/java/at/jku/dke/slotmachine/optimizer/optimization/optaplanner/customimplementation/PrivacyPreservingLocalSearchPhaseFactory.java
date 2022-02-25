@@ -32,6 +32,11 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 
+/**
+ * Custom implementation of the {@link AbstractPhaseFactory} that builds the local search phase
+ * for the privacy-preserving optimization.
+ * @param <Solution_> the Solution of the optimization
+ */
 public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFactory<Solution_, LocalSearchPhaseConfig> {
 
 
@@ -39,6 +44,14 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         super(phaseConfig);
     }
 
+    /**
+     * Entry point building the privacy-preserving local search pase
+     * @param phaseIndex the index of the search phase
+     * @param solverConfigPolicy the config policy of the solver
+     * @param bestSolutionRecaller the recaller of the best solution
+     * @param solverTermination the terminator
+     * @return the search phase
+     */
     @Override
     public LocalSearchPhase<Solution_> buildPhase(int phaseIndex, HeuristicConfigPolicy<Solution_> solverConfigPolicy,
                                                   BestSolutionRecaller<Solution_> bestSolutionRecaller, Termination<Solution_> solverTermination) {
@@ -59,7 +72,13 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         return phase;
     }
 
-
+    /**
+     * Builds the decider with the custom acceptor and forager.
+     * The method is identical to the implementation of the {@link org.optaplanner.core.impl.localsearch.DefaultLocalSearchPhaseFactory}
+     * @param configPolicy the config policy
+     * @param termination the terminator
+     * @return the decider that executes the optimization
+     */
     private LocalSearchDecider<Solution_> buildDecider(HeuristicConfigPolicy<Solution_> configPolicy,
                                                        Termination<Solution_> termination) {
         MoveSelector<Solution_> moveSelector = buildMoveSelector(configPolicy);
@@ -108,6 +127,11 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         return decider;
     }
 
+    /**
+     * Builds a custom acceptor for the privacy-preserving optimization
+     * @param configPolicy the configuration policy
+     * @return the acceptor
+     */
     protected Acceptor<Solution_> buildAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
         LocalSearchAcceptorConfig acceptorConfig_;
         if (phaseConfig.getAcceptorConfig() != null) {
@@ -120,7 +144,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         } else {
             LocalSearchType localSearchType_ =
                     Objects.requireNonNullElse(phaseConfig.getLocalSearchType(), LocalSearchType.LATE_ACCEPTANCE);
-            acceptorConfig_ = new LocalSearchAcceptorConfig();
+            acceptorConfig_ = new PrivacyPreservingLocalSearchAcceptorConfig();
             switch (localSearchType_) {
                 case HILL_CLIMBING:
                 case VARIABLE_NEIGHBORHOOD_DESCENT:
@@ -146,32 +170,28 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         return PrivacyPreservingAcceptorFactory.<Solution_> create(acceptorConfig_).buildAcceptor(configPolicy);
     }
 
+    /**
+     * Builds a custom forager for privacy-preserving optimization
+     * @param configPolicy the config policy
+     * @return the forager
+     */
     protected LocalSearchForager<Solution_> buildForager(HeuristicConfigPolicy<Solution_> configPolicy) {
         LocalSearchForagerConfig foragerConfig_;
-        if (phaseConfig.getForagerConfig() != null) {
-            if (phaseConfig.getLocalSearchType() != null) {
-                throw new IllegalArgumentException("The localSearchType (" + phaseConfig.getLocalSearchType()
-                        + ") must not be configured if the foragerConfig (" + phaseConfig.getForagerConfig()
-                        + ") is explicitly configured.");
-            }
+        if (phaseConfig.getForagerConfig() != null) { // Use config specified in xml
             foragerConfig_ = phaseConfig.getForagerConfig();
-        } else {
+        } else { // use custom values
             LocalSearchType localSearchType_ =
                     Objects.requireNonNullElse(phaseConfig.getLocalSearchType(), LocalSearchType.LATE_ACCEPTANCE);
-            foragerConfig_ = new LocalSearchForagerConfig();
+            foragerConfig_ = new PrivacyPreservingLocalSearchForagerConfig();
+
             switch (localSearchType_) {
-                case HILL_CLIMBING:
-                    foragerConfig_.setAcceptedCountLimit(1);
+                case HILL_CLIMBING, SIMULATED_ANNEALING, LATE_ACCEPTANCE, GREAT_DELUGE:
+                    // Setting accepted count limit to 50 because privacy engine requires more solutions for evaluation
+                    foragerConfig_.setAcceptedCountLimit(50);
                     break;
                 case TABU_SEARCH:
                     // Slow stepping algorithm
                     foragerConfig_.setAcceptedCountLimit(1000);
-                    break;
-                case SIMULATED_ANNEALING:
-                case LATE_ACCEPTANCE:
-                case GREAT_DELUGE:
-                    // Fast stepping algorithm
-                    foragerConfig_.setAcceptedCountLimit(1);
                     break;
                 case VARIABLE_NEIGHBORHOOD_DESCENT:
                     foragerConfig_.setPickEarlyType(LocalSearchPickEarlyType.FIRST_LAST_STEP_SCORE_IMPROVING);
@@ -186,6 +206,12 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
 
     }
 
+    /**
+     * Builds the move selector. Implementation identical
+     * to implementation of the {@link org.optaplanner.core.impl.localsearch.DefaultLocalSearchPhaseFactory}
+     * @param configPolicy the config policy
+     * @return the move selector
+     */
     protected MoveSelector<Solution_> buildMoveSelector(HeuristicConfigPolicy<Solution_> configPolicy) {
         MoveSelector<Solution_> moveSelector;
         SelectionCacheType defaultCacheType = SelectionCacheType.JUST_IN_TIME;

@@ -20,5 +20,8 @@
     <!-- Local Search Phase -->
     <localSearch>
         <localSearchType>HILL_CLIMBING</localSearchType>
+        <forager>
+            <acceptedCountLimit>50</acceptedCountLimit>
+        </forager>
     </localSearch>
 </solver>
