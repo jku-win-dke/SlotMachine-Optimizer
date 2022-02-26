@@ -76,8 +76,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
     }
 
     /**
-     * Builds the decider with the custom acceptor and forager.
-     * The method is identical to the implementation of the {@link org.optaplanner.core.impl.localsearch.DefaultLocalSearchPhaseFactory}
+     * Builds the cusotm decider with the custom acceptor and forager, and default move selector.
      * @param configPolicy the config policy
      * @param termination the terminator
      * @return the decider that executes the optimization
@@ -97,7 +96,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         Integer moveThreadCount = configPolicy.getMoveThreadCount();
         EnvironmentMode environmentMode = configPolicy.getEnvironmentMode();
         LocalSearchDecider<Solution_> decider;
-        if (moveThreadCount == null) {
+        if (moveThreadCount == null) { // custom decider
             decider = new PrivacyPreservingLocalSearchDecider<>(configPolicy.getLogIndentation(), termination, moveSelector, acceptor, forager);
         } else {
             Integer moveThreadBufferSize = configPolicy.getMoveThreadBufferSize();
@@ -170,6 +169,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
                             + ") is not implemented.");
             }
         }
+        // custom acceptor
         return PrivacyPreservingAcceptorFactory.<Solution_> create(acceptorConfig_).buildAcceptor(configPolicy);
     }
 
@@ -204,6 +204,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
                             + ") is not implemented.");
             }
         }
+        // custom forager
         var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, solverScope);
         return factory.buildForager();
 
@@ -226,6 +227,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         }
         if (phaseConfig.getMoveSelectorConfig() == null) {
             // Default to changeMoveSelector and swapMoveSelector
+            // TODO: only allow swap moves (strangely enough, this hinders performance although changemoves are not even considered)
             UnionMoveSelectorConfig unionMoveSelectorConfig = new UnionMoveSelectorConfig();
             unionMoveSelectorConfig.setMoveSelectorConfigList(Arrays.asList(new ChangeMoveSelectorConfig(),
                     new SwapMoveSelectorConfig()));

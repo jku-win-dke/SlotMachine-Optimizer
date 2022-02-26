@@ -16,6 +16,7 @@ import org.optaplanner.core.impl.localsearch.decider.forager.finalist.FinalistPo
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
+import org.optaplanner.core.impl.score.director.InnerScoreDirector;
 import org.optaplanner.core.impl.solver.scope.SolverScope;
 
 import java.io.ByteArrayOutputStream;
@@ -29,7 +30,6 @@ import java.util.*;
  * @param <Solution_>
  */
 public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchForager<Solution_> implements LocalSearchForager<Solution_> {
-    protected final FinalistPodium<Solution_> finalistPodium;
     protected final boolean breakTieRandomly;
 
     /**
@@ -37,19 +37,23 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
      */
     protected int acceptedCountLimit;
 
-    // Helper fields for debugging
-    protected int increasedCountLimit;
-    protected int addedMoves;
-    protected int pickedMoves;
 
 
     protected long selectedMoveCount;
     protected long acceptedMoveCount;
 
+    // Helper fields for debugging
+    protected int increasedCountLimit;
+
+    // Privacy Engine
     private final PrivacyEngine privacyEngine;
-    private LocalSearchPhaseScope<Solution_> phaseScope;
-    private LocalSearchStepScope<Solution_> stepScope;
+
+    // Score director to execute moves
+    private InnerScoreDirector director;
+
+    // Highest score encountered
     HardSoftScore currentlyHighestScore;
+
     // Collections storing candidates
     List<LocalSearchMoveScope<Solution_>> candidateList;
     Map<FlightPrioritization, Integer > flightPrioritizationToMoveIndexMap;
@@ -63,12 +67,7 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
     public PrivacyPreservingForager(FinalistPodium<Solution_> finalistPodium,
                                     int acceptedCountLimit, boolean breakTieRandomly, SolverScope<Solution_> solverScope) {
         logger.info("Initialized " + this.getClass());
-        this.finalistPodium = finalistPodium;
         this.acceptedCountLimit = acceptedCountLimit;
-
-        this.increasedCountLimit = 0;
-        this.addedMoves = 0;
-        this.pickedMoves = 0;
 
         if (acceptedCountLimit < 1) {
             throw new IllegalArgumentException("The acceptedCountLimit (" + acceptedCountLimit
@@ -78,8 +77,9 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
         currentlyWinningMoveScope = null;
 
 
-
         privacyEngine = new PrivacyEngine();
+
+        this.increasedCountLimit = 0;
         this.candidateList = new ArrayList<>();
         this.flightPrioritizationToMoveIndexMap = new HashMap<>();
     }
@@ -88,16 +88,10 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
     // ************************************************************************
     // Worker methods
     // ************************************************************************
-
-    @Override
-    public void solvingStarted(SolverScope<Solution_> solverScope) {
-        super.solvingStarted(solverScope);
-    }
-
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
-        this.phaseScope = phaseScope;
+        this.director = phaseScope.getScoreDirector();
     }
 
     /**
@@ -110,9 +104,8 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
         selectedMoveCount = 0L;
         acceptedMoveCount = 0L;
 
-        this.candidateList = new ArrayList<>();
-        this.flightPrioritizationToMoveIndexMap = new HashMap<>();
-        this.stepScope = new LocalSearchStepScope<>(this.phaseScope);
+        candidateList.clear();
+        flightPrioritizationToMoveIndexMap.clear();
     }
 
     /**
@@ -128,7 +121,6 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
     @Override
     public void addMove(LocalSearchMoveScope<Solution_> moveScope) {
         selectedMoveCount++;
-        addedMoves++;
         if (moveScope.getAccepted()) {
             acceptedMoveCount++;
             candidateList.add(moveScope);
@@ -151,7 +143,6 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
      */
     @Override
     public LocalSearchMoveScope<Solution_> pickMove(LocalSearchStepScope<Solution_> stepScope) {
-        pickedMoves++;
         stepScope.setSelectedMoveCount(selectedMoveCount);
         stepScope.setAcceptedMoveCount(acceptedMoveCount);
 
@@ -185,8 +176,8 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
     // TODO: make method more efficient, maybe use the doMove method i found somewhere
     private Map<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> getSortedListFromPrivacyEngine() {
         // Map FlightPriorizations to LocalSearchMoveScope for conversion with privacy engine
-        var workingSolution = (FlightPrioritization) this.stepScope.getWorkingSolution();
         for(var candidate : candidateList){
+            /*
             Move<Solution_> move = candidate.getMove();
             if(move.getPlanningEntities().size() < 2) continue;
             // TODO: account for changemoves with size = 1
@@ -228,10 +219,13 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
 
                 newFlightPrioritization.getFlights().add(firstNewFlightPlanningEntity);
                 newFlightPrioritization.getFlights().add(secondNewEntity);
-
-                flightPrioritizationToMoveIndexMap.put(newFlightPrioritization, candidate.getMoveIndex());
             }
+             */
+                var newFlightPrioritization = getFlightPrioritizationFromMoveScope(candidate);
+                flightPrioritizationToMoveIndexMap.put(newFlightPrioritization, candidate.getMoveIndex());
         }
+
+
 
         // Initialize Result
         HashMap<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> result = new HashMap<>();
@@ -265,27 +259,22 @@ public class PrivacyPreservingForager<Solution_> extends AbstractLocalSearchFora
         return null;
     }
 
-    @Override
-    public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {
-        super.stepEnded(stepScope);
+    public FlightPrioritization getFlightPrioritizationFromMoveScope(LocalSearchMoveScope<Solution_> moveScope) {
+        var undoMove = moveScope.getMove().doMove(director);
+        FlightPrioritization result = null;
+        if(director.cloneWorkingSolution() instanceof FlightPrioritization changedFlightPrio){
+            result = new FlightPrioritization(new ArrayList<>(changedFlightPrio.getSlots()), new ArrayList<>(changedFlightPrio.getFlights()));
+        }
+        undoMove.doMove(director);
+        return result;
     }
+
 
     @Override
     public void phaseEnded(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseEnded(phaseScope);
         selectedMoveCount = 0L;
         acceptedMoveCount = 0L;
-
-        this.candidateList = new ArrayList<>();
-        this.flightPrioritizationToMoveIndexMap = new HashMap<>();
-    }
-
-    @Override
-    public void solvingEnded(SolverScope<Solution_> solverScope) {
-        logger.info("Increased count limit " + increasedCountLimit + " times.");
-        logger.info("Considered " + addedMoves + " moves.");
-        logger.info("Picked " + pickedMoves + " moves.");
-        super.solvingEnded(solverScope);
     }
 
     @Override
