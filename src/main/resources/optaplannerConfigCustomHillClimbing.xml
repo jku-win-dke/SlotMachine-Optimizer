@@ -4,7 +4,7 @@
     <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization</solutionClass>
     <entityClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPlanningEntity</entityClass>
     <scoreDirectorFactory>
-        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritizationEasyScoreCalculator</easyScoreCalculatorClass>
+        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingFlightPrioritizationScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
 
     <!-- Termination -->

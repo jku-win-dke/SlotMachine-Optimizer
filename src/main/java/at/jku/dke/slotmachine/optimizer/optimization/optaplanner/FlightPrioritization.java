@@ -3,6 +3,7 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
@@ -30,7 +31,7 @@ public class FlightPrioritization {
     @PlanningScore
     private HardSoftScore score;
 
-    private FlightPrioritization() {
+    public FlightPrioritization() {
 
     }
 	
@@ -67,5 +68,18 @@ public class FlightPrioritization {
 
     public void incrementFitnessFunctionApplications() {
         this.fitnessFunctionInvocations++;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FlightPrioritization that = (FlightPrioritization) o;
+        return getSlots().equals(that.getSlots()) && getFlights().equals(that.getFlights());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getSlots(), getFlights());
     }
 }

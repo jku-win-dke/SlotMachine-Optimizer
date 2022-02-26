@@ -22,7 +22,7 @@ public class PrivacyPreservingHillClimbingAcceptor<Solution_> extends AbstractAc
      */
     @Override
     public boolean isAccepted(LocalSearchMoveScope<Solution_> moveScope) {
-        return true;
+        return moveScope.getMove().getPlanningEntities().size() == 2;
     }
 
 }

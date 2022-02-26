@@ -5,6 +5,7 @@ import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForage
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
 import org.optaplanner.core.impl.localsearch.decider.forager.LocalSearchForager;
 import org.optaplanner.core.impl.localsearch.decider.forager.LocalSearchForagerFactory;
+import org.optaplanner.core.impl.solver.scope.SolverScope;
 
 import java.util.Objects;
 
@@ -15,14 +16,16 @@ import java.util.Objects;
  */
 public class PrivacyPreservingForagerFactory<Solution_> extends LocalSearchForagerFactory<Solution_> {
     private final LocalSearchForagerConfig foragerConfig;
+    private SolverScope<Solution_> solverScope;
 
-    public PrivacyPreservingForagerFactory(LocalSearchForagerConfig foragerConfig) {
+    public PrivacyPreservingForagerFactory(LocalSearchForagerConfig foragerConfig, SolverScope<Solution_> solverScope) {
         super(foragerConfig);
         this.foragerConfig = foragerConfig;
+        this.solverScope = solverScope;
     }
 
-    public static <Solution_> LocalSearchForagerFactory<Solution_> create(LocalSearchForagerConfig foragerConfig) {
-        return new PrivacyPreservingForagerFactory<>(foragerConfig);
+    public static <Solution_> LocalSearchForagerFactory<Solution_> create(LocalSearchForagerConfig foragerConfig, SolverScope<Solution_> solverScope) {
+        return new PrivacyPreservingForagerFactory<>(foragerConfig, solverScope);
     }
 
     // TODO: Think about different foragers according to the search type
@@ -44,6 +47,6 @@ public class PrivacyPreservingForagerFactory<Solution_> extends LocalSearchForag
         boolean breakTieRandomly_ = Objects.requireNonNullElse(foragerConfig.getBreakTieRandomly(), true);
 
         return new PrivacyPreservingForager<>(finalistPodiumType_.buildFinalistPodium(),
-                acceptedCountLimit_, breakTieRandomly_);
+                acceptedCountLimit_, breakTieRandomly_, solverScope);
     }
 }

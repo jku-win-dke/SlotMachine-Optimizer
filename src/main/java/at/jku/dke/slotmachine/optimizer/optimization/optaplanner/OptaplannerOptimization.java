@@ -58,6 +58,7 @@ public class OptaplannerOptimization extends Optimization {
         logger.info("Build the solver.");
         Solver<FlightPrioritization> solver = solverFactory.buildSolver();
 
+
         logger.info("Compute weight map for flights.");
         for(int i = 0; i < this.getFlights().length; i++) {
             this.getFlights()[i].computeWeightMap(this.getSlots());
@@ -94,7 +95,7 @@ public class OptaplannerOptimization extends Optimization {
 
         if(solvedFlightPrioritization != null) {
             logger.info("Finished optimization with OptaPlanner. Score of solution is: " + solvedFlightPrioritization.getScore());
-
+            logger.info("VERIFY SCORE: " + new FlightPrioritizationEasyScoreCalculator().calculateScore(solvedFlightPrioritization));
             resultMap = solvedFlightPrioritization.getResultMap();
 
             logger.info("Setting statistics for this optimization.");

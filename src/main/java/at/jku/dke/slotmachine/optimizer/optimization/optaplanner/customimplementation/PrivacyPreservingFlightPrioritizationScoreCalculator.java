@@ -6,6 +6,7 @@ import org.optaplanner.core.api.score.calculator.EasyScoreCalculator;
 
 public class PrivacyPreservingFlightPrioritizationScoreCalculator implements EasyScoreCalculator<FlightPrioritization, HardSoftScore> {
 
+
     @Override
     public HardSoftScore calculateScore(FlightPrioritization flightPrioritization) {
         return HardSoftScore.of(0, 0);

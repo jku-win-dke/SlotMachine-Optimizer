@@ -1,5 +1,6 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation;
 
+import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.config.heuristic.selector.common.SelectionCacheType;
 import org.optaplanner.core.config.heuristic.selector.common.SelectionOrder;
 import org.optaplanner.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
@@ -24,6 +25,7 @@ import org.optaplanner.core.impl.localsearch.decider.acceptor.Acceptor;
 import org.optaplanner.core.impl.localsearch.decider.forager.LocalSearchForager;
 import org.optaplanner.core.impl.phase.AbstractPhaseFactory;
 import org.optaplanner.core.impl.solver.recaller.BestSolutionRecaller;
+import org.optaplanner.core.impl.solver.scope.SolverScope;
 import org.optaplanner.core.impl.solver.termination.Termination;
 import org.optaplanner.core.impl.solver.thread.ChildThreadType;
 
@@ -38,10 +40,11 @@ import java.util.concurrent.ThreadFactory;
  * @param <Solution_> the Solution of the optimization
  */
 public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFactory<Solution_, LocalSearchPhaseConfig> {
+    private SolverScope<Solution_> solverScope;
 
-
-    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig) {
+    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig, SolverScope<Solution_> solverScope) {
         super(phaseConfig);
+        this.solverScope = solverScope;
     }
 
     /**
@@ -95,7 +98,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         EnvironmentMode environmentMode = configPolicy.getEnvironmentMode();
         LocalSearchDecider<Solution_> decider;
         if (moveThreadCount == null) {
-            decider = new LocalSearchDecider<>(configPolicy.getLogIndentation(), termination, moveSelector, acceptor, forager);
+            decider = new PrivacyPreservingLocalSearchDecider<>(configPolicy.getLogIndentation(), termination, moveSelector, acceptor, forager);
         } else {
             Integer moveThreadBufferSize = configPolicy.getMoveThreadBufferSize();
             if (moveThreadBufferSize == null) {
@@ -201,7 +204,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
                             + ") is not implemented.");
             }
         }
-        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_);
+        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, solverScope);
         return factory.buildForager();
 
     }
