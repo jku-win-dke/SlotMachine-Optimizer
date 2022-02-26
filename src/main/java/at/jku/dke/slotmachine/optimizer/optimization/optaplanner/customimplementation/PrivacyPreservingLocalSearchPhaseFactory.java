@@ -40,11 +40,9 @@ import java.util.concurrent.ThreadFactory;
  * @param <Solution_> the Solution of the optimization
  */
 public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFactory<Solution_, LocalSearchPhaseConfig> {
-    private SolverScope<Solution_> solverScope;
 
-    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig, SolverScope<Solution_> solverScope) {
+    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig) {
         super(phaseConfig);
-        this.solverScope = solverScope;
     }
 
     /**
@@ -205,7 +203,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
             }
         }
         // custom forager
-        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, solverScope);
+        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_);
         return factory.buildForager();
 
     }

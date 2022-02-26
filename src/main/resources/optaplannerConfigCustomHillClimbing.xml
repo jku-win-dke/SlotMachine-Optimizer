@@ -20,8 +20,9 @@
     <!-- Local Search Phase -->
     <localSearch>
         <localSearchType>HILL_CLIMBING</localSearchType>
-        <forager>
+        <forager class="at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingLocalSearchForagerConfig">
             <acceptedCountLimit>50</acceptedCountLimit>
+            <myProp>HELLO WORLD</myProp>
         </forager>
     </localSearch>
 </solver>

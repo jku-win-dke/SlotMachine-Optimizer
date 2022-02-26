@@ -49,7 +49,6 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
     private static final long DEFAULT_RANDOM_SEED = 0L;
 
     private final SolverConfig solverConfig;
-    private SolverScope<Solution_> solverScope;
 
     // TODO: Check if this is really a good idea
 
@@ -118,7 +117,6 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
         Termination<Solution_> termination = TerminationFactory.<Solution_> create(terminationConfig_)
                 .buildTermination(configPolicy, basicPlumbingTermination);
 
-        this.solverScope = solverScope;
         List<Phase<Solution_>> phaseList = buildPhaseList(configPolicy, bestSolutionRecaller, termination);
 
         var out =  new DefaultSolver<>(environmentMode_, randomFactory, bestSolutionRecaller, basicPlumbingTermination,
@@ -183,7 +181,7 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
             PhaseFactory<Solution_> phaseFactory = null;
             // Setting Custom LocalSearchPhaseFactory for local search phase
             if (LocalSearchPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
-                phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig, solverScope);
+                phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig);
             }else if (ConstructionHeuristicPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
                 phaseFactory = new DefaultConstructionHeuristicPhaseFactory<>((ConstructionHeuristicPhaseConfig) phaseConfig);
             }

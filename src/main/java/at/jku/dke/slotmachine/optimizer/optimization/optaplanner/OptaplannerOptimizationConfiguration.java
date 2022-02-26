@@ -20,7 +20,6 @@ public class OptaplannerOptimizationConfiguration extends OptimizationConfigurat
             logger.info("Load the solver configuration from the XML resource for " + this.getConfigurationName());
             String solverConfigResource = Utils.getMapFromJson(optaplannerConfigurations).get(this.getConfigurationName());
 
-            // TODO: allow for custom configurations for custom algorithms
             logger.info("Read the solver configuration resource: " + solverConfigResource);
             solverConfig = SolverConfig.createFromXmlResource(solverConfigResource);
         }

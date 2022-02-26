@@ -29,7 +29,7 @@ public class PrivacyPreservingAcceptorFactory<Solution_> extends AcceptorFactory
      * Builds a privacy-preserving acceptor
      */
     public Acceptor<Solution_> buildAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
-        return new PrivacyPreservingHillClimbingAcceptor<>();
+        return new PrivacyPreservingSwapMoveAcceptor<>();
     }
 
 }

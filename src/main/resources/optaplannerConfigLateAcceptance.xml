@@ -22,7 +22,7 @@
     	<acceptor>
     		<lateAcceptanceSize>50</lateAcceptanceSize>
     	</acceptor>
-    	<forager class="at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingForager">
+    	<forager class="at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingDefaultForager">
     		<acceptedCountLimit>100</acceptedCountLimit>
     	</forager>
     </localSearch>

@@ -12,7 +12,7 @@ import java.util.function.Consumer;
         "pickEarlyType",
         "acceptedCountLimit",
         "finalistPodiumType",
-        "breakTieRandomly"
+        "breakTieRandomly",
 })
 public class PrivacyPreservingLocalSearchForagerConfig extends LocalSearchForagerConfig {
     protected LocalSearchPickEarlyType pickEarlyType = null;
