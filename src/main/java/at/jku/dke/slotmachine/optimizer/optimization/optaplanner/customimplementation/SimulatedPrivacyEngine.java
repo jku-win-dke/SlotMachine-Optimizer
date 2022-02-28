@@ -7,10 +7,10 @@ import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PrivacyEngine {
+public class SimulatedPrivacyEngine {
     private final FlightPrioritizationEasyScoreCalculator calculator;
 
-    public PrivacyEngine(){
+    public SimulatedPrivacyEngine(){
         this.calculator = new FlightPrioritizationEasyScoreCalculator();
     }
 

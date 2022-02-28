@@ -105,6 +105,7 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
                     SolverMetric.CONSTRAINT_MATCH_TOTAL_BEST_SCORE.getMeterId());
         }
 
+        // TODO: Implement custom best solution recaller that saves more good solutions and does not attempt to calculateScore
         BestSolutionRecaller<Solution_> bestSolutionRecaller =
                 BestSolutionRecallerFactory.create().buildBestSolutionRecaller(environmentMode_);
         HeuristicConfigPolicy<Solution_> configPolicy = new HeuristicConfigPolicy<>(environmentMode_,

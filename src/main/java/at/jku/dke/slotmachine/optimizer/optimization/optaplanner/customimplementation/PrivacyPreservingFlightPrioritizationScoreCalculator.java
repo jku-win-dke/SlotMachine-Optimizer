@@ -9,6 +9,7 @@ public class PrivacyPreservingFlightPrioritizationScoreCalculator implements Eas
 
     @Override
     public HardSoftScore calculateScore(FlightPrioritization flightPrioritization) {
+        flightPrioritization.incrementFitnessFunctionApplications();
         return HardSoftScore.of(0, 0);
     }
 }

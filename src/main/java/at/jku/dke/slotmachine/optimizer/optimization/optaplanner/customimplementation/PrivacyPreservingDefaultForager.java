@@ -2,15 +2,11 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplemen
 
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
-import org.optaplanner.core.api.score.director.ScoreDirector;
 import org.optaplanner.core.impl.localsearch.decider.forager.AbstractLocalSearchForager;
-import org.optaplanner.core.impl.localsearch.decider.forager.LocalSearchForager;
-import org.optaplanner.core.impl.localsearch.decider.forager.finalist.FinalistPodium;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 import org.optaplanner.core.impl.score.director.InnerScoreDirector;
-import org.optaplanner.core.impl.solver.scope.SolverScope;
 
 import java.util.*;
 
@@ -19,7 +15,7 @@ import java.util.*;
  * This will probably be the class that implements the custom search algorithms
  * @param <Solution_>
  */
-public class PrivacyPreservingDefaultForager<Solution_> extends AbstractLocalSearchForager<Solution_> implements LocalSearchForager<Solution_> {
+public class PrivacyPreservingDefaultForager<Solution_> extends AbstractLocalSearchForager<Solution_> {
     /**
      * Specifies how many moves are gathered before a winner is picked
      */
@@ -32,7 +28,7 @@ public class PrivacyPreservingDefaultForager<Solution_> extends AbstractLocalSea
     protected int increasedCountLimit;
 
     // Privacy Engine
-    private final PrivacyEngine privacyEngine;
+    private final SimulatedPrivacyEngine privacyEngine;
 
     // Score director to execute moves
     private InnerScoreDirector director;
@@ -61,7 +57,7 @@ public class PrivacyPreservingDefaultForager<Solution_> extends AbstractLocalSea
         }
 
 
-        this.privacyEngine = new PrivacyEngine();
+        this.privacyEngine = new SimulatedPrivacyEngine();
         this.highScore = HardSoftScore.of(0, 0);
         this.increasedCountLimit = 0;
         this.candidateList = new ArrayList<>();
