@@ -4,6 +4,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
+import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingSolverFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,7 +25,7 @@ public class OptaplannerOptimization extends Optimization {
 
     public OptaplannerOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
-
+        // TODO: update statistics with relevant times etc. during optimization
         this.statistics = new OptaplannerOptimizationStatistics();
     }
 
@@ -49,10 +50,10 @@ public class OptaplannerOptimization extends Optimization {
 
         // Use custom solver factory if configuration-name indicates it
         SolverFactory<FlightPrioritization> solverFactory = null;
-        if(this.getConfiguration().getConfigurationName().contains("CUSTOM")){
+        if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
             solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig);
         }else{ // Otherwise use default factory
-           SolverFactory.create(solverConfig);
+           solverFactory = SolverFactory.create(solverConfig);
         }
 
         logger.info("Build the solver.");

@@ -1,6 +1,8 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation;
 
-import org.optaplanner.core.api.solver.Solver;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.*;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingAcceptorFactory;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.forager.PrivacyPreservingForagerFactory;
 import org.optaplanner.core.config.heuristic.selector.common.SelectionCacheType;
 import org.optaplanner.core.config.heuristic.selector.common.SelectionOrder;
 import org.optaplanner.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
@@ -8,10 +10,8 @@ import org.optaplanner.core.config.heuristic.selector.move.generic.ChangeMoveSel
 import org.optaplanner.core.config.heuristic.selector.move.generic.SwapMoveSelectorConfig;
 import org.optaplanner.core.config.localsearch.LocalSearchPhaseConfig;
 import org.optaplanner.core.config.localsearch.LocalSearchType;
-import org.optaplanner.core.config.localsearch.decider.acceptor.AcceptorType;
 import org.optaplanner.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
-import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
 import org.optaplanner.core.config.solver.EnvironmentMode;
 import org.optaplanner.core.impl.heuristic.HeuristicConfigPolicy;
 import org.optaplanner.core.impl.heuristic.selector.move.MoveSelector;
@@ -25,12 +25,10 @@ import org.optaplanner.core.impl.localsearch.decider.acceptor.Acceptor;
 import org.optaplanner.core.impl.localsearch.decider.forager.LocalSearchForager;
 import org.optaplanner.core.impl.phase.AbstractPhaseFactory;
 import org.optaplanner.core.impl.solver.recaller.BestSolutionRecaller;
-import org.optaplanner.core.impl.solver.scope.SolverScope;
 import org.optaplanner.core.impl.solver.termination.Termination;
 import org.optaplanner.core.impl.solver.thread.ChildThreadType;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 
@@ -46,7 +44,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
     }
 
     /**
-     * Entry point building the privacy-preserving local search pase
+     * Entry point building the privacy-preserving local search phase
      * @param phaseIndex the index of the search phase
      * @param solverConfigPolicy the config policy of the solver
      * @param bestSolutionRecaller the recaller of the best solution
@@ -135,37 +133,9 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
     protected Acceptor<Solution_> buildAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
         LocalSearchAcceptorConfig acceptorConfig_;
         if (phaseConfig.getAcceptorConfig() != null) {
-            if (phaseConfig.getLocalSearchType() != null) {
-                throw new IllegalArgumentException("The localSearchType (" + phaseConfig.getLocalSearchType()
-                        + ") must not be configured if the acceptorConfig (" + phaseConfig.getAcceptorConfig()
-                        + ") is explicitly configured.");
-            }
             acceptorConfig_ = phaseConfig.getAcceptorConfig();
         } else {
-            LocalSearchType localSearchType_ =
-                    Objects.requireNonNullElse(phaseConfig.getLocalSearchType(), LocalSearchType.LATE_ACCEPTANCE);
-            acceptorConfig_ = new PrivacyPreservingLocalSearchAcceptorConfig();
-            switch (localSearchType_) {
-                case HILL_CLIMBING:
-                case VARIABLE_NEIGHBORHOOD_DESCENT:
-                    acceptorConfig_.setAcceptorTypeList(Collections.singletonList(AcceptorType.HILL_CLIMBING));
-                    break;
-                case TABU_SEARCH:
-                    acceptorConfig_.setAcceptorTypeList(Collections.singletonList(AcceptorType.ENTITY_TABU));
-                    break;
-                case SIMULATED_ANNEALING:
-                    acceptorConfig_.setAcceptorTypeList(Collections.singletonList(AcceptorType.SIMULATED_ANNEALING));
-                    break;
-                case LATE_ACCEPTANCE:
-                    acceptorConfig_.setAcceptorTypeList(Collections.singletonList(AcceptorType.LATE_ACCEPTANCE));
-                    break;
-                case GREAT_DELUGE:
-                    acceptorConfig_.setAcceptorTypeList(Collections.singletonList(AcceptorType.GREAT_DELUGE));
-                    break;
-                default:
-                    throw new IllegalStateException("The localSearchType (" + localSearchType_
-                            + ") is not implemented.");
-            }
+            acceptorConfig_ = new LocalSearchAcceptorConfig();
         }
         // custom acceptor
         return PrivacyPreservingAcceptorFactory.<Solution_> create(acceptorConfig_).buildAcceptor(configPolicy);
@@ -180,37 +150,16 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         LocalSearchForagerConfig foragerConfig_;
         if (phaseConfig.getForagerConfig() != null) { // Use config specified in xml
             foragerConfig_ = phaseConfig.getForagerConfig();
-        } else { // use custom values
-            LocalSearchType localSearchType_ =
-                    Objects.requireNonNullElse(phaseConfig.getLocalSearchType(), LocalSearchType.LATE_ACCEPTANCE);
-            foragerConfig_ = new PrivacyPreservingLocalSearchForagerConfig();
-
-            switch (localSearchType_) {
-                case HILL_CLIMBING, SIMULATED_ANNEALING, LATE_ACCEPTANCE, GREAT_DELUGE:
-                    // Setting accepted count limit to 50 because privacy engine requires more solutions for evaluation
-                    foragerConfig_.setAcceptedCountLimit(50);
-                    break;
-                case TABU_SEARCH:
-                    // Slow stepping algorithm
-                    foragerConfig_.setAcceptedCountLimit(1000);
-                    break;
-                case VARIABLE_NEIGHBORHOOD_DESCENT:
-                    foragerConfig_.setPickEarlyType(LocalSearchPickEarlyType.FIRST_LAST_STEP_SCORE_IMPROVING);
-                    break;
-                default:
-                    throw new IllegalStateException("The localSearchType (" + localSearchType_
-                            + ") is not implemented.");
-            }
+        } else {
+            foragerConfig_ = new LocalSearchForagerConfig();
         }
         // custom forager
-        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_);
+        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, Objects.requireNonNullElse(phaseConfig.getLocalSearchType(), LocalSearchType.HILL_CLIMBING));
         return factory.buildForager();
-
     }
 
     /**
-     * Builds the move selector. Implementation identical
-     * to implementation of the {@link org.optaplanner.core.impl.localsearch.DefaultLocalSearchPhaseFactory}
+     * Builds the move selector.
      * @param configPolicy the config policy
      * @return the move selector
      */

@@ -7,5 +7,6 @@
   "STEP_COUNTING_HILL_CLIMBING":"optaplannerConfigStepCountingHillClimbing.xml",
   "STRATEGIC_OSCILLATION":"optaplannerConfigStrategicOscillation.xml",
   "BRANCH_AND_BOUND":"optaplannerConfigBranchAndBound.xml",
-  "CUSTOM_HILL_CLIMBING": "optaplannerConfigCustomHillClimbing.xml"
+  "CUSTOM_HILL_CLIMBING": "optaplannerConfigCustomHillClimbing.xml",
+  "CUSTOM_STEP_COUNTING_HILL_CLIMBING": "optaplannerConfigCustomStepCountingHillClimbing.xml"
 }

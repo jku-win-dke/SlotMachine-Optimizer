@@ -70,16 +70,20 @@ public class FlightPrioritization {
         this.fitnessFunctionInvocations++;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FlightPrioritization that = (FlightPrioritization) o;
-        return getSlots().equals(that.getSlots()) && getFlights().equals(that.getFlights());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getSlots(), getFlights());
+    public Integer[] getFlightOrderArray(){
+        Integer[] order = new Integer[this.getSlots().size()];
+        int i = 0;
+        for(var slot : this.slots){
+            int j = 0;
+            for(var flight : this.flights){
+                if(flight.getSlot().getWrappedSlot().getTime().equals(slot.getWrappedSlot().getTime())){
+                    order[i] = j;
+                    break;
+                }
+                j++;
+            }
+            i++;
+        }
+        return order;
     }
 }

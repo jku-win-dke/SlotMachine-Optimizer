@@ -1,5 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation;
 
+import at.jku.dke.slotmachine.optimizer.domain.Flight;
+import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import io.micrometer.core.instrument.Tags;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
@@ -48,6 +50,7 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
     private static final Logger LOGGER = LoggerFactory.getLogger(PrivacyPreservingSolverFactory.class);
     private static final long DEFAULT_RANDOM_SEED = 0L;
 
+    private List<Map<Flight, Slot>> intermediateResults;
     private final SolverConfig solverConfig;
 
     // TODO: Check if this is really a good idea
@@ -178,14 +181,17 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
         }
         List<Phase<Solution_>> phaseList = new ArrayList<>(phaseConfigList_.size());
         int phaseIndex = 0;
+        // TODO: enable/disable construction heuristic considering performance
         for (PhaseConfig phaseConfig : phaseConfigList_) {
             PhaseFactory<Solution_> phaseFactory = null;
             // Setting Custom LocalSearchPhaseFactory for local search phase
             if (LocalSearchPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
                 phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig);
-            }else if (ConstructionHeuristicPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
+            }/*
+            else if (ConstructionHeuristicPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
                 phaseFactory = new DefaultConstructionHeuristicPhaseFactory<>((ConstructionHeuristicPhaseConfig) phaseConfig);
             }
+            */
             if(phaseFactory != null){
                 Phase<Solution_> phase =
                         phaseFactory.buildPhase(phaseIndex, configPolicy, bestSolutionRecaller, termination);
@@ -195,6 +201,10 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
 
         }
         return phaseList;
+    }
+
+    public void setIntermediateResults(List<Map<Flight, Slot>> intermediateResults) {
+        this.intermediateResults = intermediateResults;
     }
 
     // Required for testability as final classes cannot be mocked.
@@ -240,4 +250,6 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
             return Runtime.getRuntime().availableProcessors();
         }
     }
+
+
 }
