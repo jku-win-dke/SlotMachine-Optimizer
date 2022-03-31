@@ -5,8 +5,9 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class PropertiesLoader {
-        private static String authenticPrivacyEngineKey = "useAuthenticPrivacyEngine";
-        private static String stepCountingSizeKey = "stepCountingSize";
+        public static final String USE_AUTHENTIC_PRIVACY_ENGINE = "useAuthenticPrivacyEngine";
+        public static final String STEP_COUNTING_SIZE = "stepCountingSize";
+        public static final String MINIMUM_ACCEPTED_COUNT_LIMIT = "minimumAcceptedCountLimit";
 
         public static Properties loadProperties(String resourceFileName) throws IOException, IOException {
             Properties configuration = new Properties();
@@ -17,12 +18,4 @@ public class PropertiesLoader {
             inputStream.close();
             return configuration;
         }
-
-    public static String getAuthenticPrivacyEngineKey() {
-        return authenticPrivacyEngineKey;
-    }
-
-    public static String getStepCountingSizeKey() {
-        return stepCountingSizeKey;
-    }
 }

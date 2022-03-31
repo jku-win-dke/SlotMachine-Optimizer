@@ -2,13 +2,14 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplemen
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationStatistics;
 import io.micrometer.core.instrument.Tags;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import org.optaplanner.core.config.localsearch.LocalSearchPhaseConfig;
 import org.optaplanner.core.config.phase.PhaseConfig;
-import org.optaplanner.core.config.score.director.ScoreDirectorFactoryConfig;
 import org.optaplanner.core.config.solver.EnvironmentMode;
 import org.optaplanner.core.config.solver.SolverConfig;
 import org.optaplanner.core.config.solver.monitoring.MonitoringConfig;
@@ -16,13 +17,11 @@ import org.optaplanner.core.config.solver.monitoring.SolverMetric;
 import org.optaplanner.core.config.solver.random.RandomType;
 import org.optaplanner.core.config.solver.termination.TerminationConfig;
 import org.optaplanner.core.config.util.ConfigUtils;
-import org.optaplanner.core.impl.constructionheuristic.DefaultConstructionHeuristicPhaseFactory;
 import org.optaplanner.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import org.optaplanner.core.impl.heuristic.HeuristicConfigPolicy;
 import org.optaplanner.core.impl.phase.Phase;
 import org.optaplanner.core.impl.phase.PhaseFactory;
 import org.optaplanner.core.impl.score.director.InnerScoreDirectorFactory;
-import org.optaplanner.core.impl.score.director.ScoreDirectorFactoryFactory;
 import org.optaplanner.core.impl.solver.DefaultSolver;
 import org.optaplanner.core.impl.solver.DefaultSolverFactory;
 import org.optaplanner.core.impl.solver.random.DefaultRandomFactory;
@@ -50,22 +49,25 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
     private static final Logger LOGGER = LoggerFactory.getLogger(PrivacyPreservingSolverFactory.class);
     private static final long DEFAULT_RANDOM_SEED = 0L;
 
-    private List<Map<Flight, Slot>> intermediateResults;
+    private List<Solution_> intermediateResults;
+    private String configurationName;
     private final SolverConfig solverConfig;
-
-    // TODO: Check if this is really a good idea
+    private final OptaplannerOptimizationStatistics statistics;
 
     /**
      * The default solver factory to use implemented methods that do not require changes for privacy-preserving optimization
      */
     private final DefaultSolverFactory<Solution_> defaultSolverFactory;
 
-    public PrivacyPreservingSolverFactory(SolverConfig solverConfig) {
+    public PrivacyPreservingSolverFactory(SolverConfig solverConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics) {
         if (solverConfig == null) {
             throw new IllegalStateException("The solverConfig (" + solverConfig + ") cannot be null.");
         }
         this.solverConfig = solverConfig;
         this.defaultSolverFactory = new DefaultSolverFactory<>(solverConfig);
+        this.intermediateResults = intermediateResults;
+        this.configurationName = configurationName;
+        this.statistics = statistics;
     }
 
     public InnerScoreDirectorFactory<Solution_, ?> getScoreDirectorFactory() {
@@ -96,7 +98,6 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
         } else {
             solverScope.setSolverMetricSet(EnumSet.noneOf(SolverMetric.class));
         }
-        // TODO: Implement scoredirector which does not calculateScore() at all
         solverScope.setScoreDirector(scoreDirectorFactory.buildScoreDirector(true, constraintMatchEnabledPreference));
 
         if ((solverScope.isMetricEnabled(SolverMetric.CONSTRAINT_MATCH_TOTAL_STEP_SCORE)
@@ -123,10 +124,9 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
 
         List<Phase<Solution_>> phaseList = buildPhaseList(configPolicy, bestSolutionRecaller, termination);
 
-        var out =  new DefaultSolver<>(environmentMode_, randomFactory, bestSolutionRecaller, basicPlumbingTermination,
+        return new DefaultSolver<>(environmentMode_, randomFactory, bestSolutionRecaller, basicPlumbingTermination,
                         termination, phaseList, solverScope,
                         moveThreadCount_ == null ? SolverConfig.MOVE_THREAD_COUNT_NONE : Integer.toString(moveThreadCount_));
-        return out;
     }
 
     /**
@@ -186,7 +186,7 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
             PhaseFactory<Solution_> phaseFactory = null;
             // Setting Custom LocalSearchPhaseFactory for local search phase
             if (LocalSearchPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
-                phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig);
+                phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig, configurationName, intermediateResults, statistics);
             }/*
             else if (ConstructionHeuristicPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
                 phaseFactory = new DefaultConstructionHeuristicPhaseFactory<>((ConstructionHeuristicPhaseConfig) phaseConfig);
@@ -201,10 +201,6 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
 
         }
         return phaseList;
-    }
-
-    public void setIntermediateResults(List<Map<Flight, Slot>> intermediateResults) {
-        this.intermediateResults = intermediateResults;
     }
 
     // Required for testability as final classes cannot be mocked.

@@ -2,19 +2,21 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplemen
 
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPlanningEntity;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationStatistics;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PropertiesLoader;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
+import org.optaplanner.core.api.score.director.ScoreDirector;
 import org.optaplanner.core.impl.localsearch.decider.forager.AbstractLocalSearchForager;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 import org.optaplanner.core.impl.score.director.InnerScoreDirector;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -33,21 +35,19 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     protected long selectedMoveCount;
     protected long acceptedMoveCount;
 
-    // Helper fields for debugging
-    protected int increasedCountLimit;
-
     // Privacy Engine
     private final SimulatedPrivacyEngine privacyEngine;
     private final boolean useAuthenticPrivacyEngineSimulation;
 
     // Score director to execute moves
-    protected InnerScoreDirector director;
+    protected ScoreDirector<Solution_> scoreDirector;
+    protected InnerScoreDirector<Solution_, ?> innerScoreDirector;
 
     // Highest score encountered
     HardSoftScore highScore;
 
     // Current winner of the search phase
-    protected LocalSearchMoveScope<Solution_> currentWinner;
+    protected LocalSearchMoveScope<Solution_> lastPickedMoveScope;
 
     // Collections storing candidates
     protected List<LocalSearchMoveScope<Solution_>> candidateList;
@@ -56,39 +56,43 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     protected Integer[][] flightOrderArraysOfCandidates;
     protected Integer numberOfFlights;
 
-    // TODO: maybe also safe other good solutions (or solve with custom BestSolutionRecaller)
+    // Intermediate Results
+    protected final List<Solution_> intermediateResults;
+
+    // Statistics
+    protected final OptaplannerOptimizationStatistics statistics;
+    protected int iterations;
 
    protected AbstractPrivacyPreservingForager() {
-       this(50);
+       this(50, new ArrayList<>(), new OptaplannerOptimizationStatistics());
    }
 
 
-    protected AbstractPrivacyPreservingForager(int acceptedCountLimit)  {
+    protected AbstractPrivacyPreservingForager(int acceptedCountLimit, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics)  {
         logger.info("Initialized " + this.getClass());
-        this.acceptedCountLimit = acceptedCountLimit;
-
-        // TODO: Define minimum acceptedCountLimit in configuration
-        if (acceptedCountLimit < 50) {
-            throw new IllegalArgumentException("The acceptedCountLimit (" + acceptedCountLimit
-                    + ") cannot below 50 for privacy-preserving optimization session.");
-        }
-
         try {
             this.configuration = PropertiesLoader.loadProperties("customoptaplanner.properties");
         } catch (IOException e) {
             logger.warn(e.getMessage());
         }
+        this.acceptedCountLimit = acceptedCountLimit;
+        this.intermediateResults = intermediateResults;
+        this.statistics = statistics;
+
+        int minimumAcceptedCountLimit = Integer.parseInt(configuration.getProperty(PropertiesLoader.MINIMUM_ACCEPTED_COUNT_LIMIT));
+        if (acceptedCountLimit < minimumAcceptedCountLimit) {
+            throw new IllegalArgumentException("The acceptedCountLimit (" + acceptedCountLimit
+                    + ") cannot be below " + minimumAcceptedCountLimit +" for privacy-preserving optimization session.");
+        }
+
 
         this.privacyEngine = new SimulatedPrivacyEngine();
         this.highScore = HardSoftScore.of(0, 0);
-        this.increasedCountLimit = 0;
         this.candidateList = new ArrayList<>();
         this.flightPrioritizationMoveScopeMap = new HashMap<>();
         this.flightOrderArrayMoveScopeMap = new HashMap<>();
-        this.currentWinner = null;
-        this.useAuthenticPrivacyEngineSimulation = Boolean.parseBoolean(configuration.getProperty(PropertiesLoader.getAuthenticPrivacyEngineKey()));
-
-
+        this.lastPickedMoveScope = null;
+        this.useAuthenticPrivacyEngineSimulation = Boolean.parseBoolean(configuration.getProperty(PropertiesLoader.USE_AUTHENTIC_PRIVACY_ENGINE));
     }
 
 
@@ -98,8 +102,12 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
-        this.director = phaseScope.getScoreDirector();
+        this.scoreDirector = phaseScope.getScoreDirector();
+        if(scoreDirector != null)
+            this.innerScoreDirector = (InnerScoreDirector<Solution_, ?>) scoreDirector;
         this.numberOfFlights = ((FlightPrioritization)phaseScope.getWorkingSolution()).getFlights().size();
+        this.statistics.setInitialFitness(-1);
+        this.iterations = 0;
     }
 
     /**
@@ -115,6 +123,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         candidateList.clear();
         flightPrioritizationMoveScopeMap.clear();
         flightOrderArrayMoveScopeMap.clear();
+        iterations++;
     }
 
     /**
@@ -130,7 +139,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     @Override
     public void addMove(LocalSearchMoveScope<Solution_> moveScope) {
         selectedMoveCount++;
-        if (moveScope.getAccepted()) {
+        if (Boolean.TRUE.equals(moveScope.getAccepted())) {
             acceptedMoveCount++;
             candidateList.add(moveScope);
         }
@@ -152,16 +161,39 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
      */
     @Override
     public LocalSearchMoveScope<Solution_> pickMove(LocalSearchStepScope<Solution_> stepScope) {
+        // Statistics
         stepScope.setSelectedMoveCount(selectedMoveCount);
         stepScope.setAcceptedMoveCount(acceptedMoveCount);
 
-        var peMap = getSortedListFromPrivacyEngine();
-        if(peMap == null || peMap.isEmpty()){
-            return null;
-        }
+        // Request the evaluation from the privacy engine
+        var privacyEngineScoreToSortedListMap = getSortedListFromPrivacyEngine();
 
-        var result = pickMoveUsingPrivacyEngineMap(peMap);
-        return result != null ? result : currentWinner;
+        if(privacyEngineScoreToSortedListMap == null || privacyEngineScoreToSortedListMap.isEmpty()) return lastPickedMoveScope;
+
+        // Extract the winner and assign the high score to the move
+        var optionalPrivacyEngineScoreToSortedListEntrySet = privacyEngineScoreToSortedListMap.entrySet().stream().findFirst();
+        var optionalStepWinningMoveScope = optionalPrivacyEngineScoreToSortedListEntrySet.get().getValue().stream().findFirst();
+
+        if(optionalStepWinningMoveScope.isEmpty()) return lastPickedMoveScope;
+
+        LocalSearchMoveScope<Solution_> winner = optionalStepWinningMoveScope.get();
+        winner.setScore(optionalPrivacyEngineScoreToSortedListEntrySet.get().getKey());
+
+        // Return winner if accepted
+        if(this.isAccepted(winner)){
+            this.highScore = (HardSoftScore) winner.getScore();
+            this.lastPickedMoveScope = winner;
+
+            var undoMove = winner.getMove().doMove(scoreDirector);
+            intermediateResults.add(0, innerScoreDirector.cloneWorkingSolution());
+            undoMove.doMove(scoreDirector);
+
+            if(this.iterations == 1) this.statistics.setInitialFitness(this.highScore.getHardScore() >= 0 ? this.highScore.getSoftScore() : 0);
+
+            return winner;
+        }
+        // Else return current winner
+        return lastPickedMoveScope;
     }
 
 
@@ -170,6 +202,10 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         super.phaseEnded(phaseScope);
         selectedMoveCount = 0L;
         acceptedMoveCount = 0L;
+
+        this.statistics.setTimeFinished(LocalDateTime.now(ZoneId.of("CET")));
+        this.statistics.setResultFitness(this.highScore.getHardScore() >= 0 ? this.highScore.getSoftScore() : 0);
+        this.statistics.setIterations(this.iterations);
     }
 
     @Override
@@ -188,10 +224,9 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
      * Picks the move according to the mapping of the maximum score of the current candidates and the sorted list of the candidates.
      * This method has to be implemented by foragers to facilitate a certain search algorithm mechanism.
      * Every implementation has to check if the currentWinner is null to avoid not setting a winner if the initial solution is already the best solution.
-     * @param peMap the map
      * @return the winning move scope or null
      */
-    protected abstract LocalSearchMoveScope<Solution_> pickMoveUsingPrivacyEngineMap(Map<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> peMap);
+    protected abstract boolean isAccepted(LocalSearchMoveScope<Solution_> stepWinner);
 
 
     /**
@@ -245,7 +280,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
 
 
     private Map<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> evaluateExternalDataMode(){
-        var map = privacyEngine.evaluateFlightOrderArrays(this.flightOrderArraysOfCandidates, (FlightPrioritization) this.director.cloneWorkingSolution());
+        var map = privacyEngine.evaluateFlightOrderArrays(this.flightOrderArraysOfCandidates, (FlightPrioritization) this.innerScoreDirector.cloneWorkingSolution());
         //var map = privacyEngine.evaluateFlightOrderArrays2(this.flightOrderArraysOfCandidates, this.director);
         var score = map.entrySet().stream().findFirst().get().getKey();
         var bestOrderArray = map.entrySet().stream().findFirst().get().getValue()[0];
@@ -275,9 +310,9 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         int i = 0;
         for(var moveScope : candidateList){
             // Execute the move
-            var undoMove = moveScope.getMove().doMove(director);
+            var undoMove = moveScope.getMove().doMove(scoreDirector);
             // Get the solution representing the move
-            if(director.cloneWorkingSolution() instanceof FlightPrioritization flightPrioritization){
+            if(innerScoreDirector.cloneWorkingSolution() instanceof FlightPrioritization flightPrioritization){
                 // Map the flight-prioritization to the index of the move
                 if(this.useAuthenticPrivacyEngineSimulation){
                     var orderArrayCandidate = flightPrioritization.getFlightOrderArray();
@@ -288,13 +323,13 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
                 }
             }
             // Undo the move
-            undoMove.doMove(director);
+            undoMove.doMove(scoreDirector);
             i++;
         }
         this.flightOrderArraysOfCandidates = solutionsFlightOrderArray;
     }
-    
-    
+
+
     private void initializeArraysFromMoveScopes(){
         Integer[][] solutionsFlightOrderArray = new Integer[candidateList.size()][this.numberOfFlights];
         Integer[] solutionFlightOrderArray;
@@ -302,7 +337,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         Map<FlightPlanningEntity, Integer> flightPlanningEntitySlotPositionMap = new HashMap<>();
 
         // Get current solution
-        var currentSolution = director.getWorkingSolution();
+        var currentSolution = scoreDirector.getWorkingSolution();
         if(currentSolution instanceof FlightPrioritization currentFlightPrioritization){
             // Construct the flight ordering of the current solution
 

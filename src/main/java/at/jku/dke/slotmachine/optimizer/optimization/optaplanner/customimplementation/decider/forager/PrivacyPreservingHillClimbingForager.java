@@ -1,43 +1,30 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.forager;
 
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationStatistics;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 
 import java.util.List;
-import java.util.Map;
 
 public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_>{
 
-    public PrivacyPreservingHillClimbingForager(int acceptedCountLimit_) {
-        super(acceptedCountLimit_);
+    public PrivacyPreservingHillClimbingForager(int acceptedCountLimit_, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics) {
+        super(acceptedCountLimit_, intermediateResults, statistics);
     }
 
     /**
      * Implements a selection mechanism representing the Hill-Climbing idea by picking a move if the
      * highest score of the candidates is higher than the score of the current solution.
-     * @param peMap the map
      * @return the winning move of the step
      */
     @Override
-    protected LocalSearchMoveScope<Solution_> pickMoveUsingPrivacyEngineMap(Map<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> peMap) {
-        var optEntry = peMap.entrySet().stream().findFirst();
-        var optWinner = optEntry.get().getValue().stream().findFirst();
-
-        if(optWinner.isEmpty()) return null;
-
-        var score = optEntry.get().getKey();
-        var winner = optEntry.get().getValue().stream().findFirst().get();
-
+    protected boolean isAccepted(LocalSearchMoveScope<Solution_> winner) {
+        var score = (HardSoftScore) winner.getScore();
 
         if(score.compareTo(highScore) >= 0){
             logger.info("Found new winner with score: " + score);
-            winner.setScore(score);
-            this.highScore = score;
-            this.currentWinner = winner;
-            this.currentWinner.setScore(score);
-            return winner;
+            return true;
         }
-        increasedCountLimit++;
-        return null;
+        return false;
     }
 }

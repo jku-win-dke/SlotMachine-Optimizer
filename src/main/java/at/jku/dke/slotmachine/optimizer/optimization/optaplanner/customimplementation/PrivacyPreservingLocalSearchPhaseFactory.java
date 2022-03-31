@@ -1,5 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation;
 
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationStatistics;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.*;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingAcceptorFactory;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.forager.PrivacyPreservingForagerFactory;
@@ -29,6 +31,7 @@ import org.optaplanner.core.impl.solver.termination.Termination;
 import org.optaplanner.core.impl.solver.thread.ChildThreadType;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 
@@ -38,9 +41,15 @@ import java.util.concurrent.ThreadFactory;
  * @param <Solution_> the Solution of the optimization
  */
 public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFactory<Solution_, LocalSearchPhaseConfig> {
+    private final String configurationName;
+    private final List<Solution_> intermediateResults;
+    private final OptaplannerOptimizationStatistics statistics;
 
-    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig) {
+    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics) {
         super(phaseConfig);
+        this.intermediateResults = intermediateResults;
+        this.configurationName = configurationName;
+        this.statistics = statistics;
     }
 
     /**
@@ -154,7 +163,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
             foragerConfig_ = new LocalSearchForagerConfig();
         }
         // custom forager
-        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, Objects.requireNonNullElse(phaseConfig.getLocalSearchType(), LocalSearchType.HILL_CLIMBING));
+        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, configurationName, intermediateResults, statistics);
         return factory.buildForager();
     }
 

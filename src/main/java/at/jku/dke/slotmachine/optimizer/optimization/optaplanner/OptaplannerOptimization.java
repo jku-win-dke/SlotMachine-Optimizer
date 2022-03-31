@@ -12,6 +12,8 @@ import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.solver.SolverConfig;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +29,7 @@ public class OptaplannerOptimization extends Optimization {
         super(flights, slots);
         // TODO: update statistics with relevant times etc. during optimization
         this.statistics = new OptaplannerOptimizationStatistics();
+        this.statistics.setTimeCreated(LocalDateTime.now(ZoneId.of(("CET"))));
     }
 
     @Override
@@ -48,10 +51,11 @@ public class OptaplannerOptimization extends Optimization {
 
         logger.info("Create the solver factory.");
 
-        // Use custom solver factory if configuration-name indicates it
+        // Use custom solver factory for privacy-preserving optimization
         SolverFactory<FlightPrioritization> solverFactory = null;
         if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
-            solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig);
+            solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig, this.getConfiguration().getConfigurationName(), new ArrayList<>(), statistics);
+            this.statistics.setTimeStarted(LocalDateTime.now(ZoneId.of(("CET"))));
         }else{ // Otherwise use default factory
            solverFactory = SolverFactory.create(solverConfig);
         }
