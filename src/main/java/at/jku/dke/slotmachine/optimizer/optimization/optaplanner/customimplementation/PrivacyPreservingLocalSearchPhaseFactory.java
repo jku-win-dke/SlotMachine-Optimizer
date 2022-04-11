@@ -44,6 +44,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
     private final String configurationName;
     private final List<Solution_> intermediateResults;
     private final OptaplannerOptimizationStatistics statistics;
+    private LocalSearchAcceptorConfig acceptorConfig;
 
     public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics) {
         super(phaseConfig);
@@ -147,6 +148,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
             acceptorConfig_ = new LocalSearchAcceptorConfig();
         }
         // custom acceptor
+        this.acceptorConfig = acceptorConfig_;
         return PrivacyPreservingAcceptorFactory.<Solution_> create(acceptorConfig_).buildAcceptor(configPolicy);
     }
 
@@ -163,7 +165,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
             foragerConfig_ = new LocalSearchForagerConfig();
         }
         // custom forager
-        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, configurationName, intermediateResults, statistics);
+        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, configurationName, intermediateResults, statistics, acceptorConfig, configPolicy);
         return factory.buildForager();
     }
 

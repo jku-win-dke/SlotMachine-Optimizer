@@ -193,6 +193,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
             return winner;
         }
         // Else return current winner
+        logger.error("REACHED LOCAL OPTIMUM, RESTARTING THE STEP!");
         return lastPickedMoveScope;
     }
 

@@ -8,5 +8,6 @@
   "STRATEGIC_OSCILLATION":"optaplannerConfigStrategicOscillation.xml",
   "BRANCH_AND_BOUND":"optaplannerConfigBranchAndBound.xml",
   "CUSTOM_HILL_CLIMBING": "optaplannerConfigCustomHillClimbing.xml",
-  "CUSTOM_STEP_COUNTING_HILL_CLIMBING": "optaplannerConfigCustomStepCountingHillClimbing.xml"
+  "CUSTOM_STEP_COUNTING_HILL_CLIMBING": "optaplannerConfigCustomStepCountingHillClimbing.xml",
+  "CUSTOM_SIMULATED_ANNEALING": "optaplannerConfigCustomSimulatedAnnealing.xml"
 }
