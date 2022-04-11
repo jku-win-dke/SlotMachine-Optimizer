@@ -1,8 +1,5 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation;
 
-import at.jku.dke.slotmachine.optimizer.domain.Flight;
-import at.jku.dke.slotmachine.optimizer.domain.Slot;
-import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationStatistics;
 import io.micrometer.core.instrument.Tags;
 import org.optaplanner.core.api.solver.Solver;
@@ -53,13 +50,14 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
     private String configurationName;
     private final SolverConfig solverConfig;
     private final OptaplannerOptimizationStatistics statistics;
+    private final AssignmentProblemType assignmentProblemType;
 
     /**
      * The default solver factory to use implemented methods that do not require changes for privacy-preserving optimization
      */
     private final DefaultSolverFactory<Solution_> defaultSolverFactory;
 
-    public PrivacyPreservingSolverFactory(SolverConfig solverConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics) {
+    public PrivacyPreservingSolverFactory(SolverConfig solverConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics, AssignmentProblemType assignmentProblemType) {
         if (solverConfig == null) {
             throw new IllegalStateException("The solverConfig (" + solverConfig + ") cannot be null.");
         }
@@ -68,6 +66,7 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
         this.intermediateResults = intermediateResults;
         this.configurationName = configurationName;
         this.statistics = statistics;
+        this.assignmentProblemType = assignmentProblemType;
     }
 
     public InnerScoreDirectorFactory<Solution_, ?> getScoreDirectorFactory() {
@@ -186,12 +185,8 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
             PhaseFactory<Solution_> phaseFactory = null;
             // Setting Custom LocalSearchPhaseFactory for local search phase
             if (LocalSearchPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
-                phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig, configurationName, intermediateResults, statistics);
-            }/*
-            else if (ConstructionHeuristicPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
-                phaseFactory = new DefaultConstructionHeuristicPhaseFactory<>((ConstructionHeuristicPhaseConfig) phaseConfig);
+                phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig, configurationName, intermediateResults, statistics, assignmentProblemType);
             }
-            */
             if(phaseFactory != null){
                 Phase<Solution_> phase =
                         phaseFactory.buildPhase(phaseIndex, configPolicy, bestSolutionRecaller, termination);

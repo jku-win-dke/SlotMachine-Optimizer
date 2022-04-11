@@ -1,5 +1,6 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor;
 
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.AssignmentProblemType;
 import org.optaplanner.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
 import org.optaplanner.core.impl.heuristic.HeuristicConfigPolicy;
 import org.optaplanner.core.impl.localsearch.decider.acceptor.Acceptor;
@@ -13,23 +14,27 @@ import org.optaplanner.core.impl.localsearch.decider.acceptor.AcceptorFactory;
  */
 public class PrivacyPreservingAcceptorFactory<Solution_> extends AcceptorFactory<Solution_>{
     LocalSearchAcceptorConfig acceptorConfig;
+    private AssignmentProblemType assignmentProblemType;
 
-    public static <Solution_> AcceptorFactory<Solution_> create(LocalSearchAcceptorConfig acceptorConfig) {
-        return new PrivacyPreservingAcceptorFactory<>(acceptorConfig);
+    public static <Solution_> AcceptorFactory<Solution_> create(LocalSearchAcceptorConfig acceptorConfig, AssignmentProblemType assignmentProblemType) {
+        return new PrivacyPreservingAcceptorFactory<>(acceptorConfig, assignmentProblemType);
     }
 
-    public PrivacyPreservingAcceptorFactory(LocalSearchAcceptorConfig acceptorConfig) {
+    public PrivacyPreservingAcceptorFactory(LocalSearchAcceptorConfig acceptorConfig, AssignmentProblemType assignmentProblemType) {
         super(acceptorConfig);
         this.acceptorConfig = acceptorConfig;
+        this.assignmentProblemType = assignmentProblemType;
     }
 
-    // TODO: Think about different acceptors according to the local search type of the config
     @Override
     /**
      * Builds a privacy-preserving acceptor
      */
     public Acceptor<Solution_> buildAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
-        return new PrivacyPreservingSwapMoveAcceptor<>();
+        Acceptor<Solution_> acceptor = new PrivacyPreservingSwapMoveAcceptor<>();
+        if(this.assignmentProblemType == AssignmentProblemType.UNBALANCED){
+            acceptor = new PrivacyPreservingAcceptor<>();
+        }
+        return acceptor;
     }
-
 }

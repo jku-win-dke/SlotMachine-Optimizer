@@ -1,6 +1,5 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation;
 
-import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.OptaplannerOptimizationStatistics;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.*;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingAcceptorFactory;
@@ -32,7 +31,6 @@ import org.optaplanner.core.impl.solver.thread.ChildThreadType;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -44,13 +42,15 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
     private final String configurationName;
     private final List<Solution_> intermediateResults;
     private final OptaplannerOptimizationStatistics statistics;
+    private final AssignmentProblemType assignmentProblemType;
     private LocalSearchAcceptorConfig acceptorConfig;
 
-    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics) {
+    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics, AssignmentProblemType assignmentProblemType) {
         super(phaseConfig);
         this.intermediateResults = intermediateResults;
         this.configurationName = configurationName;
         this.statistics = statistics;
+        this.assignmentProblemType = assignmentProblemType;
     }
 
     /**
@@ -149,7 +149,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
         }
         // custom acceptor
         this.acceptorConfig = acceptorConfig_;
-        return PrivacyPreservingAcceptorFactory.<Solution_> create(acceptorConfig_).buildAcceptor(configPolicy);
+        return PrivacyPreservingAcceptorFactory.<Solution_> create(acceptorConfig_, assignmentProblemType).buildAcceptor(configPolicy);
     }
 
     /**

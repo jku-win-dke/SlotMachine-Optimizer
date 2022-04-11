@@ -5,6 +5,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.AssignmentProblemType;
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingSolverFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,7 +55,10 @@ public class OptaplannerOptimization extends Optimization {
         // Use custom solver factory for privacy-preserving optimization
         SolverFactory<FlightPrioritization> solverFactory = null;
         if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
-            solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig, this.getConfiguration().getConfigurationName(), new ArrayList<>(), statistics);
+            AssignmentProblemType assignmentProblemType = AssignmentProblemType.BALANCED;
+            if(this.getFlights().length < this.getSlots().length) assignmentProblemType = AssignmentProblemType.UNBALANCED;
+
+            solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig, this.getConfiguration().getConfigurationName(), new ArrayList<>(), statistics, assignmentProblemType);
             this.statistics.setTimeStarted(LocalDateTime.now(ZoneId.of(("CET"))));
         }else{ // Otherwise use default factory
            solverFactory = SolverFactory.create(solverConfig);
