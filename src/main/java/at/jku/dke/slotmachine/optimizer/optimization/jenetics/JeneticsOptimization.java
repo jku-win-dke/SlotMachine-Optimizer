@@ -4,6 +4,8 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluator;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluatorFactory;
 import io.jenetics.*;
 import io.jenetics.engine.*;
 import io.jenetics.util.ISeq;
@@ -107,7 +109,7 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info("Build the genetic algorithm engine.");
 
-        Evaluator evaluator = new BatchEvaluator(problem, this);
+        Evaluator evaluator = BatchEvaluatorFactory.getEvaluator(getFitnessMethod(), problem, this);
 
         Engine.Builder<EnumGene<Integer>, Integer> builder;
 
