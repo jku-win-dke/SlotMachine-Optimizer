@@ -19,8 +19,8 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
 
     protected StepCountingHillClimbingType stepCountingHillClimbingType;
 
-    public PrivacyPreservingStepCountingHillClimbingForager(int acceptedCountLimit_, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics, int stepCountingHillClimbingSize, StepCountingHillClimbingType stepCountingHillClimbingType_) {
-        super(acceptedCountLimit_, intermediateResults, statistics);
+    public PrivacyPreservingStepCountingHillClimbingForager(int acceptedCountLimit_,  OptaplannerOptimizationStatistics statistics, int stepCountingHillClimbingSize, StepCountingHillClimbingType stepCountingHillClimbingType_) {
+        super(acceptedCountLimit_, statistics);
         if(stepCountingHillClimbingSize == -1){
             try{
                 this.stepCountingHillClimbingSize = Integer.parseInt(configuration.getProperty(PropertiesLoader.STEP_COUNTING_SIZE));
@@ -36,6 +36,7 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> winner) {
         var score = (HardSoftScore) winner.getScore();
+        // Pick move if score gets improved or thresholdScore does not get violated
         if(score.compareTo(highScore) >= 0 || score.compareTo(thresholdScore) >= 0){
             logger.info("Found new winner with score: " + score);
             return true;
@@ -50,6 +51,8 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
+
+        // Initialize thresholdscore
         thresholdScore = phaseScope.getBestScore();
         count = 0;
     }
@@ -57,6 +60,8 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
     @Override
     public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {
         super.stepEnded(stepScope);
+
+        // Update thresholdscore and reset count if necessary
         count += determineCountIncrement(stepScope);
         if (count >= stepCountingHillClimbingSize) {
             thresholdScore = highScore;
@@ -71,20 +76,25 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
         count = -1;
     }
 
+    /**
+     * Determines the count increment for every step according to the type
+     * @param stepScope the step scope
+     * @return the increment
+     */
     private int determineCountIncrement(LocalSearchStepScope<Solution_> stepScope) {
         switch (stepCountingHillClimbingType) {
-            case SELECTED_MOVE:
+            case SELECTED_MOVE: // Increase count by number of selected moves
                 long selectedMoveCount = stepScope.getSelectedMoveCount();
                 return selectedMoveCount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) selectedMoveCount;
-            case ACCEPTED_MOVE:
+            case ACCEPTED_MOVE: // Increase count by number of accepted moves
                 long acceptedMoveCount = stepScope.getAcceptedMoveCount();
                 return acceptedMoveCount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) acceptedMoveCount;
-            case STEP:
+            case STEP: // Increse count by 1
                 return 1;
-            case EQUAL_OR_IMPROVING_STEP:
+            case EQUAL_OR_IMPROVING_STEP: // Increase count if score got improved or equal
                 return ((Score) stepScope.getScore()).compareTo(
                         stepScope.getPhaseScope().getLastCompletedStepScope().getScore()) >= 0 ? 1 : 0;
-            case IMPROVING_STEP:
+            case IMPROVING_STEP: // Increase count by 1 if score got improved
                 return ((Score) stepScope.getScore()).compareTo(
                         stepScope.getPhaseScope().getLastCompletedStepScope().getScore()) > 0 ? 1 : 0;
             default:

@@ -21,23 +21,21 @@ import java.util.Objects;
 public class PrivacyPreservingForagerFactory<Solution_> extends LocalSearchForagerFactory<Solution_> {
     private final LocalSearchForagerConfig foragerConfig;
     private final String configurationName;
-    private final List<Solution_> intermediateResults;
     private final OptaplannerOptimizationStatistics statistics;
     private final LocalSearchAcceptorConfig acceptorConfig;
     private final HeuristicConfigPolicy configPolicy;
 
-    public PrivacyPreservingForagerFactory(LocalSearchForagerConfig foragerConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics, LocalSearchAcceptorConfig acceptorConfig, HeuristicConfigPolicy<Solution_> configPolicy) {
+    public PrivacyPreservingForagerFactory(LocalSearchForagerConfig foragerConfig, String configurationName, OptaplannerOptimizationStatistics statistics, LocalSearchAcceptorConfig acceptorConfig, HeuristicConfigPolicy<Solution_> configPolicy) {
         super(foragerConfig);
         this.foragerConfig = foragerConfig;
         this.configurationName = configurationName;
-        this.intermediateResults = intermediateResults;
         this.statistics = statistics;
         this.acceptorConfig = acceptorConfig;
         this.configPolicy = configPolicy;
     }
 
-    public static <Solution_> LocalSearchForagerFactory<Solution_> create(LocalSearchForagerConfig foragerConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics, LocalSearchAcceptorConfig acceptorConfig, HeuristicConfigPolicy<Solution_> configPolicy) {
-        return new PrivacyPreservingForagerFactory<>(foragerConfig, configurationName, intermediateResults, statistics, acceptorConfig, configPolicy);
+    public static <Solution_> LocalSearchForagerFactory<Solution_> create(LocalSearchForagerConfig foragerConfig, String configurationName, OptaplannerOptimizationStatistics statistics, LocalSearchAcceptorConfig acceptorConfig, HeuristicConfigPolicy<Solution_> configPolicy) {
+        return new PrivacyPreservingForagerFactory<>(foragerConfig, configurationName, statistics, acceptorConfig, configPolicy);
     }
 
     /**
@@ -56,14 +54,14 @@ public class PrivacyPreservingForagerFactory<Solution_> extends LocalSearchForag
 
         switch (configurationName){
             case "CUSTOM_STEP_COUNTING_HILL_CLIMBING":
-                forager = new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_, intermediateResults, statistics, stepCountingHillClimbingSize, stepCountingHillClimbingType_);
+                forager = new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_,  statistics, stepCountingHillClimbingSize, stepCountingHillClimbingType_);
                 break;
             case "CUSTOM_SIMULATED_ANNEALING":
                 var startingTemperature = configPolicy.getScoreDefinition().parseScore(acceptorConfig.getSimulatedAnnealingStartingTemperature());
-                forager = new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, intermediateResults, statistics, startingTemperature);
+                forager = new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, statistics, startingTemperature);
                 break;
             default:
-                forager = new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_, intermediateResults, statistics);
+                forager = new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_,statistics);
         }
         return forager;
     }

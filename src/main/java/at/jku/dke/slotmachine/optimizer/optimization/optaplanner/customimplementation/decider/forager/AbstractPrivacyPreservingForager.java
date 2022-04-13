@@ -56,19 +56,16 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     protected Integer[][] flightOrderArraysOfCandidates;
     protected Integer numberOfFlights;
 
-    // Intermediate Results
-    protected final List<Solution_> intermediateResults;
-
     // Statistics
     protected final OptaplannerOptimizationStatistics statistics;
     protected int iterations;
 
    protected AbstractPrivacyPreservingForager() {
-       this(50, new ArrayList<>(), new OptaplannerOptimizationStatistics());
+       this(50, new OptaplannerOptimizationStatistics());
    }
 
 
-    protected AbstractPrivacyPreservingForager(int acceptedCountLimit, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics)  {
+    protected AbstractPrivacyPreservingForager(int acceptedCountLimit, OptaplannerOptimizationStatistics statistics)  {
         logger.info("Initialized " + this.getClass());
         try {
             this.configuration = PropertiesLoader.loadProperties("customoptaplanner.properties");
@@ -76,7 +73,6 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
             logger.warn(e.getMessage());
         }
         this.acceptedCountLimit = acceptedCountLimit;
-        this.intermediateResults = intermediateResults;
         this.statistics = statistics;
 
         int minimumAcceptedCountLimit = Integer.parseInt(configuration.getProperty(PropertiesLoader.MINIMUM_ACCEPTED_COUNT_LIMIT));
@@ -185,7 +181,6 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
             this.lastPickedMoveScope = winner;
 
             var undoMove = winner.getMove().doMove(scoreDirector);
-            intermediateResults.add(0, innerScoreDirector.cloneWorkingSolution());
             undoMove.doMove(scoreDirector);
 
             if(this.iterations == 1) this.statistics.setInitialFitness(this.highScore.getHardScore() >= 0 ? this.highScore.getSoftScore() : 0);

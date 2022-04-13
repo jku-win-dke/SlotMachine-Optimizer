@@ -8,8 +8,8 @@ import java.util.List;
 
 public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_>{
 
-    public PrivacyPreservingHillClimbingForager(int acceptedCountLimit_, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics) {
-        super(acceptedCountLimit_, intermediateResults, statistics);
+    public PrivacyPreservingHillClimbingForager(int acceptedCountLimit_, OptaplannerOptimizationStatistics statistics) {
+        super(acceptedCountLimit_, statistics);
     }
 
     /**
@@ -21,6 +21,7 @@ public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPri
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> winner) {
         var score = (HardSoftScore) winner.getScore();
 
+        // Pick move only if score gets improved
         if(score.compareTo(highScore) >= 0){
             logger.info("Found new winner with score: " + score);
             return true;

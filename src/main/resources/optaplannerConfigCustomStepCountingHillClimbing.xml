@@ -14,8 +14,15 @@
 
     <!-- Local Search Phase -->
     <localSearch>
+        <termination>
+            <terminationCompositionStyle>AND</terminationCompositionStyle>
+            <unimprovedMillisecondsSpentLimit>500</unimprovedMillisecondsSpentLimit>
+            <unimprovedScoreDifferenceThreshold>0hard/100soft</unimprovedScoreDifferenceThreshold>
+            <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
+        </termination>
         <acceptor>
             <stepCountingHillClimbingSize>20</stepCountingHillClimbingSize>
+            <stepCountingHillClimbingType>STEP</stepCountingHillClimbingType>
         </acceptor>
         <forager>
             <acceptedCountLimit>50</acceptedCountLimit>

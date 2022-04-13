@@ -17,31 +17,39 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
     protected int levelsLength = -1;
     protected double[] startingTemperatureLevels;
     protected double[] temperatureLevels;
-    protected double temperatureMinimum = 1.0E-100; // Double.MIN_NORMAL is E-308
+    protected double temperatureMinimum = 1.0E-100;
 
 
-    public PrivacyPreservingSimulatedAnnealingForager(int acceptedCountLimit_, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics, Score startingTemperature) {
-        super(acceptedCountLimit_, intermediateResults, statistics);
+    public PrivacyPreservingSimulatedAnnealingForager(int acceptedCountLimit_, OptaplannerOptimizationStatistics statistics, Score startingTemperature) {
+        super(acceptedCountLimit_, statistics);
         this.startingTemperature = startingTemperature;
     }
 
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> stepWinner) {
         HardSoftScore moveScore = (HardSoftScore) stepWinner.getScore();
+        // Adjust starting temperature at the beginning of the optimization according to first score encountered
         if(this.iterations == 1){
             this.startingTemperature = ScoreUtils.parseScore(HardSoftScore.class, "0hard/"+moveScore.getSoftScore()/100+"soft");
             logger.info("Set starting temperature to "+moveScore.getSoftScore()/100 + " for soft score of "+moveScore.getSoftScore());
         }
 
+        // Pick move if it increases the score
         if (moveScore.compareTo(highScore) >= 0) {
             logger.info("Found new winner with score: " + moveScore);
             return true;
         }
 
+        // Pick move stochastically according to score difference and temperature
+
+        // Get score differences
         Score moveScoreDifference = highScore.subtract(moveScore);
         double[] moveScoreDifferenceLevels = ScoreUtils.extractLevelDoubles(moveScoreDifference);
+
+        // Adjust accept chance for every level
         double acceptChance = 1.0;
         for (int i = 0; i < levelsLength; i++) {
+            // Get score difference of level
             double moveScoreDifferenceLevel = moveScoreDifferenceLevels[i];
             double temperatureLevel = temperatureLevels[i];
             double acceptChanceLevel;
@@ -53,6 +61,7 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
             }
             acceptChance *= acceptChanceLevel;
         }
+        // Pick move according to random number and accept chance
         if (stepWinner.getWorkingRandom().nextDouble() < acceptChance) {
             logger.info("Accepted move with score: " + moveScore);
             return true;
@@ -68,6 +77,7 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
+        // Set starting temperature for score levels
         for (double startingTemperatureLevel : ScoreUtils.extractLevelDoubles(startingTemperature)) {
             if (startingTemperatureLevel < 0.0) {
                 throw new IllegalArgumentException("The startingTemperature (" + startingTemperature
@@ -94,6 +104,8 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
         double timeGradient = stepScope.getTimeGradient();
         double reverseTimeGradient = 1.0 - timeGradient;
         temperatureLevels = new double[levelsLength];
+
+        // Adjust/decrease all temperature levels (hard/soft) according to time passed
         for (int i = 0; i < levelsLength; i++) {
             temperatureLevels[i] = startingTemperatureLevels[i] * reverseTimeGradient;
             if (temperatureLevels[i] < temperatureMinimum) {

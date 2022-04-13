@@ -13,6 +13,12 @@
 
     <!-- Local Search Phase -->
     <localSearch>
+        <termination>
+            <terminationCompositionStyle>AND</terminationCompositionStyle>
+            <unimprovedSecondsSpentLimit>1</unimprovedSecondsSpentLimit>
+            <unimprovedScoreDifferenceThreshold>0hard/100soft</unimprovedScoreDifferenceThreshold>
+            <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
+        </termination>
         <acceptor>
             <simulatedAnnealingStartingTemperature>0hard/5000soft</simulatedAnnealingStartingTemperature>
         </acceptor>

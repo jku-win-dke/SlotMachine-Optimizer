@@ -46,7 +46,6 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
     private static final Logger LOGGER = LoggerFactory.getLogger(PrivacyPreservingSolverFactory.class);
     private static final long DEFAULT_RANDOM_SEED = 0L;
 
-    private List<Solution_> intermediateResults;
     private String configurationName;
     private final SolverConfig solverConfig;
     private final OptaplannerOptimizationStatistics statistics;
@@ -57,13 +56,12 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
      */
     private final DefaultSolverFactory<Solution_> defaultSolverFactory;
 
-    public PrivacyPreservingSolverFactory(SolverConfig solverConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics, AssignmentProblemType assignmentProblemType) {
+    public PrivacyPreservingSolverFactory(SolverConfig solverConfig, String configurationName, OptaplannerOptimizationStatistics statistics, AssignmentProblemType assignmentProblemType) {
         if (solverConfig == null) {
             throw new IllegalStateException("The solverConfig (" + solverConfig + ") cannot be null.");
         }
         this.solverConfig = solverConfig;
         this.defaultSolverFactory = new DefaultSolverFactory<>(solverConfig);
-        this.intermediateResults = intermediateResults;
         this.configurationName = configurationName;
         this.statistics = statistics;
         this.assignmentProblemType = assignmentProblemType;
@@ -185,7 +183,7 @@ public class PrivacyPreservingSolverFactory<Solution_> implements SolverFactory<
             PhaseFactory<Solution_> phaseFactory = null;
             // Setting Custom LocalSearchPhaseFactory for local search phase
             if (LocalSearchPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
-                phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig, configurationName, intermediateResults, statistics, assignmentProblemType);
+                phaseFactory = new PrivacyPreservingLocalSearchPhaseFactory<>((LocalSearchPhaseConfig) phaseConfig, configurationName, statistics, assignmentProblemType);
             }
             if(phaseFactory != null){
                 Phase<Solution_> phase =

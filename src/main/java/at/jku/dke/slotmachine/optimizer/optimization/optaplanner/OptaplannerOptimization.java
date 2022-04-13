@@ -9,16 +9,16 @@ import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplement
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingSolverFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.optaplanner.core.api.score.Score;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
+import org.optaplanner.core.api.solver.event.BestSolutionChangedEvent;
+import org.optaplanner.core.api.solver.event.SolverEventListener;
 import org.optaplanner.core.config.solver.SolverConfig;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class OptaplannerOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
@@ -53,19 +53,32 @@ public class OptaplannerOptimization extends Optimization {
         logger.info("Create the solver factory.");
 
         // Use custom solver factory for privacy-preserving optimization
+        Solver<FlightPrioritization> solver;
+
         SolverFactory<FlightPrioritization> solverFactory = null;
+        List<Map<Score, FlightPrioritization>> intermediateResults = new ArrayList<>();
         if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
             AssignmentProblemType assignmentProblemType = AssignmentProblemType.BALANCED;
             if(this.getFlights().length < this.getSlots().length) assignmentProblemType = AssignmentProblemType.UNBALANCED;
 
-            solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig, this.getConfiguration().getConfigurationName(), new ArrayList<>(), statistics, assignmentProblemType);
+
+            solverFactory = new PrivacyPreservingSolverFactory<>(solverConfig, this.getConfiguration().getConfigurationName(), statistics, assignmentProblemType);
+
+            logger.info("Build the solver.");
+            solver = solverFactory.buildSolver();
+            solver.addEventListener(event -> {
+                HashMap<Score, FlightPrioritization> solution = new HashMap<>();
+                solution.put(event.getNewBestScore(), event.getNewBestSolution());
+                intermediateResults.add(0, solution);
+            });
             this.statistics.setTimeStarted(LocalDateTime.now(ZoneId.of(("CET"))));
         }else{ // Otherwise use default factory
            solverFactory = SolverFactory.create(solverConfig);
+
+            logger.info("Build the solver.");
+            solver = solverFactory.buildSolver();
         }
 
-        logger.info("Build the solver.");
-        Solver<FlightPrioritization> solver = solverFactory.buildSolver();
 
 
         logger.info("Compute weight map for flights.");

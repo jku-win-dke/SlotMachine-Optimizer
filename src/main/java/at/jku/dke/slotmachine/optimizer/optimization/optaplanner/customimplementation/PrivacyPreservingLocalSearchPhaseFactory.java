@@ -40,14 +40,12 @@ import java.util.concurrent.ThreadFactory;
  */
 public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFactory<Solution_, LocalSearchPhaseConfig> {
     private final String configurationName;
-    private final List<Solution_> intermediateResults;
     private final OptaplannerOptimizationStatistics statistics;
     private final AssignmentProblemType assignmentProblemType;
     private LocalSearchAcceptorConfig acceptorConfig;
 
-    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig, String configurationName, List<Solution_> intermediateResults, OptaplannerOptimizationStatistics statistics, AssignmentProblemType assignmentProblemType) {
+    public PrivacyPreservingLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig, String configurationName, OptaplannerOptimizationStatistics statistics, AssignmentProblemType assignmentProblemType) {
         super(phaseConfig);
-        this.intermediateResults = intermediateResults;
         this.configurationName = configurationName;
         this.statistics = statistics;
         this.assignmentProblemType = assignmentProblemType;
@@ -165,7 +163,7 @@ public class PrivacyPreservingLocalSearchPhaseFactory<Solution_> extends Abstrac
             foragerConfig_ = new LocalSearchForagerConfig();
         }
         // custom forager
-        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, configurationName, intermediateResults, statistics, acceptorConfig, configPolicy);
+        var factory = PrivacyPreservingForagerFactory.<Solution_> create(foragerConfig_, configurationName, statistics, acceptorConfig, configPolicy);
         return factory.buildForager();
     }
 
