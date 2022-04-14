@@ -131,6 +131,13 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                   ).toArray(Integer[][]::new);
     }
 
+    protected static double percentile(List<Double> values, double percentile) {
+        values = new ArrayList<>(values);
+        Collections.sort(values);
+        int index = (int) Math.ceil((percentile / 100) * values.size());
+        return values.get(index - 1);
+    }
+
     static class PopulationEvaluation{
         protected List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         protected Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation;

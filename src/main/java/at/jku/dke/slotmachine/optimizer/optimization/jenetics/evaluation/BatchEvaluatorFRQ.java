@@ -1,14 +1,11 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation;
 
 import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
-import at.jku.dke.slotmachine.optimizer.optimization.FitnessMethod;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
 import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
-import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import io.jenetics.EnumGene;
-import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
 import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 
 public class BatchEvaluatorFRQ extends BatchEvaluator{
     private static final Logger logger = LogManager.getLogger();
@@ -38,13 +36,10 @@ public class BatchEvaluatorFRQ extends BatchEvaluator{
 
         if(this.optimization.getFitnessEstimator() != null) {
             // per default, the estimated population size is the same as the population size
-            int estimatedPopulationSize = population.size();
-
-            estimatedPopulationSize = this.optimization.getFitnessPrecision();
+            int estimatedPopulationSize = this.optimization.getFitnessPrecision();
             logger.debug("Estimated population size: " + estimatedPopulationSize);
 
             // for this we need a change of the Privacy Engine interface
-
             logger.debug("Getting estimated fitness value from estimator: " + this.optimization.getFitnessEstimator().getClass());
             double[] estimatedFitnessValues =
                     this.optimization.getFitnessEstimator().estimateFitnessDistribution(estimatedPopulationSize, maxFitness, minFitness);

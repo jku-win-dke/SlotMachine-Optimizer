@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 public class BatchEvaluatorAboveAbsolute extends BatchEvaluator{
     private static final Logger logger = LogManager.getLogger();
+    double threshold = Integer.MIN_VALUE;
 
     /**
      * @param problem      the slot allocation problem
@@ -66,7 +67,7 @@ public class BatchEvaluatorAboveAbsolute extends BatchEvaluator{
 
     @Override
     protected PopulationEvaluation evaluatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep) {
-        final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
+        List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         double maxFitness;
 
         if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
@@ -100,6 +101,10 @@ public class BatchEvaluatorAboveAbsolute extends BatchEvaluator{
             maxFitness = evaluatedPopulation.get(0).fitness();
 
             logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
+
+            threshold = maxFitness * 0.7;
+
+            evaluatedPopulation = evaluatedPopulation.stream().filter(phenotype -> phenotype.fitness() >= threshold).toList();
 
             if(fitnessEvolutionStep != null) {
                 fitnessEvolutionStep.setEvaluatedPopulation(

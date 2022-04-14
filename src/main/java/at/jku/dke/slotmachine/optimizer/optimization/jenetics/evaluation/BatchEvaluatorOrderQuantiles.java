@@ -11,9 +11,7 @@ import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BatchEvaluatorOrderQuantiles extends BatchEvaluator{
@@ -39,6 +37,15 @@ public class BatchEvaluatorOrderQuantiles extends BatchEvaluator{
             logger.debug("Getting estimated fitness value from estimator: " + this.optimization.getFitnessEstimator().getClass());
             double[] estimatedFitnessValues =
                     this.optimization.getFitnessEstimator().estimateFitnessDistribution(estimatedPopulationSize, maxFitness, minFitness);
+
+
+            // Ignore
+            List<Double> evaluatedFitnessValues = evaluatedPopulation.stream().map(p -> (double )p.fitness()).toList();
+            double[] percentiles = new double[this.optimization.getFitnessPrecision()];
+            for(int i = 0; i < percentiles.length; i++){
+                percentiles[i] = percentile(evaluatedFitnessValues, (100.0 / this.optimization.getFitnessPrecision()) * (i+1));
+            }
+            //
 
             logger.debug("Assign each solution in the population an estimated fitness value.");
             final int finalEstimatedPopulationSize = estimatedPopulationSize;

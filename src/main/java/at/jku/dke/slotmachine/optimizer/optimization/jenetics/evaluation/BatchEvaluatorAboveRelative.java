@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 public class BatchEvaluatorAboveRelative extends BatchEvaluator{
     private static final Logger logger = LogManager.getLogger();
+    private final double relativeThreshold = 0.3;
 
     /**
      * @param problem      the slot allocation problem
@@ -35,9 +36,6 @@ public class BatchEvaluatorAboveRelative extends BatchEvaluator{
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
 
         if(this.optimization.getFitnessEstimator() != null) {
-            // per default, the estimated population size is the same as the population size
-            int estimatedPopulationSize = population.size();
-
             List<Genotype<EnumGene<Integer>>> evaluatedGenotypes =
                     evaluatedPopulation.stream().map(phenotype -> phenotype.genotype()).toList();
 
@@ -68,7 +66,7 @@ public class BatchEvaluatorAboveRelative extends BatchEvaluator{
 
     @Override
     protected PopulationEvaluation evaluatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep) {
-        final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
+        List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         double maxFitness;
 
         if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
@@ -102,6 +100,10 @@ public class BatchEvaluatorAboveRelative extends BatchEvaluator{
             maxFitness = evaluatedPopulation.get(0).fitness();
 
             logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
+
+            double threshold = percentile(evaluatedPopulation.stream().map(ph -> (double) ph.fitness()).toList(), (1 - relativeThreshold) * 100);
+
+            evaluatedPopulation = evaluatedPopulation.stream().filter(phenotype -> phenotype.fitness() >= threshold).toList();
 
             if(fitnessEvolutionStep != null) {
                 fitnessEvolutionStep.setEvaluatedPopulation(
