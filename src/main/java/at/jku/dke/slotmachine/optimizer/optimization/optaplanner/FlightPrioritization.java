@@ -1,9 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;

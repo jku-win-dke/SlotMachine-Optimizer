@@ -276,7 +276,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
 
 
     private Map<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> evaluateExternalDataMode(){
-        var map = privacyEngine.evaluateFlightOrderArrays(this.flightOrderArraysOfCandidates, (FlightPrioritization) this.innerScoreDirector.cloneWorkingSolution());
+        Map<HardSoftScore, Integer[][]> map = privacyEngine.evaluateFlightOrderArrays(this.flightOrderArraysOfCandidates, (FlightPrioritization) this.innerScoreDirector.cloneWorkingSolution());
         //var map = privacyEngine.evaluateFlightOrderArrays2(this.flightOrderArraysOfCandidates, this.director);
         var score = map.entrySet().stream().findFirst().get().getKey();
         var bestOrderArray = map.entrySet().stream().findFirst().get().getValue()[0];

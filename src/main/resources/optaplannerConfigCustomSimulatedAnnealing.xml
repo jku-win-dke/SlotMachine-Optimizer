@@ -13,6 +13,7 @@
 
     <!-- Local Search Phase -->
     <localSearch>
+        <phaseType>privacyPreserving</phaseType>
         <termination>
             <terminationCompositionStyle>AND</terminationCompositionStyle>
             <unimprovedSecondsSpentLimit>1</unimprovedSecondsSpentLimit>
@@ -20,16 +21,17 @@
             <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
         </termination>
         <acceptor>
-            <simulatedAnnealingStartingTemperature>0hard/5000soft</simulatedAnnealingStartingTemperature>
+            <acceptorType>SLM_HARDCONSTRAINTS_ACCEPTOR</acceptorType>
         </acceptor>
         <forager>
             <acceptedCountLimit>50</acceptedCountLimit>
+            <foragerType>SLM_SIMULATED_ANNEALING</foragerType>
         </forager>
         <unionMoveSelector>
             <cacheType>JUST_IN_TIME</cacheType>
             <selectionOrder>RANDOM</selectionOrder>
-            <changeMoveSelector/>
             <swapMoveSelector/>
+            <changeMoveSelector/>
         </unionMoveSelector>
     </localSearch>
 </solver>

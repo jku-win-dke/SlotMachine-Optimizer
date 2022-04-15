@@ -5,7 +5,6 @@ import at.jku.dke.slotmachine.optimizer.Utils;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.config.solver.SolverConfig;
 
 public class OptaplannerOptimizationConfiguration extends OptimizationConfiguration {

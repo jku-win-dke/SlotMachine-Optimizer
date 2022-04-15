@@ -14,21 +14,25 @@
 
     <!-- Local Search Phase -->
     <localSearch>
+        <phaseType>privacyPreserving</phaseType>
         <termination>
             <terminationCompositionStyle>AND</terminationCompositionStyle>
             <unimprovedMillisecondsSpentLimit>500</unimprovedMillisecondsSpentLimit>
             <unimprovedScoreDifferenceThreshold>0hard/100soft</unimprovedScoreDifferenceThreshold>
             <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
         </termination>
-        <localSearchType>HILL_CLIMBING</localSearchType>
+        <acceptor>
+            <acceptorType>SLM_HARDCONSTRAINTS_ACCEPTOR</acceptorType>
+        </acceptor>
         <forager>
             <acceptedCountLimit>50</acceptedCountLimit>
+            <foragerType>SLM_HILL_CLIMBING</foragerType>
         </forager>
        <unionMoveSelector>
            <cacheType>JUST_IN_TIME</cacheType>
            <selectionOrder>RANDOM</selectionOrder>
-           <changeMoveSelector/>
            <swapMoveSelector/>
+           <changeMoveSelector/>
        </unionMoveSelector>
     </localSearch>
 </solver>
