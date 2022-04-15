@@ -34,7 +34,7 @@ public class BatchEvaluatorOrder extends BatchEvaluator{
 
         if(this.optimization.getFitnessEstimator() != null){
             // per default, the estimated population size is the same as the population size
-            int estimatedPopulationSize = population.size();
+            int estimatedPopulationSize = getEstimatedPopulationSize(population);
 
             logger.debug("Getting estimated fitness value from estimator: " + this.optimization.getFitnessEstimator().getClass());
             double[] estimatedFitnessValues =
@@ -63,6 +63,10 @@ public class BatchEvaluatorOrder extends BatchEvaluator{
             }
         }
         return  estimatedPopulation;
+    }
+
+    protected int getEstimatedPopulationSize(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
+        return population.size();
     }
 
     @Override
