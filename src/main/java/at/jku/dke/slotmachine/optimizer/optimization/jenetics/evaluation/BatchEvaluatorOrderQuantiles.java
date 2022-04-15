@@ -5,8 +5,6 @@ import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProb
 import io.jenetics.EnumGene;
 import io.jenetics.Phenotype;
 import io.jenetics.util.Seq;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 public class BatchEvaluatorOrderQuantiles extends BatchEvaluatorOrder{
