@@ -75,52 +75,6 @@ public class BatchEvaluatorOrderQuantiles extends BatchEvaluator{
 
     @Override
     protected PopulationEvaluation evaluatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep) {
-        final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
-        double maxFitness;
-
-        if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
-            logger.debug("Running in privacy-preserving mode: Evaluate the population using the Privacy Engine.");
-
-            logger.debug("Convert population to format required by Privacy Engine.");
-            Integer[][] input = this.convertPopulationToArray(population);
-
-            logger.debug("Invoke the Privacy Engine service to evaluate population.");
-            PopulationOrderDTO populationOrder =
-                    this.optimization.getPrivacyEngineService().computePopulationOrder(this.optimization, input);
-
-            int[] order = populationOrder.getOrder();
-
-            logger.debug("Convert the population order received from the Privacy Engine to the format required by Jenetics.");
-            evaluatedPopulation =
-                    population.stream()
-                            .sorted(Comparator.comparingInt(phenotype -> order[population.indexOf(phenotype)]))
-                            .toList();
-
-            maxFitness = populationOrder.getMaximum();
-        } else {
-            logger.debug("Running in non-privacy-preserving mode: Evaluate the population using the submitted weights.");
-            evaluatedPopulation =
-                    population.stream()
-                            .map(phenotype -> phenotype.withFitness(problem.fitness(phenotype.genotype())))
-                            .sorted(Comparator.comparingInt(Phenotype::fitness))
-                            .sorted(Comparator.reverseOrder())
-                            .toList();
-
-            maxFitness = evaluatedPopulation.get(0).fitness();
-
-            logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
-
-            if(fitnessEvolutionStep != null) {
-                fitnessEvolutionStep.setEvaluatedPopulation(
-                        evaluatedPopulation.stream().map(phenotype -> (double) phenotype.fitness()).toArray(Double[]::new)
-                );
-                logger.debug("Tracing fitness evolution. Size of evaluated population: " + fitnessEvolutionStep.getEvaluatedPopulation().length);
-            }
-        }
-
-        PopulationEvaluation evaluation = new PopulationEvaluation();
-        evaluation.evaluatedPopulation = evaluatedPopulation;
-        evaluation.maxFitness = maxFitness;
-        return evaluation;
+        return evaluatePopulationOrder(population, fitnessEvolutionStep);
     }
 }
