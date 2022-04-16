@@ -2,6 +2,7 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplemen
 
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.*;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
+import org.optaplanner.core.impl.localsearch.decider.forager.custom.NeighbourhoodEvaluator;
 
 import java.util.*;
 import java.util.stream.Collectors;

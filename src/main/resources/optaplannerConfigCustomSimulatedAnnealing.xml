@@ -22,10 +22,12 @@
         </termination>
         <acceptor>
             <acceptorType>SLM_HARDCONSTRAINTS_ACCEPTOR</acceptorType>
+            <constraintValidatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingHardScoreComparator</constraintValidatorClass>
         </acceptor>
         <forager>
             <acceptedCountLimit>50</acceptedCountLimit>
             <foragerType>SLM_SIMULATED_ANNEALING</foragerType>
+            <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
         </forager>
         <unionMoveSelector>
             <cacheType>JUST_IN_TIME</cacheType>
