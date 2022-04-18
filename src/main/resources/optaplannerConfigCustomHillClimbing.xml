@@ -14,7 +14,7 @@
 
     <!-- Local Search Phase -->
     <localSearch>
-        <phaseType>privacyPreserving</phaseType>
+        <phaseType>PRIVACY_PRESERVING</phaseType>
         <termination>
             <terminationCompositionStyle>AND</terminationCompositionStyle>
             <unimprovedMillisecondsSpentLimit>500</unimprovedMillisecondsSpentLimit>
@@ -22,12 +22,12 @@
             <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
         </termination>
         <acceptor>
-            <acceptorType>SLM_HARDCONSTRAINTS_ACCEPTOR</acceptorType>
+            <acceptorType>CONSTRAINT_AWARE</acceptorType>
             <constraintValidatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingHardScoreComparator</constraintValidatorClass>
         </acceptor>
         <forager>
             <acceptedCountLimit>50</acceptedCountLimit>
-            <foragerType>SLM_HILL_CLIMBING</foragerType>
+            <foragerType>PP_HILL_CLIMBING</foragerType>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
         </forager>
        <unionMoveSelector>

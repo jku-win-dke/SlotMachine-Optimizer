@@ -5,7 +5,6 @@ import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
-import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.optaplanner.core.api.score.Score;
@@ -13,7 +12,6 @@ import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.solver.SolverConfig;
 import org.optaplanner.core.impl.localsearch.AssignmentProblemType;
-import org.optaplanner.core.impl.localsearch.decider.forager.custom.NeighbourhoodEvaluator;
 import org.optaplanner.core.impl.solver.DefaultSolverFactory;
 
 import java.time.LocalDateTime;
@@ -25,6 +23,7 @@ public class OptaplannerOptimization extends Optimization {
 
     private OptaplannerOptimizationConfiguration configuration = null;
     private OptaplannerOptimizationStatistics statistics = null;
+    private List<Map<Score, FlightPrioritization>> intermediateResults = new ArrayList<>();
 
     public OptaplannerOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
@@ -57,15 +56,13 @@ public class OptaplannerOptimization extends Optimization {
         logger.info("Build the solver.");
         Solver<FlightPrioritization> solver = null;
 
-        List<Map<Score, FlightPrioritization>> intermediateResults = new ArrayList<>();
         if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
             AssignmentProblemType assignmentProblemType = AssignmentProblemType.BALANCED;
             if(this.getFlights().length < this.getSlots().length) assignmentProblemType = AssignmentProblemType.UNBALANCED;
 
-            // TODO: introduce ConstraintValidator for Acceptor
-            // TODO: introduce problemtype balanced vs unbalanced for acceptor (moveselection)
             // TODO: add algorithm dependent properties (startingTemperature etc.) to forager configuration (xml)
             // TODO: different acceptors (all, constraints, move-aware)
+            // TODO: Exception Handling in optaplanner to validate PP-Configuration
             if(solverFactory instanceof DefaultSolverFactory<FlightPrioritization>){
                 ((DefaultSolverFactory)solverFactory).setAssignmentProblemType(assignmentProblemType);
             }

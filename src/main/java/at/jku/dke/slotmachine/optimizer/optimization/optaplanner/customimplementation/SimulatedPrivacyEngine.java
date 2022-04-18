@@ -2,7 +2,7 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplemen
 
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.*;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
-import org.optaplanner.core.impl.localsearch.decider.forager.custom.NeighbourhoodEvaluator;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.NeighbourhoodEvaluator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,7 +31,10 @@ public class SimulatedPrivacyEngine<Solution_> implements NeighbourhoodEvaluator
      */
     public Map<HardSoftScore, List<FlightPrioritization>> evaluateFlightPrioritizations(List<FlightPrioritization> candidates){
         var map = new HashMap<HardSoftScore, List<FlightPrioritization>>();
-        List<FlightPrioritization> sortedList = candidates.stream().sorted(Comparator.comparing(calculator::calculateScore)).collect(Collectors.toList());
+        List<FlightPrioritization> sortedList = candidates
+                .stream()
+                .sorted(Comparator.comparing(calculator::calculateScore))
+                .collect(Collectors.toList());
         Collections.reverse(sortedList);
 
         map.put(calculator.calculateScore(sortedList.get(0)), sortedList);

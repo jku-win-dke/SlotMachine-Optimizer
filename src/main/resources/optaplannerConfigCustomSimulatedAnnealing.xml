@@ -21,12 +21,12 @@
             <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
         </termination>
         <acceptor>
-            <acceptorType>SLM_HARDCONSTRAINTS_ACCEPTOR</acceptorType>
+            <acceptorType>CONSTRAINT_AWARE</acceptorType>
             <constraintValidatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingHardScoreComparator</constraintValidatorClass>
         </acceptor>
         <forager>
             <acceptedCountLimit>50</acceptedCountLimit>
-            <foragerType>SLM_SIMULATED_ANNEALING</foragerType>
+            <foragerType>PP_SIMULATED_ANNEALING</foragerType>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
         </forager>
         <unionMoveSelector>
