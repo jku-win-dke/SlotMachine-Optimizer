@@ -5,7 +5,9 @@ import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimizati
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
 
 public class BatchEvaluatorFactory {
-
+    private BatchEvaluatorFactory(){
+        // utility class
+    }
     public static BatchEvaluator getEvaluator(FitnessMethod fitnessMethod, SlotAllocationProblem problem, JeneticsOptimization optimization){
         return switch(fitnessMethod){
             case ORDER_QUANTILES -> new BatchEvaluatorOrderQuantiles(problem, optimization);

@@ -10,7 +10,6 @@ import io.jenetics.Phenotype;
 import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.drools.core.fluent.impl.Batch;
 
 import java.util.Comparator;
 import java.util.List;
@@ -67,7 +66,7 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
         // TODO: adjust for non privacy-preserving mode
         PopulationEvaluation evaluation = evaluatePopulationOrder(population, fitnessEvolutionStep);
         double threshold = getThreshold(evaluation);
-        evaluation.evaluatedPopulation = evaluation.evaluatedPopulation.stream().filter(phenotype -> phenotype.fitness() >= threshold).toList();
+        evaluation.evaluatedPopulation = evaluation.evaluatedPopulation.stream().filter(phenotype -> phenotype.fitness() > threshold).toList();
         return evaluation;
     }
 

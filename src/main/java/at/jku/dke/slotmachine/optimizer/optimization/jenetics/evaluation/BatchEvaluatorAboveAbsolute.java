@@ -2,9 +2,6 @@ package at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation;
 
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 
 public class BatchEvaluatorAboveAbsolute extends BatchEvaluatorAbove{
     double threshold = 0.7;
@@ -19,7 +16,7 @@ public class BatchEvaluatorAboveAbsolute extends BatchEvaluatorAbove{
 
     @Override
     protected double getThreshold(PopulationEvaluation evaluation) {
-        return evaluation.maxFitness * threshold;
+        return evaluation.maxFitness * this.optimization.getFitnessPrecision() / 100.0;
     }
 
 
