@@ -3,8 +3,10 @@ package at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
 
+/**
+ * BatchEvaluator for the fitness-method ABOVE_ABSOLUTE_THRESHOLD
+ */
 public class BatchEvaluatorAboveAbsolute extends BatchEvaluatorAbove{
-    double threshold = 0.7;
 
     /**
      * @param problem      the slot allocation problem

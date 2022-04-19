@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Abstract super class for fitness-methods that estimate a population based on a threshold
+ */
 public abstract class BatchEvaluatorAbove extends BatchEvaluator {
     private static final Logger logger = LogManager.getLogger();
 
@@ -27,6 +30,18 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
         super(problem, optimization);
     }
 
+    /**
+     * Estimates the population by assigning the maximum fitness to each evaluated phenotype.
+     * All phenotypes that are not evaluated are assigned the minimum fitness.
+     *
+     * @param population the unevaluated population
+     * @param evaluatedPopulation the evaluated population
+     * @param fitnessEvolutionStep the evolution step of this generation
+     * @param fitnessQuantilesPopulation the population mapped to fitness-quantiles
+     * @param maxFitness the maximum fitness of the generation
+     * @param minFitness the minimum fitness of the generation
+     * @return the estimated population
+     */
     @Override
     protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness) {
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation = null;
@@ -61,6 +76,13 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
         return  estimatedPopulation;
     }
 
+    /**
+     * Evaluates all phenotypes according to the threshold
+     *
+     * @param population the unevaluated population
+     * @param fitnessEvolutionStep the evolution step for this generation
+     * @return the evaluated population
+     */
     @Override
     protected PopulationEvaluation evaluatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep) {
         // TODO: adjust for non privacy-preserving mode
@@ -70,6 +92,11 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
         return evaluation;
     }
 
+    /**
+     * Returns the threshold for the evaluation
+     * @param evaluation the evaluated population
+     * @return the threshold
+     */
     protected abstract double getThreshold(PopulationEvaluation evaluation);
 
 }

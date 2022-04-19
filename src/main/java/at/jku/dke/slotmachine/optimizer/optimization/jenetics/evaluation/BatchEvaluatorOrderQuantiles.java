@@ -6,7 +6,9 @@ import io.jenetics.EnumGene;
 import io.jenetics.Phenotype;
 import io.jenetics.util.Seq;
 
-
+/**
+ * BatchEvaluator for the fitness-methode ORDER_QUANTILES
+ */
 public class BatchEvaluatorOrderQuantiles extends BatchEvaluatorOrder{
     /**
      * @param problem      the slot allocation problem
@@ -16,7 +18,11 @@ public class BatchEvaluatorOrderQuantiles extends BatchEvaluatorOrder{
         super(problem, optimization);
     }
 
-
+    /**
+     * Returns the estimated population size according to the fitness precision
+     * @param population the unevaluated population
+     * @return the size
+     */
     @Override
     protected int getEstimatedPopulationSize(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
         return this.optimization.getFitnessPrecision();

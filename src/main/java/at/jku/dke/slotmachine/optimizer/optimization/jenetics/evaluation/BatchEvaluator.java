@@ -18,6 +18,9 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+/**
+ * Abstract super-class of all Batch-Evaluators
+ */
 public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     private static final Logger logger = LogManager.getLogger();
 
@@ -110,11 +113,32 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         return ISeq.of(estimatedPopulation);
     }
 
+    /**
+     * Takes the evaluated population and configuration and estimates missing fitness-values accordingly
+     * @param population the unevaluated population
+     * @param evaluatedPopulation the evaluated population
+     * @param fitnessEvolutionStep the evolution step of this generation
+     * @param fitnessQuantilesPopulation the population mapped to fitness-quantiles
+     * @param maxFitness the maximum fitness of the generation
+     * @param minFitness the minimum fitness of the generation
+     * @return the estimated generation
+     */
     protected abstract List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness);
 
+    /**
+     * Takes the unevaluated population and returns the evaluation according to the configuration
+     * @param population the unevaluated population
+     * @param fitnessEvolutionStep the evolution step for this generation
+     * @return teh evaluated population
+     */
     protected abstract PopulationEvaluation evaluatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep);
 
-
+    /**
+     * Takes the unevaluated population and returns the ordererd candidates and the maximum fitness
+     * @param population the unevaluated population
+     * @param fitnessEvolutionStep the evolution step of this generation
+     * @return the ordered population
+     */
     protected PopulationEvaluation evaluatePopulationOrder(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep){
         final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         double maxFitness;
@@ -165,6 +189,12 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         return evaluation;
     }
 
+    /**
+     * Takes the unevaluated population and assigns them to fitness-range-quantiles according to the fitness-precision
+     * @param population the unevaluated population
+     * @param fitnessEvolutionStep the evolution step of this generation
+     * @return the mapping of the candidates to the fitness-range-quantiles
+     */
     protected PopulationEvaluation evaluatePopulationFitnessQuantiles(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep){
         final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation = null;
@@ -258,6 +288,12 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                   ).toArray(Integer[][]::new);
     }
 
+    /**
+     * Utility method that calculates a percentile
+     * @param values the values
+     * @param percentile the desired percentile
+     * @return the percentile
+     */
     protected static double percentile(List<Double> values, double percentile) {
         values = new ArrayList<>(values);
         Collections.sort(values);
@@ -265,6 +301,9 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         return values.get(index - 1);
     }
 
+    /**
+     * Represents the evaluation of a population
+     */
     static class PopulationEvaluation{
         protected List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         protected Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation;

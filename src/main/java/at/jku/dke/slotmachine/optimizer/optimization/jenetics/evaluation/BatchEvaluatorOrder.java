@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * BatchEvaluator for the fitness-method ORDER
+ */
 public class BatchEvaluatorOrder extends BatchEvaluator{
     private static final Logger logger = LogManager.getLogger();
 
@@ -27,6 +30,17 @@ public class BatchEvaluatorOrder extends BatchEvaluator{
         super(problem, optimization);
     }
 
+    /**
+     * Estimates the population according to the order of the candidates and the estimated fitness-values according to the Estimator-type and the maximum and minimum fitness
+     *
+     * @param population the unevaluated population
+     * @param evaluatedPopulation the evaluated population
+     * @param fitnessEvolutionStep the evolution step of this generation
+     * @param fitnessQuantilesPopulation the population mapped to fitness-quantiles
+     * @param maxFitness the maximum fitness of the generation
+     * @param minFitness the minimum fitness of the generation
+     * @return the estimated population
+     */
     @Override
     protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness) {
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation = null;
@@ -65,10 +79,22 @@ public class BatchEvaluatorOrder extends BatchEvaluator{
         return  estimatedPopulation;
     }
 
+    /**
+     * Returns the estimated population size
+     * @param population the unevaluated population
+     * @return the size
+     */
     protected int getEstimatedPopulationSize(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
         return population.size();
     }
 
+    /**
+     * Evaluates the population
+     *
+     * @param population the unevaluated population
+     * @param fitnessEvolutionStep the evolution step for this generation
+     * @return the ordered population
+     */
     @Override
     protected PopulationEvaluation evaluatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep) {
        return evaluatePopulationOrder(population, fitnessEvolutionStep);

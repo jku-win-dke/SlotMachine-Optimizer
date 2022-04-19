@@ -4,6 +4,9 @@ import at.jku.dke.slotmachine.optimizer.optimization.FitnessMethod;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
 
+/**
+ * Utility class with the factory-method returning the BatchEvaluator according to the fitness-method
+ */
 public class BatchEvaluatorFactory {
     private BatchEvaluatorFactory(){
         // utility class

@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
+/**
+ * BatchEvaluator for the fitness-method FITNESS_RANGE_QUANTILES
+ */
 public class BatchEvaluatorFRQ extends BatchEvaluator{
     private static final Logger logger = LogManager.getLogger();
 
