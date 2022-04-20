@@ -4,7 +4,6 @@ import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
-import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
 import io.jenetics.EnumGene;
 import io.jenetics.Phenotype;
 import io.jenetics.util.Seq;
@@ -12,7 +11,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,14 +18,14 @@ import java.util.stream.Collectors;
 /**
  * BatchEvaluator for the fitness-method FITNESS_RANGE_QUANTILES
  */
-public class BatchEvaluatorFRQ extends BatchEvaluator{
+public class BatchEvaluatorFitnessRangeQuantiles extends BatchEvaluator{
     private static final Logger logger = LogManager.getLogger();
 
     /**
      * @param problem      the slot allocation problem
      * @param optimization the Jenetics optimization run
      */
-    public BatchEvaluatorFRQ(SlotAllocationProblem problem, JeneticsOptimization optimization) {
+    public BatchEvaluatorFitnessRangeQuantiles(SlotAllocationProblem problem, JeneticsOptimization optimization) {
         super(problem, optimization);
     }
 
