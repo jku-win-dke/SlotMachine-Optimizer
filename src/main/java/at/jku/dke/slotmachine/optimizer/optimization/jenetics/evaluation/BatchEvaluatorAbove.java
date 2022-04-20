@@ -88,7 +88,7 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
         // TODO: adjust for non privacy-preserving mode
         PopulationEvaluation evaluation = evaluatePopulationOrder(population, fitnessEvolutionStep);
         double threshold = getThreshold(evaluation);
-        evaluation.evaluatedPopulation = evaluation.evaluatedPopulation.stream().filter(phenotype -> phenotype.fitness() > threshold).toList();
+        evaluation.evaluatedPopulation = evaluation.evaluatedPopulation.stream().filter(phenotype -> phenotype.fitness() >= threshold).toList();
         return evaluation;
     }
 

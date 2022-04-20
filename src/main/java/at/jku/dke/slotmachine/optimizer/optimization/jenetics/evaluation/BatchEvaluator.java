@@ -298,7 +298,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         values = new ArrayList<>(values);
         Collections.sort(values);
         int index = (int) Math.ceil((percentile / 100) * values.size());
-        return values.get(index - 1);
+        return values.get(index);
     }
 
     /**
