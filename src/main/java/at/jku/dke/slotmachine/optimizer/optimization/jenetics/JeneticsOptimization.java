@@ -104,6 +104,11 @@ public class JeneticsOptimization extends Optimization {
             terminationConditions = this.getDefaultConfiguration().getTerminationConditions();
         }
 
+        if(this.statistics.getFitnessEvolution() != null)  {
+            this.statistics.getFitnessEvolution().clear();
+            logger.info("Cleared fitness evolution.");
+        }
+
         logger.info("Initial population consists of " + initialPopulation.length() + " individuals.");
         logger.info("Initial population consists of " + initialPopulation.stream().distinct().toList().size() + " distinct individuals.");
 
