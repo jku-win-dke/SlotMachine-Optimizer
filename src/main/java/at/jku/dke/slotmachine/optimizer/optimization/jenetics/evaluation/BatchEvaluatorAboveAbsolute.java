@@ -7,7 +7,6 @@ import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProb
  * BatchEvaluator for the fitness-method ABOVE_ABSOLUTE_THRESHOLD
  */
 public class BatchEvaluatorAboveAbsolute extends BatchEvaluatorAbove{
-
     /**
      * @param problem      the slot allocation problem
      * @param optimization the Jenetics optimization run

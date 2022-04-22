@@ -122,6 +122,9 @@ public class JeneticsOptimization extends Optimization {
 
         // builder = Engine.builder(problem);
 
+        // Default deduplicate for SRDS experiments
+        this.getConfiguration().setDeduplicate(true);
+        
         if(this.getConfiguration().isDeduplicate()){
             int maxRetries = this.getConfiguration().getDeduplicateMaxRetries();
 

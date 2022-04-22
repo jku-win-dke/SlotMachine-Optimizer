@@ -46,7 +46,7 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
     protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness) {
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation = null;
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
-
+        //TODO: remove condition as no estimator required
         if(this.optimization.getFitnessEstimator() != null) {
             List<Genotype<EnumGene<Integer>>> evaluatedGenotypes =
                     evaluatedPopulation.stream().map(phenotype -> phenotype.genotype()).toList();
