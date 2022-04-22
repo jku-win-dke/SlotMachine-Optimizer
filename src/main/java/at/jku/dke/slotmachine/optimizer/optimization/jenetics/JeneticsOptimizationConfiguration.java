@@ -329,7 +329,13 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
             }
         }
 
-        return predicates.toArray(Predicate[]::new);
+        //SRDS TERMINATION CONDITION BY_FIXED_GENERATION
+        //predicates.add(Limits.byFixedGeneration(50));
+
+        //predicates.toArray(Predicate[]::new);
+
+        // SRDS Fixed Execution Time of 60 seconds
+        return new Predicate[]{Limits.byExecutionTime(Duration.ofSeconds(60))};
     }
 
     private Map<String,Object> getMapParameter(String param) {
