@@ -18,10 +18,8 @@ public class BatchEvaluatorAboveAbsolute extends BatchEvaluatorAbove{
     @Override
     protected double getThreshold(PopulationEvaluation evaluation) {
         if(evaluation.maxFitness < 0){
-            return evaluation.maxFitness + (evaluation.maxFitness * (1 - this.optimization.getFitnessPrecision() / 100.0));
+            return evaluation.maxFitness * (1 + (this.optimization.getFitnessPrecision() / 100.0));
         }
-        return evaluation.maxFitness * this.optimization.getFitnessPrecision() / 100.0;
+        return evaluation.maxFitness * (this.optimization.getFitnessPrecision() / 100.0);
     }
-
-
 }
