@@ -56,17 +56,11 @@ public class OptaplannerOptimization extends Optimization {
         logger.info("Build the solver.");
         Solver<FlightPrioritization> solver = null;
 
-        if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
-            AssignmentProblemType assignmentProblemType = AssignmentProblemType.BALANCED;
-            if(this.getFlights().length < this.getSlots().length) assignmentProblemType = AssignmentProblemType.UNBALANCED;
+        AssignmentProblemType assignmentProblemType = AssignmentProblemType.BALANCED;
+        if(this.getFlights().length < this.getSlots().length) assignmentProblemType = AssignmentProblemType.UNBALANCED;
 
-            // TODO: add algorithm dependent properties (startingTemperature etc.) to forager configuration (xml)
-            // TODO: different acceptors (all, constraints, move-aware)
-            // TODO: Exception Handling in optaplanner to validate PP-Configuration
-            if(solverFactory instanceof DefaultSolverFactory<FlightPrioritization>){
-                ((DefaultSolverFactory)solverFactory).setAssignmentProblemType(assignmentProblemType);
-            }
-            this.statistics.setTimeStarted(LocalDateTime.now(ZoneId.of(("CET"))));
+        if(solverFactory instanceof DefaultSolverFactory<FlightPrioritization>){
+            ((DefaultSolverFactory)solverFactory).setAssignmentProblemType(assignmentProblemType);
         }
 
         solver = solverFactory.buildSolver();
@@ -99,13 +93,13 @@ public class OptaplannerOptimization extends Optimization {
 
         FlightPrioritization solvedFlightPrioritization = null;
 
+        this.statistics.setTimeStarted(LocalDateTime.now(ZoneId.of(("CET"))));
         try {
-            // TODO implement as "solve and listen"
             solvedFlightPrioritization = solver.solve(unsolvedFlightPrioritization);
         } catch (Exception e) {
             logger.error(e);
         }
-
+        this.statistics.setTimeFinished(LocalDateTime.now(ZoneId.of(("CET"))));
 
         Map<Flight,Slot> resultMap = null;
 

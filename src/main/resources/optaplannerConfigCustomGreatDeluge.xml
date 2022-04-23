@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <solver>
     <environmentMode>REPRODUCIBLE</environmentMode>
     <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization</solutionClass>
@@ -16,7 +17,7 @@
         <phaseType>PRIVACY_PRESERVING</phaseType>
         <termination>
             <terminationCompositionStyle>AND</terminationCompositionStyle>
-            <unimprovedSecondsSpentLimit>1</unimprovedSecondsSpentLimit>
+            <unimprovedMillisecondsSpentLimit>500</unimprovedMillisecondsSpentLimit>
             <unimprovedScoreDifferenceThreshold>0hard/100soft</unimprovedScoreDifferenceThreshold>
             <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
         </termination>
@@ -25,16 +26,16 @@
             <constraintValidatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingHardScoreComparator</constraintValidatorClass>
         </acceptor>
         <forager>
-            <foragerType>PP_SIMULATED_ANNEALING</foragerType>
-            <simulatedAnnealingStartingTemperature>0hard/1000soft</simulatedAnnealingStartingTemperature>
+            <foragerType>PP_GREAT_DELUGE</foragerType>
+            <greatDelugeWaterLevelIncrementRatio>0.005</greatDelugeWaterLevelIncrementRatio>
             <acceptedCountLimit>50</acceptedCountLimit>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
         </forager>
-        <unionMoveSelector>
-            <cacheType>JUST_IN_TIME</cacheType>
-            <selectionOrder>RANDOM</selectionOrder>
-            <swapMoveSelector/>
-            <changeMoveSelector/>
-        </unionMoveSelector>
+       <unionMoveSelector>
+           <cacheType>JUST_IN_TIME</cacheType>
+           <selectionOrder>RANDOM</selectionOrder>
+           <swapMoveSelector/>
+           <changeMoveSelector/>
+       </unionMoveSelector>
     </localSearch>
 </solver>
