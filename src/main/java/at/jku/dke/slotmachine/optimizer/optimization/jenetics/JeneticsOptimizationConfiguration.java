@@ -200,8 +200,11 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                     break;
             }
         }
+        // TODO: CHANGE BACK JUST FOR TESTING!
+        int populationAdjustement = this.getPopulationSize() / 8;
 
         return selector;
+        //return new TruncationSelector<>(populationAdjustement);
     }
 
     public double getOffspringFraction() {
