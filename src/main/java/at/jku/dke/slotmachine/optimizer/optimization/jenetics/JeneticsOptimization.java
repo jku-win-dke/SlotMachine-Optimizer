@@ -4,7 +4,6 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
-import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluator;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluatorFactory;
 import io.jenetics.*;
 import io.jenetics.engine.*;

@@ -331,11 +331,10 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
         //SRDS TERMINATION CONDITION BY_FIXED_GENERATION
         //predicates.add(Limits.byFixedGeneration(50));
-
-        //predicates.toArray(Predicate[]::new);
-
         // SRDS Fixed Execution Time of 60 seconds
-        return new Predicate[]{Limits.byExecutionTime(Duration.ofSeconds(60))};
+        //return new Predicate[]{Limits.byExecutionTime(Duration.ofSeconds(60))};
+
+        return predicates.toArray(Predicate[]::new);
     }
 
     private Map<String,Object> getMapParameter(String param) {

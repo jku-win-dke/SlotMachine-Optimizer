@@ -7,6 +7,7 @@ import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProb
 import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import io.jenetics.EnumGene;
+import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
 import io.jenetics.engine.Evaluator;
 import io.jenetics.util.ISeq;
@@ -16,7 +17,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Abstract super-class of all Batch-Evaluators
@@ -26,6 +30,9 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
 	protected final JeneticsOptimization optimization; // used to register new solutions
     protected final SlotAllocationProblem problem;
+    protected final boolean isDeduplicate;
+    protected long lastUnevaluatedGeneration;
+
 
     /**
      *
@@ -35,6 +42,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     public BatchEvaluator(SlotAllocationProblem problem, JeneticsOptimization optimization) {
 		this.problem = problem;
 		this.optimization = optimization;
+        this.isDeduplicate = optimization.getConfiguration().isDeduplicate();
     }
 
     /**
@@ -45,6 +53,29 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     @Override
     public ISeq<Phenotype<EnumGene<Integer>, Integer>> eval(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
         logger.debug("Starting population evaluation ...");
+        Optional<Long> generation = population.stream().map(Phenotype::generation).max(Long::compareTo);
+        if(isDeduplicate){
+            if(generation.get() != lastUnevaluatedGeneration){
+                logger.debug("Checking for duplicates.");
+                final Map<Genotype<EnumGene<Integer>>, Phenotype<EnumGene<Integer>, Integer>> elements =
+                        population.stream()
+                                .collect(toMap(
+                                        Phenotype::genotype,
+                                        Function.identity(),
+                                        (a, b) -> a));
+
+                if(elements.size() < population.size()){
+                    logger.debug("Generation " + generation.get() + " contains duplicates and is encountered for the first time.");
+                    logger.debug("Returning unevaluated population with dummy fitness-values.");
+
+                    lastUnevaluatedGeneration = generation.get();
+                    return ISeq.of(population
+                            .stream()
+                            .map(p -> p.withFitness(-1))
+                            .collect(Collectors.toList()));
+                }
+            }
+        }
 
         final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation = null;
@@ -63,7 +94,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
             logger.debug("Adding fitness evolution to statistics");
             this.optimization.getStatistics().getFitnessEvolution().add(fitnessEvolutionStep);
 
-            Optional<Long> generation = population.stream().map(Phenotype::generation).max(Long::compareTo);
 
             if(generation.isPresent()) {
                 fitnessEvolutionStep.setGeneration(generation.get().intValue());
