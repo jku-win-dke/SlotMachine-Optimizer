@@ -4,6 +4,8 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluator;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluatorFactory;
 import io.jenetics.*;
 import io.jenetics.engine.*;
 import io.jenetics.util.ISeq;
@@ -102,18 +104,28 @@ public class JeneticsOptimization extends Optimization {
             terminationConditions = this.getDefaultConfiguration().getTerminationConditions();
         }
 
+        if(this.statistics.getFitnessEvolution() != null)  {
+            this.statistics.getFitnessEvolution().clear();
+            logger.info("Cleared fitness evolution.");
+        }
+
         logger.info("Initial population consists of " + initialPopulation.length() + " individuals.");
         logger.info("Initial population consists of " + initialPopulation.stream().distinct().toList().size() + " distinct individuals.");
 
         logger.info("Build the genetic algorithm engine.");
 
-        Evaluator evaluator = new BatchEvaluator(problem, this);
+        // Default deduplicate for SRDS experiments
+        //this.getConfiguration().setDeduplicate(true);
+        //this.getConfiguration().setDeduplicateMaxRetries(10);
+
+        Evaluator evaluator = BatchEvaluatorFactory.getEvaluator(getFitnessMethod(), problem, this);
 
         Engine.Builder<EnumGene<Integer>, Integer> builder;
 
         builder = new Engine.Builder<>(evaluator, problem.codec().encoding());
 
         // builder = Engine.builder(problem);
+
 
         if(this.getConfiguration().isDeduplicate()){
             int maxRetries = this.getConfiguration().getDeduplicateMaxRetries();
@@ -169,6 +181,8 @@ public class JeneticsOptimization extends Optimization {
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
         logger.info("Statistics: \n" + statistics);
+        logger.info("Printing statistics from BatchEvaluator");
+        if(evaluator instanceof BatchEvaluator batchEvaluator) batchEvaluator.printLogs();
 
         logger.info("Setting statistics for this optimization."); // already initialized in constructor
         this.getStatistics().setTimeFinished(LocalDateTime.now());

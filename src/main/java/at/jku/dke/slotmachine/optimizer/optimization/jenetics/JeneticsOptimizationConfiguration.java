@@ -329,6 +329,11 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
             }
         }
 
+        //SRDS TERMINATION CONDITION BY_FIXED_GENERATION
+        //predicates.add(Limits.byFixedGeneration(50));
+        // SRDS Fixed Execution Time of 60 seconds
+        //return new Predicate[]{Limits.byExecutionTime(Duration.ofSeconds(60))};
+
         return predicates.toArray(Predicate[]::new);
     }
 

@@ -1,7 +1,6 @@
 package at.jku.dke.slotmachine.optimizer.rest.legacy;
 
 import at.jku.dke.slotmachine.optimizer.service.OptimizationService;
-import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
 import at.jku.dke.slotmachine.optimizer.service.dto.FitnessMethodEnum;
 import at.jku.dke.slotmachine.optimizer.service.dto.FlightDTO;
 import at.jku.dke.slotmachine.optimizer.service.dto.MarginsDTO;
