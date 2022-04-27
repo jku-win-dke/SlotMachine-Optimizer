@@ -4,6 +4,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluator;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluatorFactory;
 import io.jenetics.*;
 import io.jenetics.engine.*;
@@ -113,6 +114,10 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info("Build the genetic algorithm engine.");
 
+        // Default deduplicate for SRDS experiments
+        //this.getConfiguration().setDeduplicate(true);
+        //this.getConfiguration().setDeduplicateMaxRetries(10);
+
         Evaluator evaluator = BatchEvaluatorFactory.getEvaluator(getFitnessMethod(), problem, this);
 
         Engine.Builder<EnumGene<Integer>, Integer> builder;
@@ -121,9 +126,6 @@ public class JeneticsOptimization extends Optimization {
 
         // builder = Engine.builder(problem);
 
-        // Default deduplicate for SRDS experiments
-        this.getConfiguration().setDeduplicate(true);
-        this.getConfiguration().setDeduplicateMaxRetries(10);
 
         if(this.getConfiguration().isDeduplicate()){
             int maxRetries = this.getConfiguration().getDeduplicateMaxRetries();
@@ -179,6 +181,8 @@ public class JeneticsOptimization extends Optimization {
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
         logger.info("Statistics: \n" + statistics);
+        logger.info("Printing statistics from BatchEvaluator");
+        if(evaluator instanceof BatchEvaluator batchEvaluator) batchEvaluator.printLogs();
 
         logger.info("Setting statistics for this optimization."); // already initialized in constructor
         this.getStatistics().setTimeFinished(LocalDateTime.now());

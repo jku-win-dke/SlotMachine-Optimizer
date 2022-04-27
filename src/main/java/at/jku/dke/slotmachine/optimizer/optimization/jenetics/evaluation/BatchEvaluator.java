@@ -31,7 +31,15 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 	protected final JeneticsOptimization optimization; // used to register new solutions
     protected final SlotAllocationProblem problem;
     protected final boolean isDeduplicate;
+    protected final boolean trackDuplicates;
     protected long lastUnevaluatedGeneration;
+    protected long noGenerationsUnevaluated;
+    protected long noInitialDuplicates;
+    protected long noRemainingDuplicates;
+    protected long noGenerations;
+    protected long noGenerationsDuplicatesNotEliminated;
+    protected long noGenerationsEvaluated;
+
 
 
     /**
@@ -43,6 +51,12 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 		this.problem = problem;
 		this.optimization = optimization;
         this.isDeduplicate = optimization.getConfiguration().isDeduplicate();
+        this.noGenerations = 0;
+        this.noGenerationsUnevaluated = 0;
+        this.noInitialDuplicates = 0;
+        this.noRemainingDuplicates = 0;
+        this.trackDuplicates = true;
+        this.noGenerationsDuplicatesNotEliminated = 0;
     }
 
     /**
@@ -53,9 +67,10 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     @Override
     public ISeq<Phenotype<EnumGene<Integer>, Integer>> eval(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
         logger.debug("Starting population evaluation ...");
+        this.noGenerations++;
         Optional<Long> generation = population.stream().map(Phenotype::generation).max(Long::compareTo);
         if(isDeduplicate){
-            if(generation.get() != lastUnevaluatedGeneration){
+            if(generation.get() != lastUnevaluatedGeneration || trackDuplicates){
                 logger.debug("Checking for duplicates.");
                 final Map<Genotype<EnumGene<Integer>>, Phenotype<EnumGene<Integer>, Integer>> elements =
                         population.stream()
@@ -64,9 +79,11 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                                         Function.identity(),
                                         (a, b) -> a));
 
-                if(elements.size() < population.size()){
+                if(elements.size() < population.size() && generation.get() != lastUnevaluatedGeneration){
                     logger.debug("Generation " + generation.get() + " contains duplicates and is encountered for the first time.");
                     logger.debug("Returning unevaluated population with dummy fitness-values.");
+                    this.noGenerationsUnevaluated++;
+                    this.noInitialDuplicates = noInitialDuplicates + population.size() - elements.size();
 
                     lastUnevaluatedGeneration = generation.get();
                     return ISeq.of(population
@@ -74,8 +91,11 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                             .map(p -> p.withFitness(-1))
                             .collect(Collectors.toList()));
                 }
+                this.noRemainingDuplicates = noRemainingDuplicates + elements.size() - population.size();
+                if(elements.size() < population.size()) this.noGenerationsDuplicatesNotEliminated++;
             }
         }
+        noGenerationsEvaluated++;
 
         final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation = null;
@@ -295,6 +315,18 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         evaluation.fitnessQuantilesPopulation = fitnessQuantilesPopulation;
         evaluation.maxFitness = maxFitness;
         return evaluation;
+    }
+
+    public void printLogs(){
+        logger.info("--------------- Statistics Batch Evaluator --------------------");
+        logger.info("Deduplication: " + this.isDeduplicate + ".");
+        logger.info("Tracking duplicates " + this.trackDuplicates + ".");
+        logger.info("Number of populations that entered evaluation: "+ this.noGenerations);
+        logger.info("Number of populations that have been evaluated: " + this.noGenerationsEvaluated);
+        logger.info("Number of populations that have been rejected because of duplicates: " + this.noGenerationsUnevaluated);
+        logger.info("Number of initial duplicates encountered: " + this.noInitialDuplicates);
+        logger.info("Number of remaining duplicates after deduplication: " + this.noRemainingDuplicates);
+        logger.info("Number of populations where duplicates have not been removed by deduplication: " + this.noGenerationsDuplicatesNotEliminated);
     }
 
     /**
