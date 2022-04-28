@@ -1,0 +1,7 @@
+FROM arm64v8/openjdk:18-jdk-bullseye
+LABEL maintainer=“jku”
+WORKDIR /app
+COPY target/optimizer-1.0.2.jar /app/optimizer.jar
+ENTRYPOINT ["java","-jar","optimizer.jar"]
+
+# docker build -f Dockerfile.arm64 --no-cache -t slma/slotmachine-optimizer:arm64_220425 .
