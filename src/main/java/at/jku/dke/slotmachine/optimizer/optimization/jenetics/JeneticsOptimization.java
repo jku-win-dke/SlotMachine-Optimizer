@@ -4,6 +4,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
+import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluator;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluatorFactory;
 import io.jenetics.*;
@@ -15,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class JeneticsOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
@@ -22,6 +24,8 @@ public class JeneticsOptimization extends Optimization {
     private JeneticsOptimizationConfiguration configuration = null;
     private JeneticsOptimizationStatistics statistics;
     private final SlotAllocationProblem problem;
+
+    private List<Integer> fitnessValuesResults;
 
     public JeneticsOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
@@ -177,6 +181,37 @@ public class JeneticsOptimization extends Optimization {
         logger.info("Finished optimization");
 
         logger.info(Thread.currentThread() + " was interrupted: " + Thread.currentThread().isInterrupted());
+
+        if(this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING){
+            logger.info("Running in non-privacy-preserving mode.");
+            logger.info("Evaluating result population with exact fitness values.");
+            var evaluatedResultGeneration = result.population()
+                    .stream()
+                    .map(phenotype -> phenotype.withFitness(problem.fitness(phenotype.genotype())))
+                    .sorted(Comparator.comparingInt(Phenotype::fitness))
+                    .sorted(Comparator.reverseOrder())
+                    .collect(Collectors.toList());
+
+            logger.info("Setting evaluated population as result.");
+            result = EvolutionResult.of(Optimize.MAXIMUM,
+                    ISeq.of(evaluatedResultGeneration),
+                    result.generation(),
+                    result.totalGenerations(),
+                    result.durations(),
+                    result.killCount(),
+                    result.invalidCount(),
+                    result.alterCount());
+
+            logger.info("Setting fitness values of evaluated population.");
+            var fitnessValues = result.population()
+                    .stream()
+                    .map(Phenotype::fitness)
+                    .sorted(Comparator.comparingInt(i -> i))
+                    .sorted(Comparator.reverseOrder())
+                    .toList();
+
+            this.setFitnessValuesResults(fitnessValues);
+        }
 
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
@@ -389,5 +424,13 @@ public class JeneticsOptimization extends Optimization {
 
     public SlotAllocationProblem getProblem() {
         return problem;
+    }
+
+    public List<Integer> getFitnessValuesResults() {
+        return fitnessValuesResults;
+    }
+
+    public void setFitnessValuesResults(List<Integer> fitnessValuesResults) {
+        this.fitnessValuesResults = fitnessValuesResults;
     }
 }

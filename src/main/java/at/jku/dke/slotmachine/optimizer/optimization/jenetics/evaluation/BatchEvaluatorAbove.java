@@ -59,6 +59,7 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
                                     phenotype.withFitness((int) minFitness)
                     ).collect(Collectors.toList());
 
+
             estimatedPopulation = estimatedPopulationStream.stream()
                     .sorted(Comparator.comparingInt(Phenotype::fitness))
                     .sorted(Comparator.reverseOrder())

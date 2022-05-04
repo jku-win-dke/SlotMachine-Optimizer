@@ -5,6 +5,7 @@ import at.jku.dke.slotmachine.optimizer.Utils;
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.*;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
 
 import org.apache.logging.log4j.LogManager;
@@ -258,6 +259,11 @@ public class OptimizationService {
 					} else {
 						logger.info("Set fitness of solution " + i + " to null.");
 						results.get(i).setFitness(null);
+					}
+					// Set exact fitness value for non-privacy-preserving optimization
+					if(optimization.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING && i > 0
+							&& optimization instanceof JeneticsOptimization jeneticsOptimization){
+						results.get(i).setFitness(jeneticsOptimization.getFitnessValuesResults() != null ? jeneticsOptimization.getFitnessValuesResults().get(i) : 0.0);
 					}
 				}
 			}
