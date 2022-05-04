@@ -15,10 +15,7 @@
     <localSearch>
         <phaseType>PRIVACY_PRESERVING</phaseType>
         <termination>
-            <terminationCompositionStyle>AND</terminationCompositionStyle>
-            <unimprovedSecondsSpentLimit>1</unimprovedSecondsSpentLimit>
-            <unimprovedScoreDifferenceThreshold>0hard/100soft</unimprovedScoreDifferenceThreshold>
-            <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
+            <stepCountLimit>200</stepCountLimit>
         </termination>
         <acceptor>
             <acceptorType>CONSTRAINT_AWARE</acceptorType>
@@ -29,6 +26,7 @@
             <simulatedAnnealingStartingTemperature>0hard/1000soft</simulatedAnnealingStartingTemperature>
             <acceptedCountLimit>50</acceptedCountLimit>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
+            <evaluationType>BEST_CANDIDATE</evaluationType>
         </forager>
         <unionMoveSelector>
             <cacheType>JUST_IN_TIME</cacheType>

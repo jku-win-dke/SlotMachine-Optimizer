@@ -23,17 +23,16 @@
             <constraintValidatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingHardScoreComparator</constraintValidatorClass>
         </acceptor>
         <forager>
-            <foragerType>PP_GREAT_DELUGE</foragerType>
-            <greatDelugeWaterLevelIncrementRatio>0.007</greatDelugeWaterLevelIncrementRatio>
             <acceptedCountLimit>50</acceptedCountLimit>
+            <foragerType>PP_TABU_SEARCH</foragerType>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
             <evaluationType>BEST_CANDIDATE</evaluationType>
         </forager>
-       <unionMoveSelector>
-           <cacheType>JUST_IN_TIME</cacheType>
-           <selectionOrder>RANDOM</selectionOrder>
-           <swapMoveSelector/>
-           <changeMoveSelector/>
-       </unionMoveSelector>
+        <unionMoveSelector>
+            <cacheType>JUST_IN_TIME</cacheType>
+            <selectionOrder>RANDOM</selectionOrder>
+            <swapMoveSelector/>
+            <changeMoveSelector/>
+        </unionMoveSelector>
     </localSearch>
 </solver>

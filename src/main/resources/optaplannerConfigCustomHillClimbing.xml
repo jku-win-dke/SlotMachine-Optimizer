@@ -16,10 +16,7 @@
     <localSearch>
         <phaseType>PRIVACY_PRESERVING</phaseType>
         <termination>
-            <terminationCompositionStyle>AND</terminationCompositionStyle>
-            <unimprovedMillisecondsSpentLimit>500</unimprovedMillisecondsSpentLimit>
-            <unimprovedScoreDifferenceThreshold>0hard/100soft</unimprovedScoreDifferenceThreshold>
-            <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
+            <stepCountLimit>200</stepCountLimit>
         </termination>
         <acceptor>
             <acceptorType>CONSTRAINT_AWARE</acceptorType>
@@ -29,6 +26,7 @@
             <acceptedCountLimit>50</acceptedCountLimit>
             <foragerType>PP_HILL_CLIMBING</foragerType>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
+            <evaluationType>BEST_CANDIDATE</evaluationType>
         </forager>
        <unionMoveSelector>
            <cacheType>JUST_IN_TIME</cacheType>

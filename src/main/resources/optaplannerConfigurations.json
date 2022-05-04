@@ -10,5 +10,6 @@
   "CUSTOM_HILL_CLIMBING": "optaplannerConfigCustomHillClimbing.xml",
   "CUSTOM_STEP_COUNTING_HILL_CLIMBING": "optaplannerConfigCustomStepCountingHillClimbing.xml",
   "CUSTOM_SIMULATED_ANNEALING": "optaplannerConfigCustomSimulatedAnnealing.xml",
-  "CUSTOM_GREAT_DELUGE": "optaplannerConfigCustomGreatDeluge.xml"
+  "CUSTOM_GREAT_DELUGE": "optaplannerConfigCustomGreatDeluge.xml",
+  "CUSTOM_TABU_SEARCH": "optaplannerConfigCustomTabuSearch.xml"
 }

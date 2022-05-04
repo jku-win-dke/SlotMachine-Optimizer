@@ -44,7 +44,7 @@ public class OptaplannerOptimization extends Optimization {
             solverConfig = this.getDefaultConfiguration().getSolverConfig();
         }
 
-        if(this.getConfiguration() != null && this.getConfiguration().getSecondsSpentLimit() > 0) {
+        if(this.getConfiguration() != null && this.getConfiguration().getSecondsSpentLimit() > 0 && this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING) {
             logger.info("Setting seconds spent limit to " + this.getConfiguration().getSecondsSpentLimit());
             solverConfig.getTerminationConfig().setSecondsSpentLimit(this.getConfiguration().getSecondsSpentLimit());
         }

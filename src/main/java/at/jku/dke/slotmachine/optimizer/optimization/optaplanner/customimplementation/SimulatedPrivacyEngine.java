@@ -1,6 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation;
 
 import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.*;
+import org.optaplanner.core.api.score.Score;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.NeighbourhoodEvaluator;
 
@@ -14,7 +15,6 @@ public class SimulatedPrivacyEngine<Solution_> implements NeighbourhoodEvaluator
         this.calculator = new FlightPrioritizationEasyScoreCalculator();
     }
 
-    @Override
     public Map<HardSoftScore, List<Solution_>> evaluateNeighbourhood(List<Solution_> candidates) {
         var result = evaluateFlightPrioritizations((List<FlightPrioritization>)candidates);
         var solutions = new ArrayList<Solution_>();
@@ -38,6 +38,18 @@ public class SimulatedPrivacyEngine<Solution_> implements NeighbourhoodEvaluator
         Collections.reverse(sortedList);
 
         map.put(calculator.calculateScore(sortedList.get(0)), sortedList);
+        return map;
+    }
+
+    @Override
+    public Map<Score, Solution_> getBestSolutionFromNeighbourhood(List<Solution_> candidates) {
+        var order = evaluateFlightPrioritizations((List<FlightPrioritization>)candidates);
+        var entry = order.entrySet().stream().findFirst();
+
+        if(entry.isEmpty()) return null;
+
+        var map = new HashMap<Score, Solution_>();
+        map.put(entry.get().getKey(), (Solution_)entry.get().getValue().get(0));
         return map;
     }
 }

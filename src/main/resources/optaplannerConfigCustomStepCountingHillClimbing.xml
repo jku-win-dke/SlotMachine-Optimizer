@@ -31,6 +31,7 @@
             <stepCountingHillClimbingType>STEP</stepCountingHillClimbingType>
             <acceptedCountLimit>50</acceptedCountLimit>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
+            <evaluationType>BEST_CANDIDATE</evaluationType>
         </forager>
         <unionMoveSelector>
             <cacheType>JUST_IN_TIME</cacheType>
