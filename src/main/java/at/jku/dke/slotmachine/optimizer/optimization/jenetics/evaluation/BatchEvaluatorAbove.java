@@ -44,36 +44,27 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
      */
     @Override
     protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness) {
-        List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation = null;
-        List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
-        //TODO: remove condition as no estimator required
-        if(this.optimization.getFitnessEstimator() != null) {
-            List<Genotype<EnumGene<Integer>>> evaluatedGenotypes =
-                    evaluatedPopulation.stream().map(phenotype -> phenotype.genotype()).toList();
+        List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation;
+        List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream;
 
-            logger.debug("Assign each solution returned by the Privacy Engine the maximum fitness: " + maxFitness);
-            estimatedPopulationStream = population.stream()
-                    .map(phenotype ->
-                            evaluatedGenotypes.contains(phenotype.genotype())?
-                                    phenotype.withFitness((int) maxFitness) :
-                                    phenotype.withFitness((int) minFitness)
-                    ).collect(Collectors.toList());
+        List<Genotype<EnumGene<Integer>>> evaluatedGenotypes =
+                evaluatedPopulation.stream().map(phenotype -> phenotype.genotype()).toList();
+
+        logger.debug("Assign each solution returned by the Privacy Engine the maximum fitness: " + maxFitness);
+        estimatedPopulationStream = population.stream()
+                .map(phenotype ->
+                        evaluatedGenotypes.contains(phenotype.genotype())?
+                                phenotype.withFitness((int) maxFitness) :
+                                phenotype.withFitness((int) minFitness)
+                ).collect(Collectors.toList());
 
 
-            estimatedPopulation = estimatedPopulationStream.stream()
-                    .sorted(Comparator.comparingInt(Phenotype::fitness))
-                    .sorted(Comparator.reverseOrder())
-                    .toList();
+        estimatedPopulation = estimatedPopulationStream.stream()
+                .sorted(Comparator.comparingInt(Phenotype::fitness))
+                .sorted(Comparator.reverseOrder())
+                .toList();
 
-            logger.debug("Assigned estimated fitness values.");
-        } else {
-            logger.debug("No estimator specified. Using exact fitness (if available).");
-
-            if(this.optimization.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING){
-                logger.debug("Running in non-privacy-preserving mode. Exact fitness values available.");
-                estimatedPopulation = evaluatedPopulation;
-            }
-        }
+        logger.debug("Assigned estimated fitness values.");
         return  estimatedPopulation;
     }
 
