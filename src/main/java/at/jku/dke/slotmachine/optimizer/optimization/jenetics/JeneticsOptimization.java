@@ -113,6 +113,24 @@ public class JeneticsOptimization extends Optimization {
             logger.info("Cleared fitness evolution.");
         }
 
+        int initialFitness = -1;
+        if(this.getInitialFlightSequence() != null && this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING){
+            logger.info("Running in non-privacy-preserving mode.");
+            logger.info("Calculating initial fitness based on initial flight sequence.");
+            Map<Flight, Slot> initialFlightSequenceMap = new HashMap<>();
+            for(int i = 0; i < getInitialFlightSequence().length; i++){
+                Flight flight = null;
+                for(int j = 0; j < getFlights().length; j++){
+                    if(getFlights()[j].getFlightId().equals(getInitialFlightSequence()[i])) flight = getFlights()[j];
+                }
+                Slot slot = getSlots()[i];
+                initialFlightSequenceMap.put(flight, slot);
+
+            }
+            initialFitness = problem.fitness(initialFlightSequenceMap);
+        }
+        this.getStatistics().setInitialFitness(initialFitness);
+
         logger.info("Initial population consists of " + initialPopulation.length() + " individuals.");
         logger.info("Initial population consists of " + initialPopulation.stream().distinct().toList().size() + " distinct individuals.");
 
@@ -202,15 +220,16 @@ public class JeneticsOptimization extends Optimization {
                     result.invalidCount(),
                     result.alterCount());
 
-            logger.info("Setting fitness values of evaluated population.");
-            var fitnessValues = result.population()
+            logger.info("Setting fitness values of distinct, evaluated population.");
+            var distinctIndividualFitnessValues = result.population()
                     .stream()
-                    .map(Phenotype::fitness)
-                    .sorted(Comparator.comparingInt(i -> i))
+                    .map(Phenotype::genotype)
+                    .distinct()
+                    .map(problem::fitness)
                     .sorted(Comparator.reverseOrder())
-                    .toList();
+                    .collect(Collectors.toList());
 
-            this.setFitnessValuesResults(fitnessValues);
+            this.setFitnessValuesResults(distinctIndividualFitnessValues);
         }
 
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
@@ -225,6 +244,7 @@ public class JeneticsOptimization extends Optimization {
         this.getStatistics().setIterations((int) statistics.altered().count());
         this.getStatistics().setFitnessFunctionInvocations(problem.getFitnessFunctionApplications());
         this.getStatistics().setSolutionGeneration(result.bestPhenotype().generation());
+        //this.getStatistics().setInitialFitness();
 
         logger.info("Fitness of best solution: " + this.getStatistics().getResultFitness());
         logger.info("Number of generations: " + this.getStatistics().getIterations());
@@ -240,6 +260,8 @@ public class JeneticsOptimization extends Optimization {
                         .distinct()
                         .map(genotype -> problem.decode(genotype))
                         .toList();
+
+
 
         this.setResults(resultList);
 
