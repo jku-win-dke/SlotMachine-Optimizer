@@ -30,6 +30,7 @@ public abstract class Optimization {
 
 	private double maximumFitness = Double.MIN_VALUE;
 	private boolean traceFitnessEvolution = false;
+	private String[] initialFlightSequence = null;
 
 	public Optimization(Flight[] flights, Slot[] slots) {
 		this.flights = flights;
@@ -167,5 +168,13 @@ public abstract class Optimization {
 
 	public void setFitnessPrecision(int fitnessPrecision) {
 		this.fitnessPrecision = fitnessPrecision;
+	}
+
+	public String[] getInitialFlightSequence() {
+		return initialFlightSequence;
+	}
+
+	public void setInitialFlightSequence(String[] initialFlightSequence) {
+		this.initialFlightSequence = initialFlightSequence;
 	}
 }

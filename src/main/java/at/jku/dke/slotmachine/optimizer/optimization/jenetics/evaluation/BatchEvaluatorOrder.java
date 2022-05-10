@@ -4,7 +4,6 @@ import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
-import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import io.jenetics.EnumGene;
 import io.jenetics.Phenotype;
 import io.jenetics.util.Seq;
@@ -47,7 +46,7 @@ public class BatchEvaluatorOrder extends BatchEvaluator{
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
 
         if(this.optimization.getFitnessEstimator() != null){
-            // per default, the estimated population size is the same as the population size
+            // Order and Order-Quantiles estimation only differ regarding the estimated population size
             int estimatedPopulationSize = getEstimatedPopulationSize(population);
 
             logger.debug("Getting estimated fitness value from estimator: " + this.optimization.getFitnessEstimator().getClass());

@@ -101,6 +101,8 @@ public class OptimizationService {
 				}
 
 				newOptimization.setOptId(optId);
+				// set initial flight sequence
+				newOptimization.setInitialFlightSequence(optimizationDto.getInitialFlightSequence());
 
 				// set the benchmarking mode (whether evolution of fitness is tracked)
 				newOptimization.setTraceFitnessEvolution(optimizationDto.isTraceFitnessEvolution());
@@ -256,14 +258,12 @@ public class OptimizationService {
 						// For the best result, we know the fitness
 						logger.info("Set fitness of solution " + i + " to " + optimization.getMaximumFitness());
 						results.get(i).setFitness(optimization.getMaximumFitness());
+					} else if(optimization.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING && optimization instanceof JeneticsOptimization jeneticsOptimization){
+						if(i == 1) logger.info("Optimization mode set to non-privacy-preserving. Setting fitness values of all returned solutions.");
+						results.get(i).setFitness(jeneticsOptimization.getFitnessValuesResults() != null ? jeneticsOptimization.getFitnessValuesResults().get(i) : 0.0);
 					} else {
 						logger.info("Set fitness of solution " + i + " to null.");
 						results.get(i).setFitness(null);
-					}
-					// Set exact fitness value for non-privacy-preserving optimization
-					if(optimization.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING && i > 0
-							&& optimization instanceof JeneticsOptimization jeneticsOptimization){
-						results.get(i).setFitness(jeneticsOptimization.getFitnessValuesResults() != null ? jeneticsOptimization.getFitnessValuesResults().get(i) : 0.0);
 					}
 				}
 			}

@@ -35,7 +35,6 @@ public class BatchEvaluatorFitnessRangeQuantiles extends BatchEvaluator{
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
 
         if(this.optimization.getFitnessEstimator() != null) {
-            // per default, the estimated population size is the same as the population size
             int estimatedPopulationSize = this.optimization.getFitnessPrecision();
             logger.debug("Estimated population size: " + estimatedPopulationSize);
 
