@@ -155,8 +155,13 @@ public class LegacyEndpoint {
             Integer fitnessPrecision,
             @RequestParam(name = "additionalParameters", required = false)
             @ApiParam(value = "Additional parameters for the optimization")
-            Map<String, Object> additionalParameters
-
+            Map<String, Object> additionalParameters,
+            @RequestParam(name = "deduplicate", required = false)
+            @ApiParam(value = "the deduplication flag for Jenetics")
+                    Boolean deduplicate,
+            @RequestParam(name = "deduplicateMaxRetries", required = false)
+            @ApiParam(value = "the max retries for the deduplication")
+                    Integer deduplicateMaxRetries
     ) {
         ResponseEntity<at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO> optimizationResponse = null;
 
@@ -190,6 +195,13 @@ public class LegacyEndpoint {
 
             if(additionalParameters != null) {
                 optDto.getParameters().putAll(additionalParameters);
+            }
+
+            if(deduplicate != null){
+                optDto.getParameters().put("deduplicate", deduplicate);
+            }
+            if(deduplicateMaxRetries != null){
+                optDto.getParameters().put("deduplicateMaxRetries", deduplicateMaxRetries);
             }
 
             optDto.setTraceFitnessEvolution(traceFitnessEvolution);

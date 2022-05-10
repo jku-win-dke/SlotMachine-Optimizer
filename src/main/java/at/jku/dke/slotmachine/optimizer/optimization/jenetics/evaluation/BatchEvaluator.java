@@ -91,7 +91,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                             .map(p -> p.withFitness(-1))
                             .collect(Collectors.toList()));
                 }
-                this.noRemainingDuplicates = noRemainingDuplicates + elements.size() - population.size();
+                this.noRemainingDuplicates = noRemainingDuplicates + population.size() - elements.size();
                 if(elements.size() < population.size()) this.noGenerationsDuplicatesNotEliminated++;
             }
         }
