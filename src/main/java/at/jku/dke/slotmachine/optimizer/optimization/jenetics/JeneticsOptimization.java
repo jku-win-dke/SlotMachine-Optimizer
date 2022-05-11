@@ -123,11 +123,18 @@ public class JeneticsOptimization extends Optimization {
                 for(int j = 0; j < getFlights().length; j++){
                     if(getFlights()[j].getFlightId().equals(getInitialFlightSequence()[i])) flight = getFlights()[j];
                 }
+                if(flight == null) continue;
+
                 Slot slot = getSlots()[i];
                 initialFlightSequenceMap.put(flight, slot);
 
             }
-            initialFitness = problem.fitness(initialFlightSequenceMap);
+            long initialFlightSequenceNotNullCount = Arrays.stream(getFlights()).filter(Objects::nonNull).count();
+            if(initialFlightSequenceMap.size() < initialFlightSequenceNotNullCount){
+                logger.info("Could not calculate initial fitness as not all initial flight-ids have been mapped to a slot.");
+            }else{
+                initialFitness = problem.fitness(initialFlightSequenceMap);
+            }
         }
         this.getStatistics().setInitialFitness(initialFitness);
 
