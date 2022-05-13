@@ -113,39 +113,10 @@ public class JeneticsOptimization extends Optimization {
             logger.info("Cleared fitness evolution.");
         }
 
-        int initialFitness = -1;
-        if(this.getInitialFlightSequence() != null && this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING){
-            logger.info("Running in non-privacy-preserving mode.");
-            logger.info("Calculating initial fitness based on initial flight sequence.");
-            Map<Flight, Slot> initialFlightSequenceMap = new HashMap<>();
-            for(int i = 0; i < getInitialFlightSequence().length; i++){
-                Flight flight = null;
-                for(int j = 0; j < getFlights().length; j++){
-                    if(getFlights()[j].getFlightId().equals(getInitialFlightSequence()[i])) flight = getFlights()[j];
-                }
-                if(flight == null) continue;
-
-                Slot slot = getSlots()[i];
-                initialFlightSequenceMap.put(flight, slot);
-
-            }
-            long initialFlightSequenceNotNullCount = Arrays.stream(getFlights()).filter(Objects::nonNull).count();
-            if(initialFlightSequenceMap.size() < initialFlightSequenceNotNullCount){
-                logger.info("Could not calculate initial fitness as not all initial flight-ids have been mapped to a slot.");
-            }else{
-                initialFitness = problem.fitness(initialFlightSequenceMap);
-            }
-        }
-        this.getStatistics().setInitialFitness(initialFitness);
-
         logger.info("Initial population consists of " + initialPopulation.length() + " individuals.");
         logger.info("Initial population consists of " + initialPopulation.stream().distinct().toList().size() + " distinct individuals.");
 
         logger.info("Build the genetic algorithm engine.");
-
-        // Default deduplicate for SRDS experiments
-        //this.getConfiguration().setDeduplicate(true);
-        //this.getConfiguration().setDeduplicateMaxRetries(10);
 
         Evaluator evaluator = BatchEvaluatorFactory.getEvaluator(getFitnessMethod(), problem, this);
 
@@ -207,7 +178,9 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info(Thread.currentThread() + " was interrupted: " + Thread.currentThread().isInterrupted());
 
-        if(this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING){
+        if(this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING ||
+           this.getMode() == OptimizationMode.DEMONSTRATION ||
+           this.getMode() == OptimizationMode.BENCHMARKING){
             logger.info("Running in non-privacy-preserving mode.");
             logger.info("Evaluating result population with exact fitness values.");
             var evaluatedResultGeneration = result.population()
@@ -218,14 +191,16 @@ public class JeneticsOptimization extends Optimization {
                     .collect(Collectors.toList());
 
             logger.info("Setting evaluated population as result.");
-            result = EvolutionResult.of(Optimize.MAXIMUM,
+            result = EvolutionResult.of(
+                    Optimize.MAXIMUM,
                     ISeq.of(evaluatedResultGeneration),
                     result.generation(),
                     result.totalGenerations(),
                     result.durations(),
                     result.killCount(),
                     result.invalidCount(),
-                    result.alterCount());
+                    result.alterCount()
+            );
 
             logger.info("Setting fitness values of distinct, evaluated population.");
             var distinctIndividualFitnessValues = result.population()
@@ -242,8 +217,10 @@ public class JeneticsOptimization extends Optimization {
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
         logger.info("Statistics: \n" + statistics);
-        logger.info("Printing statistics from BatchEvaluator");
-        if(evaluator instanceof BatchEvaluator batchEvaluator) batchEvaluator.printLogs();
+        if(evaluator instanceof BatchEvaluator batchEvaluator) {
+            logger.info("Printing statistics from BatchEvaluator");
+            batchEvaluator.printLogs();
+        }
 
         logger.info("Setting statistics for this optimization."); // already initialized in constructor
         this.getStatistics().setTimeFinished(LocalDateTime.now());
@@ -251,7 +228,6 @@ public class JeneticsOptimization extends Optimization {
         this.getStatistics().setIterations((int) statistics.altered().count());
         this.getStatistics().setFitnessFunctionInvocations(problem.getFitnessFunctionApplications());
         this.getStatistics().setSolutionGeneration(result.bestPhenotype().generation());
-        //this.getStatistics().setInitialFitness();
 
         logger.info("Fitness of best solution: " + this.getStatistics().getResultFitness());
         logger.info("Number of generations: " + this.getStatistics().getIterations());
@@ -448,6 +424,44 @@ public class JeneticsOptimization extends Optimization {
     @Override
     public JeneticsOptimizationStatistics getStatistics() {
         return this.statistics;
+    }
+
+    @Override
+    public int computeInitialFitness() {
+        logger.info("Calculating fitness of initial flight sequence.");
+        Map<Flight, Slot> initialAllocation = new HashMap<>();
+
+        int initialFitness = Integer.MIN_VALUE;
+
+        List<Flight> initialFlightSequence =
+                Arrays.stream(this.getInitialFlightSequence())
+                        .map(flightId -> {
+                            // return flight with same id (should find flight)
+                            for(Flight flight : this.getFlights()) {
+                                if(flight.getFlightId().equals(flightId)) {
+                                    return flight;
+                                }
+                            }
+                            // return null (shouldn't happen)
+                            return null;
+                        })
+                        .collect(Collectors.toList());
+
+        for(int i = 0; i < initialFlightSequence.size(); i++){
+            if(initialFlightSequence.get(i) != null) {
+                initialAllocation.put(initialFlightSequence.get(i), this.getSlots()[i]);
+            }
+        }
+
+        long initialFlightSequenceNotNullCount = Arrays.stream(this.getFlights()).filter(Objects::nonNull).count();
+
+        if(initialAllocation.size() < initialFlightSequenceNotNullCount){
+            logger.info("Could not calculate initial fitness as not all initial flight IDs have been mapped to a slot.");
+        }else{
+            initialFitness = problem.fitness(initialAllocation);
+        }
+
+        return initialFitness;
     }
 
 

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * Abstract super-class of all Batch-Evaluators
+ * Abstract super-class of all batch evaluators
  */
 public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     private static final Logger logger = LogManager.getLogger();
@@ -32,7 +32,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     protected final SlotAllocationProblem problem;
     protected final boolean isDeduplicate;
     protected final boolean trackDuplicates;
-    protected long lastUnevaluatedGeneration;
+    protected long latestUnevaluatedGeneration;
     protected long noGenerationsUnevaluated;
     protected long noInitialDuplicates;
     protected long noRemainingDuplicates;
@@ -70,7 +70,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         this.noGenerations++;
         Optional<Long> generation = population.stream().map(Phenotype::generation).max(Long::compareTo);
         if(isDeduplicate){
-            if(generation.get() != lastUnevaluatedGeneration || trackDuplicates){
+            if(generation.get() != latestUnevaluatedGeneration || trackDuplicates){
                 logger.debug("Checking for duplicates.");
                 final Map<Genotype<EnumGene<Integer>>, Phenotype<EnumGene<Integer>, Integer>> elements =
                         population.stream()
@@ -79,13 +79,13 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                                         Function.identity(),
                                         (a, b) -> a));
 
-                if(elements.size() < population.size() && generation.get() != lastUnevaluatedGeneration){
+                if(elements.size() < population.size() && generation.get() != latestUnevaluatedGeneration){
                     logger.debug("Generation " + generation.get() + " contains duplicates and is encountered for the first time.");
                     logger.debug("Returning unevaluated population with dummy fitness-values.");
                     this.noGenerationsUnevaluated++;
                     this.noInitialDuplicates = noInitialDuplicates + population.size() - elements.size();
 
-                    lastUnevaluatedGeneration = generation.get();
+                    latestUnevaluatedGeneration = generation.get();
                     return ISeq.of(population
                             .stream()
                             .map(p -> p.withFitness(-1))

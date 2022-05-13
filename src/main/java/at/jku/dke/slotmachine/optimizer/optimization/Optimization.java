@@ -28,7 +28,9 @@ public abstract class Optimization {
 	private FitnessMethod fitnessMethod = null;
 	private int fitnessPrecision = Integer.MIN_VALUE;
 
-	private double maximumFitness = Double.MIN_VALUE;
+	private double maximumFitness = Double.MIN_VALUE; // the best fitness among all solutions
+	private double theoreticalMaximumFitness = Double.MIN_VALUE; // the "true" maximum fitness as determined by Hungarian algorithm
+
 	private boolean traceFitnessEvolution = false;
 	private String[] initialFlightSequence = null;
 
@@ -177,4 +179,14 @@ public abstract class Optimization {
 	public void setInitialFlightSequence(String[] initialFlightSequence) {
 		this.initialFlightSequence = initialFlightSequence;
 	}
+
+	public double getTheoreticalMaximumFitness() {
+		return theoreticalMaximumFitness;
+	}
+
+	public void setTheoreticalMaximumFitness(double theoreticalMaximumFitness) {
+		this.theoreticalMaximumFitness = theoreticalMaximumFitness;
+	}
+
+	public abstract int computeInitialFitness();
 }
