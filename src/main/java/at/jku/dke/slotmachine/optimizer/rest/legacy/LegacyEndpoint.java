@@ -197,10 +197,10 @@ public class LegacyEndpoint {
                 optDto.getParameters().putAll(additionalParameters);
             }
 
-            if(deduplicate != null){
+            if(deduplicate != null && optDto.getParameters() != null){
                 optDto.getParameters().put("deduplicate", deduplicate);
             }
-            if(deduplicateMaxRetries != null){
+            if(deduplicateMaxRetries != null && optDto.getParameters() != null){
                 optDto.getParameters().put("deduplicateMaxRetries", deduplicateMaxRetries);
             }
 
