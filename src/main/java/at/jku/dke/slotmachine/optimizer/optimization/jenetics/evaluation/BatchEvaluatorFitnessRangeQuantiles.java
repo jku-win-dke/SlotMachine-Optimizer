@@ -38,7 +38,7 @@ public class BatchEvaluatorFitnessRangeQuantiles extends BatchEvaluator{
             int estimatedPopulationSize = this.optimization.getFitnessPrecision();
             logger.debug("Estimated population size: " + estimatedPopulationSize);
 
-            // for this we need a change of the Privacy Engine interface
+            // for this we probably need a change of the Privacy Engine interface when running in privacy-preserving mode
             logger.debug("Getting estimated fitness value from estimator: " + this.optimization.getFitnessEstimator().getClass());
             double[] estimatedFitnessValues =
                     this.optimization.getFitnessEstimator().estimateFitnessDistribution(estimatedPopulationSize, maxFitness, minFitness);
