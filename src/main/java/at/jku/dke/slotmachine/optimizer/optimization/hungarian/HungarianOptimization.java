@@ -153,4 +153,10 @@ public class HungarianOptimization extends Optimization {
     public HungarianOptimizationStatistics getStatistics() {
     	return this.statistics;
     }
+
+	@Override
+	public int computeInitialFitness() {
+		// TODO return initial fitness
+		return Integer.MIN_VALUE;
+	}
 }

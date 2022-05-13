@@ -294,7 +294,7 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
                         nextPredicate = Limits.bySteadyFitness(generations);
                         break;
                     }
-                        case "BY_FIXED_GENERATION": {
+                    case "BY_FIXED_GENERATION": {
                         int generation = (int) terminationConditionParameters.get("BY_FIXED_GENERATION");
 
                         nextPredicate = Limits.byFixedGeneration(generation);
@@ -322,6 +322,11 @@ public class JeneticsOptimizationConfiguration extends OptimizationConfiguration
 
                         nextPredicate = Limits.byFitnessConvergence(shortFilterSize, longFilterSize, epsilon);
                         break;
+                    }
+                    case "BY_THEORETICAL_MAXIMUM_FITNESS": {
+                        int theoreticalMaximumFitness = (int) this.getDoubleParameter("theoreticalMaximumFitness");
+                        nextPredicate = Limits.byFitnessThreshold(theoreticalMaximumFitness - 1);
+                        logger.info("Set termination condition to achieving maximum fitness: " + theoreticalMaximumFitness);
                     }
                 }
 

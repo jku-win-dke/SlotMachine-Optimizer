@@ -5,6 +5,8 @@ import at.jku.dke.slotmachine.optimizer.Utils;
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.*;
+import at.jku.dke.slotmachine.optimizer.optimization.hungarian.HungarianOptimization;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.service.dto.*;
 
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 @Service
 public class OptimizationService {
@@ -152,9 +155,15 @@ public class OptimizationService {
 
 					logger.info("Setting optimization mode to PRIVACY_PRESERVING.");
 					newOptimization.setMode(OptimizationMode.PRIVACY_PRESERVING);
-				} else {
+				} else if (optimizationDto.getOptimizationMode() == OptimizationModeEnum.NON_PRIVACY_PRESERVING) {
 					logger.info("Setting optimization mode to NON_PRIVACY_PRESERVING.");
 					newOptimization.setMode(OptimizationMode.NON_PRIVACY_PRESERVING);
+				} else if (optimizationDto.getOptimizationMode() == OptimizationModeEnum.DEMONSTRATION) {
+					logger.info("Setting optimization mode to DEMONSTRATION.");
+					newOptimization.setMode(OptimizationMode.DEMONSTRATION);
+				} else if (optimizationDto.getOptimizationMode() == OptimizationModeEnum.BENCHMARKING) {
+					logger.info("Setting optimization mode to BENCHMARKING.");
+					newOptimization.setMode(OptimizationMode.BENCHMARKING);
 				}
 
 				if(optimizationDto.getFitnessMethod() != null) {
@@ -179,6 +188,29 @@ public class OptimizationService {
 							newOptimization.setFitnessMethod(FitnessMethod.ACTUAL_VALUES);
 						}
 					}
+				}
+
+				// set initial solution's fitness in optimization statistics; only available in non-privacy-preserving mode
+				if(optimizationDto.getOptimizationMode() == OptimizationModeEnum.BENCHMARKING ||
+						optimizationDto.getOptimizationMode() == OptimizationModeEnum.DEMONSTRATION ||
+						optimizationDto.getOptimizationMode() == OptimizationModeEnum.NON_PRIVACY_PRESERVING
+				) {
+					int initialFitness = newOptimization.computeInitialFitness();
+
+					newOptimization.getStatistics().setInitialFitness(initialFitness);
+				}
+
+				if(optimizationDto.getOptimizationMode() == OptimizationModeEnum.BENCHMARKING ||
+						optimizationDto.getOptimizationMode() == OptimizationModeEnum.DEMONSTRATION) {
+					logger.info("Get theoretical maximum fitness by running the Hungarian algorithm before the actual optimization.");
+
+					HungarianOptimization hungarianOptimization = new HungarianOptimization(flights, slots);
+					hungarianOptimization.run();
+
+					double theoreticalMaximumFitness = hungarianOptimization.getStatistics().getResultFitness();
+
+					newOptimization.setTheoreticalMaximumFitness(theoreticalMaximumFitness);
+					newOptimization.getConfiguration().setParameter("theoreticalMaximumFitness", theoreticalMaximumFitness);
 				}
 
 				if(optimizationDto.getFitnessPrecision() != null) {
@@ -214,8 +246,6 @@ public class OptimizationService {
 				logger.debug(o.getOptId().toString());
 			}
 		}
-
-		// TODO set initial solution's fitness in optimization statistics; only available in non-privacy-preserving mode.
 
 		return optimizationDto;
 	}
@@ -360,11 +390,16 @@ public class OptimizationService {
 		stats.setIterations(optimization.getStatistics().getIterations());
 		stats.setResultFitness(optimization.getStatistics().getResultFitness());
 
+		if(optimization.getMode() == OptimizationMode.BENCHMARKING ||
+		   optimization.getMode() == OptimizationMode.DEMONSTRATION) {
+			stats.setTheoreticalMaximumFitness(optimization.getTheoreticalMaximumFitness()); // take theoretical maximum fitness
+		}
+
 		stats.setInitialFitness(optimization.getStatistics().getInitialFitness());
 
 		if(optimization.isTraceFitnessEvolution()) {
-			logger.debug("Tracing fitness evolution. Including fitness evolution in statistics.");
-			if(optimization.getStatistics().getFitnessEvolution() != null)stats.setFitnessEvolution(
+			logger.debug("Tracing fitness evolution: include fitness evolution in statistics.");
+			stats.setFitnessEvolution(
 					optimization.getStatistics().getFitnessEvolution().stream()
 							.map(fitnessEvolutionStep -> {
 								FitnessEvolutionStepDTO newStep = new FitnessEvolutionStepDTO();

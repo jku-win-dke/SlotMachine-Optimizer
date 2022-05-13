@@ -224,4 +224,10 @@ public class OptaplannerOptimization extends Optimization {
 
         return this.statistics;
     }
+
+    @Override
+    public int computeInitialFitness() {
+        // TODO return initial fitness
+        return Integer.MIN_VALUE;
+    }
 }
