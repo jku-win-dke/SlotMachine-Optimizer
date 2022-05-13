@@ -51,18 +51,19 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
                 evaluatedPopulation.stream().map(phenotype -> phenotype.genotype()).toList();
 
         logger.debug("Assign each solution returned by the Privacy Engine the maximum fitness: " + maxFitness);
-        estimatedPopulationStream = population.stream()
-                .map(phenotype ->
-                        evaluatedGenotypes.contains(phenotype.genotype())?
-                                phenotype.withFitness((int) maxFitness) :
-                                phenotype.withFitness((int) minFitness)
-                ).collect(Collectors.toList());
+        estimatedPopulation = population.stream()
+                .filter(phenotype -> evaluatedGenotypes.contains(phenotype.genotype()))
+                .map(phenotype -> phenotype.withFitness((int)maxFitness))
+                .collect(Collectors.toList());
 
+        while(estimatedPopulation.size() < population.size()){
+            estimatedPopulation.addAll(estimatedPopulation);
+        }
 
-        estimatedPopulation = estimatedPopulationStream.stream()
-                .sorted(Comparator.comparingInt(Phenotype::fitness))
-                .sorted(Comparator.reverseOrder())
-                .toList();
+        estimatedPopulation = estimatedPopulation
+                .stream()
+                .limit(population.size())
+                .collect(Collectors.toList());
 
         logger.debug("Assigned estimated fitness values.");
         return  estimatedPopulation;
