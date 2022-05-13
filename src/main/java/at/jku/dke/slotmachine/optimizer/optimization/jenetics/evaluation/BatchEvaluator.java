@@ -55,7 +55,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         this.noGenerationsUnevaluated = 0;
         this.noInitialDuplicates = 0;
         this.noRemainingDuplicates = 0;
-        this.trackDuplicates = true;
+        this.trackDuplicates = false;
         this.noGenerationsDuplicatesNotEliminated = 0;
     }
 
@@ -129,7 +129,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
         logger.debug("Actual maximum fitness of the population: " + maxFitness);
 
-        minFitness = maxFitness - (2 * Math.abs(maxFitness)) - (Math.abs(maxFitness) * 0.0001);
+        minFitness = maxFitness - (2 * Math.abs(maxFitness)) - (Math.abs(maxFitness) * 0.0001); // 0.0001 to avoid division by zero when calculating delta in linear estimator
 
         logger.debug("Estimated minimum fitness of the population: " + minFitness);
 
@@ -141,7 +141,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                             .map(phenotype -> (double) phenotype.fitness())
                             .toArray(Double[]::new)
             );
-            logger.debug("Tracing fitness evolution. Size of estimated population: " + fitnessEvolutionStep.getEstimatedPopulation().length);
+            logger.debug("Size of estimated population: " + fitnessEvolutionStep.getEstimatedPopulation().length);
         }
 
         if(maxFitness >= this.optimization.getMaximumFitness() && estimatedPopulation != null) {

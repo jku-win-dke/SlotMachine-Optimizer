@@ -56,6 +56,7 @@ public class BatchEvaluatorOrder extends BatchEvaluator{
             logger.debug("Assign each solution in the population an estimated fitness value.");
             final int finalEstimatedPopulationSize = estimatedPopulationSize;
 
+            // get the fitness value at the candidate's position
             estimatedPopulationStream = evaluatedPopulation.stream()
                     .map(phenotype -> phenotype.withFitness((int) estimatedFitnessValues[
                             (int)((double) (evaluatedPopulation.indexOf(phenotype)) / (double) (population.size()) * finalEstimatedPopulationSize)
