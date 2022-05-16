@@ -44,7 +44,7 @@ public class OptaplannerOptimization extends Optimization {
             solverConfig = this.getDefaultConfiguration().getSolverConfig();
         }
 
-        if(this.getConfiguration() != null && this.getConfiguration().getSecondsSpentLimit() > 0 && this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING) {
+        if(this.getConfiguration() != null && this.getConfiguration().getSecondsSpentLimit() != null && this.getConfiguration().getSecondsSpentLimit() > 0 && this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING) {
             logger.info("Setting seconds spent limit to " + this.getConfiguration().getSecondsSpentLimit());
             solverConfig.getTerminationConfig().setSecondsSpentLimit(this.getConfiguration().getSecondsSpentLimit());
         }
@@ -67,6 +67,7 @@ public class OptaplannerOptimization extends Optimization {
         solver.addEventListener(event -> { HashMap<Score, FlightPrioritization> solution = new HashMap<>();
             solution.put(event.getNewBestScore(), event.getNewBestSolution());
             intermediateResults.add(0, solution);
+            //TODO: add statistics
         });
 
         logger.info("Compute weight map for flights.");
@@ -124,6 +125,7 @@ public class OptaplannerOptimization extends Optimization {
                 resultList.addAll(Arrays.asList(existingResults));
             }
             // Get score of current result
+            //TODO: add exact score for above, top method
             var score = solvedFlightPrioritization.getScore().getSoftScore();
 
             // Update maximum fitness of this and add prepend result if score > this.maximumFitness

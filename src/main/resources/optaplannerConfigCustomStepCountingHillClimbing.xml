@@ -7,19 +7,11 @@
         <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingFlightPrioritizationScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
 
-    <!-- Termination -->
-    <termination>
-        <secondsSpentLimit>60</secondsSpentLimit>
-    </termination>
-
     <!-- Local Search Phase -->
     <localSearch>
         <phaseType>PRIVACY_PRESERVING</phaseType>
         <termination>
-            <terminationCompositionStyle>AND</terminationCompositionStyle>
-            <unimprovedMillisecondsSpentLimit>500</unimprovedMillisecondsSpentLimit>
-            <unimprovedScoreDifferenceThreshold>0hard/100soft</unimprovedScoreDifferenceThreshold>
-            <unimprovedStepCountLimit>50</unimprovedStepCountLimit>
+            <stepCountLimit>200</stepCountLimit>
         </termination>
         <acceptor>
             <acceptorType>CONSTRAINT_AWARE</acceptorType>
@@ -29,9 +21,11 @@
             <foragerType>PP_STEP_COUNTING_HILL_CLIMBING</foragerType>
             <stepCountingHillClimbingSize>20</stepCountingHillClimbingSize>
             <stepCountingHillClimbingType>STEP</stepCountingHillClimbingType>
-            <acceptedCountLimit>50</acceptedCountLimit>
+            <acceptedCountLimit>100</acceptedCountLimit>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
-            <evaluationType>BEST_CANDIDATE</evaluationType>
+            <evaluationType>ABOVE_THRESHOLD</evaluationType>
+            <topBucketRelativeSize>0.03</topBucketRelativeSize>
+            <evaluationThreshold>0.995</evaluationThreshold>
         </forager>
         <unionMoveSelector>
             <cacheType>JUST_IN_TIME</cacheType>

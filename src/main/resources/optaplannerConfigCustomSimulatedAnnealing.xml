@@ -6,16 +6,11 @@
         <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingFlightPrioritizationScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
 
-    <!-- Termination -->
-    <termination>
-        <secondsSpentLimit>60</secondsSpentLimit>
-    </termination>
-
     <!-- Local Search Phase -->
     <localSearch>
         <phaseType>PRIVACY_PRESERVING</phaseType>
         <termination>
-            <stepCountLimit>200</stepCountLimit>
+            <stepCountLimit>250</stepCountLimit>
         </termination>
         <acceptor>
             <acceptorType>CONSTRAINT_AWARE</acceptorType>
@@ -24,9 +19,11 @@
         <forager>
             <foragerType>PP_SIMULATED_ANNEALING</foragerType>
             <simulatedAnnealingStartingTemperature>0hard/1000soft</simulatedAnnealingStartingTemperature>
-            <acceptedCountLimit>50</acceptedCountLimit>
+            <acceptedCountLimit>200</acceptedCountLimit>
             <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
-            <evaluationType>BEST_CANDIDATE</evaluationType>
+            <evaluationType>ABOVE_THRESHOLD</evaluationType>
+            <topBucketRelativeSize>0.02</topBucketRelativeSize>
+            <evaluationThreshold>0.995</evaluationThreshold>
         </forager>
         <unionMoveSelector>
             <cacheType>JUST_IN_TIME</cacheType>
