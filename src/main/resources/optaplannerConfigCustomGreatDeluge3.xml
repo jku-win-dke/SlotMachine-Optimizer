@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<solver>
+    <environmentMode>REPRODUCIBLE</environmentMode>
+    <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization</solutionClass>
+    <entityClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPlanningEntity</entityClass>
+    <scoreDirectorFactory>
+        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingFlightPrioritizationScoreCalculator</easyScoreCalculatorClass>
+    </scoreDirectorFactory>
+
+    <!-- Local Search Phase -->
+    <localSearch>
+        <phaseType>PRIVACY_PRESERVING</phaseType>
+        <termination>
+            <stepCountLimit>500</stepCountLimit>
+        </termination>
+        <acceptor>
+            <acceptorType>CONSTRAINT_AWARE</acceptorType>
+            <constraintValidatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingHardScoreComparator</constraintValidatorClass>
+        </acceptor>
+        <forager>
+            <foragerType>PP_GREAT_DELUGE</foragerType>
+            <greatDelugeWaterLevelIncrementRatio>0.005</greatDelugeWaterLevelIncrementRatio>
+            <acceptedCountLimit>100</acceptedCountLimit>
+            <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
+            <evaluationType>ABOVE_THRESHOLD</evaluationType>
+            <evaluationThreshold>0.995</evaluationThreshold>
+        </forager>
+        <unionMoveSelector>
+            <cacheType>JUST_IN_TIME</cacheType>
+            <selectionOrder>RANDOM</selectionOrder>
+            <swapMoveSelector/>
+            <changeMoveSelector/>
+        </unionMoveSelector>
+    </localSearch>
+</solver>

@@ -66,6 +66,7 @@ public class OptaplannerOptimization extends Optimization {
         if(solverFactory instanceof DefaultSolverFactory<FlightPrioritization>){
             ((DefaultSolverFactory)solverFactory).setAssignmentProblemType(assignmentProblemType);
             localSearchStatistics = ((DefaultSolverFactory)solverFactory).getLocalSearchStatistics();
+            //TODO: Benchmarking-Termination
         }
         statistics.setLocalSearchStatistics(localSearchStatistics);
 
@@ -73,7 +74,6 @@ public class OptaplannerOptimization extends Optimization {
         solver.addEventListener(event -> { HashMap<Score, FlightPrioritization> solution = new HashMap<>();
             solution.put(event.getNewBestScore(), event.getNewBestSolution());
             intermediateResults.add(0, solution);
-            //TODO: add statistics
         });
 
         logger.info("Compute weight map for flights.");
@@ -112,7 +112,10 @@ public class OptaplannerOptimization extends Optimization {
 
         if(solvedFlightPrioritization != null) {
             logger.info("Finished optimization with OptaPlanner. Score of solution is: " + solvedFlightPrioritization.getScore());
-            logger.info("VERIFY SCORE: " + new FlightPrioritizationEasyScoreCalculator().calculateScore(solvedFlightPrioritization));
+            HardSoftScore verificationScore = new FlightPrioritizationEasyScoreCalculator().calculateScore(solvedFlightPrioritization);
+            this.setMaximumFitness(verificationScore.getSoftScore());
+
+            logger.info("VERIFY SCORE: " + verificationScore);
             resultMap = solvedFlightPrioritization.getResultMap();
 
             logger.info("Setting statistics for this optimization.");

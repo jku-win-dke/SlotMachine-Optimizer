@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<solver>
+    <environmentMode>REPRODUCIBLE</environmentMode>
+    <solutionClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPrioritization</solutionClass>
+    <entityClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.FlightPlanningEntity</entityClass>
+    <scoreDirectorFactory>
+        <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingFlightPrioritizationScoreCalculator</easyScoreCalculatorClass>
+    </scoreDirectorFactory>
+
+    <!-- Local Search Phase -->
+    <localSearch>
+        <phaseType>PRIVACY_PRESERVING</phaseType>
+        <termination>
+            <stepCountLimit>500</stepCountLimit>
+        </termination>
+        <acceptor>
+            <acceptorType>CONSTRAINT_AWARE</acceptorType>
+            <constraintValidatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.decider.acceptor.PrivacyPreservingHardScoreComparator</constraintValidatorClass>
+        </acceptor>
+        <forager>
+            <foragerType>PP_STEP_COUNTING_HILL_CLIMBING</foragerType>
+            <stepCountingHillClimbingSize>10</stepCountingHillClimbingSize>
+            <stepCountingHillClimbingType>STEP</stepCountingHillClimbingType>
+            <acceptedCountLimit>100</acceptedCountLimit>
+            <neighbourhoodEvaluatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.SimulatedPrivacyEngine</neighbourhoodEvaluatorClass>
+            <evaluationType>BEST</evaluationType>
+        </forager>
+        <unionMoveSelector>
+            <cacheType>JUST_IN_TIME</cacheType>
+            <selectionOrder>RANDOM</selectionOrder>
+            <swapMoveSelector/>
+            <changeMoveSelector/>
+        </unionMoveSelector>
+    </localSearch>
+</solver>
