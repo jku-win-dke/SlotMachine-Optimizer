@@ -11,7 +11,7 @@
     <localSearch>
         <phaseType>PRIVACY_PRESERVING</phaseType>
         <termination>
-            <stepCountLimit>200</stepCountLimit>
+            <stepCountLimit>300</stepCountLimit>
         </termination>
         <acceptor>
             <acceptorType>CONSTRAINT_AWARE</acceptorType>

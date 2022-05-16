@@ -364,7 +364,7 @@ public class OptimizationService {
 
 		if(optimization.isTraceFitnessEvolution()) {
 			logger.debug("Tracing fitness evolution. Including fitness evolution in statistics.");
-			stats.setFitnessEvolution(
+			if(optimization.getStatistics().getFitnessEvolution() != null)stats.setFitnessEvolution(
 					optimization.getStatistics().getFitnessEvolution().stream()
 							.map(fitnessEvolutionStep -> {
 								FitnessEvolutionStepDTO newStep = new FitnessEvolutionStepDTO();

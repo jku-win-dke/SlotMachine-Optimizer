@@ -2,16 +2,19 @@ package at.jku.dke.slotmachine.optimizer.optimization.optaplanner;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
+import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.optaplanner.core.api.score.Score;
+import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.config.solver.SolverConfig;
 import org.optaplanner.core.impl.localsearch.AssignmentProblemType;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.LocalSearchStatistics;
 import org.optaplanner.core.impl.solver.DefaultSolverFactory;
 
 import java.time.LocalDateTime;
@@ -59,9 +62,12 @@ public class OptaplannerOptimization extends Optimization {
         AssignmentProblemType assignmentProblemType = AssignmentProblemType.BALANCED;
         if(this.getFlights().length < this.getSlots().length) assignmentProblemType = AssignmentProblemType.UNBALANCED;
 
+        LocalSearchStatistics localSearchStatistics = null;
         if(solverFactory instanceof DefaultSolverFactory<FlightPrioritization>){
             ((DefaultSolverFactory)solverFactory).setAssignmentProblemType(assignmentProblemType);
+            localSearchStatistics = ((DefaultSolverFactory)solverFactory).getLocalSearchStatistics();
         }
+        statistics.setLocalSearchStatistics(localSearchStatistics);
 
         solver = solverFactory.buildSolver();
         solver.addEventListener(event -> { HashMap<Score, FlightPrioritization> solution = new HashMap<>();
@@ -140,6 +146,21 @@ public class OptaplannerOptimization extends Optimization {
 
             // Update result fitness of statistics
             this.getStatistics().setResultFitness(this.getMaximumFitness());
+            if(localSearchStatistics != null){
+                getStatistics().setIterations(localSearchStatistics.getIterations());
+                getStatistics().setFitnessEvolution(new ArrayList<>());
+                for(var step : localSearchStatistics.getSteps()){
+                    FitnessEvolutionStep evolutionStep = new FitnessEvolutionStep();
+                    getStatistics().getFitnessEvolution().add(evolutionStep);
+                    evolutionStep.setGeneration(step.getStepIndex());
+                    evolutionStep.setEvaluatedPopulation(new Double[]{(double) (((HardSoftScore) step.getStepScore()).getSoftScore())});
+                    if(step.getThresholdScore() != null){
+                        evolutionStep.setEstimatedPopulation(new Double[]{(double) (((HardSoftScore) step.getThresholdScore()).getSoftScore())});
+                    }else{
+                        evolutionStep.setEstimatedPopulation(new Double[]{(double) (((HardSoftScore) step.getStepScore()).getSoftScore())});
+                    }
+                }
+            }
 
             // End of changes
 
