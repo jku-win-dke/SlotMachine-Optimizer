@@ -287,6 +287,7 @@ public class OptimizationService {
 						// For the best result, we know the fitness
 						logger.info("Set fitness of solution " + i + " to " + optimization.getMaximumFitness());
 						results.get(i).setFitness(optimization.getMaximumFitness());
+						//TODO: maximum fitness not necessary fitness of this result
 					} else if(optimization.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING && optimization instanceof JeneticsOptimization jeneticsOptimization){
 						if(i == 1) logger.info("Optimization mode set to non-privacy-preserving. Setting fitness values of all returned solutions.");
 						results.get(i).setFitness(jeneticsOptimization.getFitnessValuesResults() != null ? jeneticsOptimization.getFitnessValuesResults().get(i) : 0.0);

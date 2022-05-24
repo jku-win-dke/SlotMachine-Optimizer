@@ -39,6 +39,10 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     protected long noGenerations;
     protected long noGenerationsDuplicatesNotEliminated;
     protected long noGenerationsEvaluated;
+    protected long actualMaxFitness;
+    protected long fitnessIncrement;
+    protected long actualCurrentMaxFitness;
+    protected final boolean useActualFitnessValues;
 
 
 
@@ -55,8 +59,14 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         this.noGenerationsUnevaluated = 0;
         this.noInitialDuplicates = 0;
         this.noRemainingDuplicates = 0;
-        this.trackDuplicates = false;
         this.noGenerationsDuplicatesNotEliminated = 0;
+        this.actualMaxFitness = Integer.MIN_VALUE;
+        this.actualCurrentMaxFitness = Integer.MIN_VALUE;
+        this.fitnessIncrement = 1;
+
+        // Configuration
+        this.trackDuplicates = false;
+        this.useActualFitnessValues = false;
     }
 
     /**
@@ -190,7 +200,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
      * @return the ordered population
      */
     protected PopulationEvaluation evaluatePopulationOrder(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep){
-        final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
+        List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         double maxFitness;
 
         if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
@@ -222,6 +232,29 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                             .toList();
 
             maxFitness = evaluatedPopulation.get(0).fitness();
+
+            if(!useActualFitnessValues){
+                maxFitness = population.size();
+
+                /**
+                 * Current fitness is required for ABOVE-methods {@link BatchEvaluatorAbove#evaluatePopulation(Seq, FitnessEvolutionStep)}.
+                 * Not used for the optimization, when useActualFitnessValues is false.
+                 */
+                actualCurrentMaxFitness = evaluatedPopulation.get(0).fitness();
+
+                // Check if fitness has improved compared to current maximum.
+                boolean isMaxFitnessIncreased = evaluatedPopulation.get(0).fitness() > actualMaxFitness;
+
+                // Override max fitness used for estimation/optimization with dummy-value.
+                if(isMaxFitnessIncreased){
+                    actualMaxFitness = actualCurrentMaxFitness;
+
+                    // Add increment to dummy maxFitness to indicate improvement.
+                    maxFitness = maxFitness + fitnessIncrement;
+                    fitnessIncrement ++;
+                }
+            }
+
 
             logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
 
@@ -265,6 +298,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
             evaluatedPopulation = null;
 
             maxFitness = fitnessQuantiles.getMaximum();
+
         } else {
             logger.debug("Running in non-privacy-preserving mode: Evaluate the population using the submitted weights.");
             evaluatedPopulation =
@@ -276,6 +310,21 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
             maxFitness = evaluatedPopulation.get(0).fitness();
 
+            if(!useActualFitnessValues){
+                maxFitness = population.size();
+
+                // Check if fitness has improved compared to current maximum.
+                boolean isMaxFitnessIncreased = evaluatedPopulation.get(0).fitness() > actualMaxFitness;
+
+                // Override max fitness used for estimation/optimization with dummy-value.
+                if(isMaxFitnessIncreased){
+                    actualMaxFitness = evaluatedPopulation.get(0).fitness();
+
+                    // Add increment to dummy maxFitness to indicate improvement.
+                    maxFitness = maxFitness + fitnessIncrement;
+                    fitnessIncrement ++;
+                }
+            }
             logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
 
             if(fitnessEvolutionStep != null) {
@@ -287,14 +336,14 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
             double actualMinFitness = evaluatedPopulation.get(evaluatedPopulation.size()-1).fitness();
 
-            double difference = maxFitness - actualMinFitness;
+            double difference = evaluatedPopulation.get(0).fitness() - actualMinFitness;
 
             double windowLength = (difference / this.optimization.getFitnessPrecision()) + 0.01;
 
             logger.debug("Diff: " + difference + ", windowLength: " + windowLength);
 
             Map<Integer, List<Phenotype<EnumGene<Integer>, Integer>>> quantilePopulations = evaluatedPopulation.stream()
-                    .collect(Collectors.groupingBy(phenotype -> (int) ((maxFitness - (double) phenotype.fitness()) / windowLength)));
+                    .collect(Collectors.groupingBy(phenotype -> (int) ((evaluatedPopulation.get(0).fitness() - (double) phenotype.fitness()) / windowLength)));
 
             logger.debug("Map phenotype to quantile");
             fitnessQuantilesPopulation = new HashMap<>();
