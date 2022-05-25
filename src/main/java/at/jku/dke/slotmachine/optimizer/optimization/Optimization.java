@@ -34,6 +34,8 @@ public abstract class Optimization {
 	private boolean traceFitnessEvolution = false;
 	private String[] initialFlightSequence = null;
 
+	private List<Integer> fitnessValuesResults = null;
+
 	public Optimization(Flight[] flights, Slot[] slots) {
 		this.flights = flights;
 		this.slots = slots;
@@ -189,4 +191,12 @@ public abstract class Optimization {
 	}
 
 	public abstract int computeInitialFitness();
+
+	public List<Integer> getFitnessValuesResults() {
+		return fitnessValuesResults;
+	}
+
+	public void setFitnessValuesResults(List<Integer> fitnessValuesResults) {
+		this.fitnessValuesResults = fitnessValuesResults;
+	}
 }

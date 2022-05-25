@@ -25,7 +25,6 @@ public class JeneticsOptimization extends Optimization {
     private JeneticsOptimizationStatistics statistics;
     private final SlotAllocationProblem problem;
 
-    private List<Integer> fitnessValuesResults;
 
     public JeneticsOptimization(Flight[] flights, Slot[] slots) {
         super(flights, slots);
@@ -467,13 +466,5 @@ public class JeneticsOptimization extends Optimization {
 
     public SlotAllocationProblem getProblem() {
         return problem;
-    }
-
-    public List<Integer> getFitnessValuesResults() {
-        return fitnessValuesResults;
-    }
-
-    public void setFitnessValuesResults(List<Integer> fitnessValuesResults) {
-        this.fitnessValuesResults = fitnessValuesResults;
     }
 }
