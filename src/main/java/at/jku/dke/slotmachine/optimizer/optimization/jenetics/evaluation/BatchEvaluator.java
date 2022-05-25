@@ -233,14 +233,14 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
             maxFitness = evaluatedPopulation.get(0).fitness();
 
-            if(!useActualFitnessValues){
-                maxFitness = population.size();
+            /**
+             * Current fitness is required for ABOVE-methods {@link BatchEvaluatorAbove#evaluatePopulation(Seq, FitnessEvolutionStep)}.
+             * Not used for the optimization, when useActualFitnessValues is false.
+             */
+            actualCurrentMaxFitness = evaluatedPopulation.get(0).fitness();
 
-                /**
-                 * Current fitness is required for ABOVE-methods {@link BatchEvaluatorAbove#evaluatePopulation(Seq, FitnessEvolutionStep)}.
-                 * Not used for the optimization, when useActualFitnessValues is false.
-                 */
-                actualCurrentMaxFitness = evaluatedPopulation.get(0).fitness();
+            if(!useActualFitnessValues && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
+                maxFitness = population.size();
 
                 // Check if fitness has improved compared to current maximum.
                 boolean isMaxFitnessIncreased = evaluatedPopulation.get(0).fitness() > actualMaxFitness;
@@ -254,7 +254,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                     fitnessIncrement ++;
                 }
             }
-
 
             logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
 
@@ -310,7 +309,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
             maxFitness = evaluatedPopulation.get(0).fitness();
 
-            if(!useActualFitnessValues){
+            if(!useActualFitnessValues && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
                 maxFitness = population.size();
 
                 // Check if fitness has improved compared to current maximum.
@@ -325,6 +324,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                     fitnessIncrement ++;
                 }
             }
+
             logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
 
             if(fitnessEvolutionStep != null) {
