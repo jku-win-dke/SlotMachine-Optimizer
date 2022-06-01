@@ -29,7 +29,7 @@ public abstract class Optimization {
 	private int fitnessPrecision = Integer.MIN_VALUE;
 
 	private double maximumFitness = Double.MIN_VALUE; // the best fitness among all solutions
-	private double theoreticalMaximumFitness = Double.MIN_VALUE; // the "true" maximum fitness as determined by Hungarian algorithm
+	private double theoreticalMaximumFitness = Double.MAX_VALUE; // the "true" maximum fitness as determined by Hungarian algorithm
 
 	private boolean traceFitnessEvolution = false;
 	private String[] initialFlightSequence = null;

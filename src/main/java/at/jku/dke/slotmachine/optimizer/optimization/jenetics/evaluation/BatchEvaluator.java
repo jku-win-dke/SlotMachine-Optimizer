@@ -143,7 +143,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
         logger.debug("Estimated minimum fitness of the population: " + minFitness);
 
-        estimatedPopulation = estimatePopulation(population, evaluatedPopulation, fitnessEvolutionStep, fitnessQuantilesPopulation, maxFitness, minFitness);
+        estimatedPopulation = estimatePopulation(population, evaluatedPopulation, fitnessEvolutionStep, fitnessQuantilesPopulation, maxFitness, minFitness, evaluation.bestGenotype);
 
         if(fitnessEvolutionStep != null) {
             fitnessEvolutionStep.setEstimatedPopulation(
@@ -181,9 +181,10 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
      * @param fitnessQuantilesPopulation the population mapped to fitness-quantiles
      * @param maxFitness the maximum fitness of the generation
      * @param minFitness the minimum fitness of the generation
+     * @param bestGenotype the genotype with the highest fitness according to the evaluation
      * @return the estimated generation
      */
-    protected abstract List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness);
+    protected abstract List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness, Genotype<EnumGene<Integer>> bestGenotype);
 
     /**
      * Takes the unevaluated population and returns the evaluation according to the configuration
@@ -201,6 +202,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
      */
     protected PopulationEvaluation evaluatePopulationOrder(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep){
         List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
+        Genotype<EnumGene<Integer>> bestGenotype = null;
         double maxFitness;
 
         if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
@@ -232,6 +234,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                             .toList();
 
             maxFitness = evaluatedPopulation.get(0).fitness();
+            bestGenotype = evaluatedPopulation.get(0).genotype();
 
             /**
              * Current fitness is required for ABOVE-methods {@link BatchEvaluatorAbove#evaluatePopulation(Seq, FitnessEvolutionStep)}.
@@ -268,6 +271,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         PopulationEvaluation evaluation = new PopulationEvaluation();
         evaluation.evaluatedPopulation = evaluatedPopulation;
         evaluation.maxFitness = maxFitness;
+        evaluation.bestGenotype = bestGenotype;
         return evaluation;
     }
 
@@ -280,7 +284,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     protected PopulationEvaluation evaluatePopulationFitnessQuantiles(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep){
         final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation = null;
-
+        Genotype<EnumGene<Integer>> bestGenotype = null;
         double maxFitness;
 
         if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
@@ -308,6 +312,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                             .toList();
 
             maxFitness = evaluatedPopulation.get(0).fitness();
+            bestGenotype = evaluatedPopulation.get(0).genotype();
 
             if(!useActualFitnessValues && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
                 maxFitness = population.size();
@@ -362,6 +367,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         PopulationEvaluation evaluation = new PopulationEvaluation();
         evaluation.evaluatedPopulation = evaluatedPopulation;
         evaluation.fitnessQuantilesPopulation = fitnessQuantilesPopulation;
+        evaluation.bestGenotype = bestGenotype;
         evaluation.maxFitness = maxFitness;
         return evaluation;
     }
@@ -418,7 +424,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     static class PopulationEvaluation{
         protected List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         protected Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation;
-
+        protected Genotype<EnumGene<Integer>> bestGenotype;
         protected double maxFitness;
     }
 }

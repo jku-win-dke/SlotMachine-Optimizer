@@ -1,7 +1,6 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation;
 
 import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
-import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
 import io.jenetics.EnumGene;
@@ -11,7 +10,6 @@ import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,10 +38,11 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
      * @param fitnessQuantilesPopulation the population mapped to fitness-quantiles
      * @param maxFitness the maximum fitness of the generation
      * @param minFitness the minimum fitness of the generation
+     * @param bestGenotype
      * @return the estimated population
      */
     @Override
-    protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness) {
+    protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness, Genotype<EnumGene<Integer>> bestGenotype) {
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation;
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream;
 
@@ -55,6 +54,12 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
                 .filter(phenotype -> evaluatedGenotypes.contains(phenotype.genotype()))
                 .map(phenotype -> phenotype.withFitness((int)maxFitness))
                 .collect(Collectors.toList());
+
+        if(!useActualFitnessValues && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
+            estimatedPopulation = estimatedPopulation.stream()
+                    .map(phenotype -> phenotype.genotype().equals(bestGenotype) ? phenotype.withFitness( (int) maxFitness + 1) : phenotype)
+                    .collect(Collectors.toList());
+        }
 
         while(estimatedPopulation.size() < population.size()){
             estimatedPopulation.addAll(estimatedPopulation);

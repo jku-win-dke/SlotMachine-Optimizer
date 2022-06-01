@@ -5,6 +5,7 @@ import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
 import io.jenetics.EnumGene;
+import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
 import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
@@ -30,7 +31,7 @@ public class BatchEvaluatorFitnessRangeQuantiles extends BatchEvaluator{
     }
 
     @Override
-    protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness) {
+    protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness, Genotype<EnumGene<Integer>> bestGenotype) {
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation = null;
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream = null;
 
