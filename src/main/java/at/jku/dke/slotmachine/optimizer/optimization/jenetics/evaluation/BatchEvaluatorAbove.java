@@ -10,6 +10,7 @@ import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,6 +69,8 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
         estimatedPopulation = estimatedPopulation
                 .stream()
                 .limit(population.size())
+                .sorted(Comparator.comparingInt(Phenotype::fitness))
+                .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());
 
         logger.debug("Assigned estimated fitness values.");
