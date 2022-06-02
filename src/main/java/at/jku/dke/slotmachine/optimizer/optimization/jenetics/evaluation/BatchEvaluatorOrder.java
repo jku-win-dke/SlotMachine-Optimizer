@@ -69,6 +69,14 @@ public class BatchEvaluatorOrder extends BatchEvaluator{
                     .sorted(Comparator.reverseOrder())
                     .toList();
 
+            if(!useActualFitnessValues && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
+                estimatedPopulation = estimatedPopulation.stream()
+                        .map(phenotype -> phenotype.genotype().equals(bestGenotype) ? phenotype.withFitness( (int) maxFitness + 1) : phenotype)
+                        .sorted(Comparator.comparingInt(Phenotype::fitness))
+                        .sorted(Comparator.reverseOrder())
+                        .collect(Collectors.toList());
+            }
+
             logger.debug("Assigned estimated fitness values.");
         } else {
             logger.debug("No estimator specified. Using exact fitness (if available).");
