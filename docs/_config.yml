@@ -6,6 +6,7 @@ relative_links:
   enabled: true
   collections: true
 include:
+  - apidoc.html
   - CONTRIBUTING.md
   - README.md
   - LICENSE.md
