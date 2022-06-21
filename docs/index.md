@@ -1,5 +1,5 @@
 # SlotMachine: Heuristic Optimizer
-[api](https://github.com/jku-win-dke/SlotMachine-Optimizer/blob/master/docs/_config.yml)
+[api](https://github.com/jku-win-dke/SlotMachine-Optimizer/blob/master/docs/apidoc.html)
 
 The Heuristic Optimizer of the SlotMachine system.
 
