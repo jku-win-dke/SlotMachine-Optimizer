@@ -16,4 +16,4 @@ Available REST methods include:
 - `/optimizations/{optId}/result` returns the results of the optimization session (if results are available) using the optimization identification.
 - `/optimizations/{optId}/remove` deletes all data from the optimization session with the given optimization identification.
 
-For a full overview see [the resources](/docs/resources.md) or visit the [website](https://jku-win-dke.github.io/SlotMachine-Optimizer/).
+For a full overview visit the [website](https://jku-win-dke.github.io/SlotMachine-Optimizer/).
