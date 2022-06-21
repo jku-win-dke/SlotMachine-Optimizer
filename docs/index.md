@@ -15,7 +15,7 @@ We also provide the datasets from our experiments as downloads:
 - [Run 2](https://final.at/coopis2022/run2.zip)
 - [Run 3](https://final.at/coopis2022/run3.zip)
 - [Run 4](https://final.at/coopis2022/run4.zip)
-- 
+
 <h1 id="api-documentation">Api Documentation</h1>
 
 > Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.
