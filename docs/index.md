@@ -16,8 +16,8 @@ We also provide the datasets from our experiments as downloads:
 - [Run 3](https://final.at/coopis2022/run3.zip)
 - [Run 4](https://final.at/coopis2022/run4.zip)
 
-## API Documentation
+## API documentation
 
-To explore the provided REST endpoints, visit the [API documentation](https://jku-win-dke.github.io/SlotMachine-Optimizer/apidoc.html).
+To explore the available REST methods, visit the [API documentation](https://jku-win-dke.github.io/SlotMachine-Optimizer/apidoc.html).
 
 
