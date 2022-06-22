@@ -296,6 +296,7 @@ public class OptimizationService {
 						logger.info("Set fitness of solution " + i + " to null.");
 						results.get(i).setFitness(null);
 					}
+					results.get(i).setOptimizedFlightSequenceIndexes(optimization.getConvertedResults()[i]);
 				}
 			}
 		}

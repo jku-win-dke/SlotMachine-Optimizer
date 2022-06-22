@@ -7,6 +7,7 @@ import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluator;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluatorFactory;
+import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.PopulationConverter;
 import io.jenetics.*;
 import io.jenetics.engine.*;
 import io.jenetics.util.ISeq;
@@ -243,9 +244,16 @@ public class JeneticsOptimization extends Optimization {
                         .map(genotype -> problem.decode(genotype))
                         .toList();
 
-
-
         this.setResults(resultList);
+
+        logger.info("Converting result population to the format required by the PE.");
+        Integer[][] resultListConverted = PopulationConverter.convertPopulationToArray(ISeq.of(result.population().stream()
+                .filter(PopulationConverter.distinctByAttribute(Phenotype::genotype))
+                .sorted(Comparator.comparingInt(Phenotype::fitness))
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList())), problem);
+
+        this.setConvertedResults(resultListConverted);
 
         // return only the best result
         return resultMap;

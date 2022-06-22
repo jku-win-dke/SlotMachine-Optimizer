@@ -16,6 +16,7 @@ public abstract class Optimization {
     private Flight[] flights;
     private Slot[] slots;
 	private List<Map<Flight, Slot>> results = null;
+	private Integer[][] convertedResults = null;
 	private FitnessEstimator fitnessEstimator;
 
 	private OptimizationMode mode = OptimizationMode.NON_PRIVACY_PRESERVING;
@@ -198,5 +199,13 @@ public abstract class Optimization {
 
 	public void setFitnessValuesResults(List<Integer> fitnessValuesResults) {
 		this.fitnessValuesResults = fitnessValuesResults;
+	}
+
+	public Integer[][] getConvertedResults() {
+		return convertedResults;
+	}
+
+	public void setConvertedResults(Integer[][] convertedResults) {
+		this.convertedResults = convertedResults;
 	}
 }
