@@ -4,6 +4,7 @@ import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
+import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import io.jenetics.*;
 import io.jenetics.engine.*;
 import io.jenetics.util.ISeq;
@@ -13,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class JeneticsOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
@@ -112,7 +114,7 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info("Build the genetic algorithm engine.");
 
-        Evaluator evaluator = BatchEvaluatorFactory.getEvaluator(getFitnessMethod(), problem, this);
+        Evaluator evaluator = null;//;BatchEvaluatorFactory.getEvaluator(getFitnessMethod(), problem, this);
 
         Engine.Builder<EnumGene<Integer>, Integer> builder;
 
@@ -204,7 +206,7 @@ public class JeneticsOptimization extends Optimization {
                     .sorted(Comparator.reverseOrder())
                     .collect(Collectors.toList());
 
-            this.setFitnessValuesResults(distinctIndividualFitnessValues);
+            //this.setFitnessValuesResults(distinctIndividualFitnessValues);
         }
 
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
@@ -212,7 +214,7 @@ public class JeneticsOptimization extends Optimization {
         logger.info("Statistics: \n" + statistics);
         if(evaluator instanceof BatchEvaluator batchEvaluator) {
             logger.info("Printing statistics from BatchEvaluator");
-            batchEvaluator.printLogs();
+            //batchEvaluator.printLogs();
         }
 
         logger.info("Setting statistics for this optimization."); // already initialized in constructor

@@ -46,26 +46,35 @@ public class SimulatedPrivacyEngine<Solution_> implements NeighbourhoodEvaluator
      * @return a map with the avg score and the candidates above the threshold.
      */
     @Override
-    public Map<Score, List<Solution_>> getCandidatesAboveThreshold(List<Solution_> candidates, double threshold) {
+    public Map<Score, List<Solution_>> getCandidatesAboveThreshold(List<Solution_> candidates, double threshold, Double terminationFitness) {
         // get ordered flight-prios
         Map<HardSoftScore, List<FlightPrioritization>> orderedFlightPrioMap = evaluateFlightPrioritizations((List<FlightPrioritization>)candidates);
         HardSoftScore highScore = orderedFlightPrioMap.entrySet().stream().findFirst().get().getKey();
         List<FlightPrioritization> orderedFlightPrioritizations = orderedFlightPrioMap.entrySet().stream().findFirst().get().getValue();
 
         List<FlightPrioritization> flightPrioritizationsAboveThreshold;
-        double thresholdDecrement = 0.001;
-        do{
-            double thresholdDoubleScore = highScore.getSoftScore() > 0 ? highScore.getSoftScore() * threshold : highScore.getSoftScore() * (1 + (1 - threshold));
-            flightPrioritizationsAboveThreshold = orderedFlightPrioritizations.stream()
-                    .filter(flightPrio -> calculator.calculateScore(flightPrio).getSoftScore() > thresholdDoubleScore)
-                    .toList();
-            threshold = threshold - thresholdDecrement;
-        }while(flightPrioritizationsAboveThreshold.size() < aboveThresholdMinimumSize);
+        double averageDoubleScore;
 
-        double averageDoubleScore = flightPrioritizationsAboveThreshold.stream()
-                .mapToInt(flightPrio -> calculator.calculateScore(flightPrio).getSoftScore())
-                .average()
-                .getAsDouble();
+        if(highScore.getSoftScore() < terminationFitness){
+            double thresholdDecrement = 0.001;
+            do{
+                double thresholdDoubleScore = highScore.getSoftScore() > 0 ? highScore.getSoftScore() * threshold : highScore.getSoftScore() * (1 + (1 - threshold));
+                flightPrioritizationsAboveThreshold = orderedFlightPrioritizations.stream()
+                        .filter(flightPrio -> calculator.calculateScore(flightPrio).getSoftScore() > thresholdDoubleScore)
+                        .toList();
+                threshold = threshold - thresholdDecrement;
+            }while(flightPrioritizationsAboveThreshold.size() < aboveThresholdMinimumSize);
+
+                averageDoubleScore = flightPrioritizationsAboveThreshold.stream()
+                    .mapToInt(flightPrio -> calculator.calculateScore(flightPrio).getSoftScore())
+                    .average()
+                    .getAsDouble();
+        }else{
+            FlightPrioritization winner = orderedFlightPrioritizations.get(0);
+            flightPrioritizationsAboveThreshold = new ArrayList<>();
+            flightPrioritizationsAboveThreshold.add(winner);
+            averageDoubleScore = highScore.getSoftScore();
+        }
 
         List<Solution_> solutionsAboveThrehold = new ArrayList<>();
         for(var r : flightPrioritizationsAboveThreshold ){
@@ -77,19 +86,30 @@ public class SimulatedPrivacyEngine<Solution_> implements NeighbourhoodEvaluator
     }
 
     @Override
-    public Map<Score, List<Solution_>> getTopCandidatesAndAverageScore(List<Solution_> candidates, double threshold) {
+    public Map<Score, List<Solution_>> getTopCandidatesAndAverageScore(List<Solution_> candidates, double threshold, Double terminationFitness) {
         var orderedFlightPrioMap = evaluateFlightPrioritizations((List<FlightPrioritization>)candidates);
         var ordering = orderedFlightPrioMap.entrySet().stream().findFirst().get().getValue();
+        HardSoftScore highScore = orderedFlightPrioMap.entrySet().stream().findFirst().get().getKey();
 
-        long topBucketSize = Math.round(ordering.size() * threshold);
-        var topFlightPrios = ordering.stream()
-                .limit(topBucketSize)
-                .collect(Collectors.toList());
-        var averageScore = topFlightPrios.stream()
-                .mapToInt(flightPrio -> calculator.calculateScore(flightPrio).getSoftScore())
-                .average()
-                .getAsDouble();
+        double averageScore;
+        List<FlightPrioritization> topFlightPrios;
 
+        if(highScore.getSoftScore() < terminationFitness){
+            long topBucketSize = Math.round(ordering.size() * threshold);
+            topFlightPrios = ordering.stream()
+                    .limit(topBucketSize)
+                    .collect(Collectors.toList());
+            averageScore = topFlightPrios.stream()
+                    .mapToInt(flightPrio -> calculator.calculateScore(flightPrio).getSoftScore())
+                    .average()
+                    .getAsDouble();
+
+        }else{
+            topFlightPrios = new ArrayList<>();
+            topFlightPrios.add(ordering.get(0));
+            averageScore = highScore.getSoftScore();
+
+        }
         var topSolutions = new ArrayList<Solution_>();
         for(var r : topFlightPrios ){
             topSolutions.add((Solution_)r);

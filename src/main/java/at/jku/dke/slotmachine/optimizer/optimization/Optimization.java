@@ -33,6 +33,8 @@ public abstract class Optimization {
 
 	private boolean traceFitnessEvolution = false;
 
+	private String[] initialFlightSequence;
+
 	public Optimization(Flight[] flights, Slot[] slots) {
 		this.flights = flights;
 		this.slots = slots;

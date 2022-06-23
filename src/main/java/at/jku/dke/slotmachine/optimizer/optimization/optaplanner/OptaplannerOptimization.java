@@ -32,7 +32,8 @@ public class OptaplannerOptimization extends Optimization {
         super(flights, slots);
         // TODO: update statistics with relevant times etc. during optimization
         this.statistics = new OptaplannerOptimizationStatistics();
-        this.statistics.setTimeCreated(LocalDateTime.now(ZoneId.of(("CET"))));
+        var timeCreated = LocalDateTime.now();
+        this.statistics.setTimeCreated(timeCreated);
     }
 
     @Override
@@ -52,6 +53,11 @@ public class OptaplannerOptimization extends Optimization {
             solverConfig.getTerminationConfig().setSecondsSpentLimit(this.getConfiguration().getSecondsSpentLimit());
         }
 
+        if(this.getConfiguration() != null && this.getMode() == OptimizationMode.BENCHMARKING && this.getTheoreticalMaximumFitness() != Double.MIN_VALUE){
+            logger.info("Setting soft score limit to " + this.getTheoreticalMaximumFitness());
+            solverConfig.getTerminationConfig().setBestScoreLimit("0hard/"+Math.round((float)this.getTheoreticalMaximumFitness())+"soft");
+        }
+
         logger.info("Create the solver factory.");
         SolverFactory<FlightPrioritization> solverFactory = null;
         solverFactory = SolverFactory.create(solverConfig);
@@ -63,10 +69,11 @@ public class OptaplannerOptimization extends Optimization {
         if(this.getFlights().length < this.getSlots().length) assignmentProblemType = AssignmentProblemType.UNBALANCED;
 
         LocalSearchStatistics localSearchStatistics = null;
-        if(solverFactory instanceof DefaultSolverFactory<FlightPrioritization>){
-            ((DefaultSolverFactory)solverFactory).setAssignmentProblemType(assignmentProblemType);
-            localSearchStatistics = ((DefaultSolverFactory)solverFactory).getLocalSearchStatistics();
-            //TODO: Benchmarking-Termination
+        if(solverFactory instanceof DefaultSolverFactory<FlightPrioritization> defaultSolverFactory){
+            defaultSolverFactory.setAssignmentProblemType(assignmentProblemType);
+            defaultSolverFactory.setTerminationFitness(this.getTheoreticalMaximumFitness() != Double.MIN_VALUE ? this.getTheoreticalMaximumFitness() : Double.MAX_VALUE);
+            localSearchStatistics = defaultSolverFactory.getLocalSearchStatistics();
+
         }
         statistics.setLocalSearchStatistics(localSearchStatistics);
 
@@ -100,13 +107,13 @@ public class OptaplannerOptimization extends Optimization {
 
         FlightPrioritization solvedFlightPrioritization = null;
 
-        this.statistics.setTimeStarted(LocalDateTime.now(ZoneId.of(("CET"))));
+        var timeStarted = LocalDateTime.now();
         try {
             solvedFlightPrioritization = solver.solve(unsolvedFlightPrioritization);
         } catch (Exception e) {
             logger.error(e);
         }
-        this.statistics.setTimeFinished(LocalDateTime.now(ZoneId.of(("CET"))));
+        var timeFinished = LocalDateTime.now();
 
         Map<Flight,Slot> resultMap = null;
 
@@ -122,6 +129,8 @@ public class OptaplannerOptimization extends Optimization {
             if(this.statistics != null){
                 this.statistics = new OptaplannerOptimizationStatistics();
             }
+            this.statistics.setTimeStarted(timeStarted);
+            this.statistics.setTimeFinished(timeFinished);
 
             // Todo: Check why i had to add these lines so that asynchronous optimization works
 
@@ -134,13 +143,12 @@ public class OptaplannerOptimization extends Optimization {
                 resultList.addAll(Arrays.asList(existingResults));
             }
             // Get score of current result
-            //TODO: add exact score for above, top method
             var score = solvedFlightPrioritization.getScore().getSoftScore();
 
             // Update maximum fitness of this and add prepend result if score > this.maximumFitness
-            if(score > this.getMaximumFitness()){
+            if(verificationScore.getSoftScore() > this.getMaximumFitness()){
                 resultList.add(0, resultMap);
-                this.setMaximumFitness(score);
+                this.setMaximumFitness(verificationScore.getSoftScore());
             }else{
                 resultList.add(resultMap);
             }

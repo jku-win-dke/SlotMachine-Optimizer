@@ -7,6 +7,11 @@
         <easyScoreCalculatorClass>at.jku.dke.slotmachine.optimizer.optimization.optaplanner.customimplementation.PrivacyPreservingFlightPrioritizationScoreCalculator</easyScoreCalculatorClass>
     </scoreDirectorFactory>
 
+    <!--    Termination -->
+    <termination>
+        <!--   Empty so that best-score-termination can be set to score of optimum solution if needed     -->
+    </termination>
+
     <!-- Local Search Phase -->
     <localSearch>
         <phaseType>PRIVACY_PRESERVING</phaseType>
