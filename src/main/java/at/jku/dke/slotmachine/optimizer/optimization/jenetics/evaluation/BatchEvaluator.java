@@ -224,6 +224,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                             .toList();
 
             maxFitness = populationOrder.getMaximum();
+            logger.info("Maximum fitness in generation according to Privacy Engine is " + maxFitness + ".");
         } else {
             logger.debug("Running in non-privacy-preserving mode: Evaluate the population using the submitted weights.");
             evaluatedPopulation =
