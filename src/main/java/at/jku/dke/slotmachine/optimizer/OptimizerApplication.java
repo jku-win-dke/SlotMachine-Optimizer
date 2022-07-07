@@ -1,5 +1,6 @@
 package at.jku.dke.slotmachine.optimizer;
 
+import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
@@ -48,6 +49,14 @@ public class OptimizerApplication {
             logger.error("Could not read fitness estimator settings.", e);
         }
 
+        try {
+            PrivacyEngineService.writeInput(new Integer[][]{
+                    {1,2,3},
+                    {4,5,6}
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         SpringApplication.run(OptimizerApplication.class, args);
     }
 }
