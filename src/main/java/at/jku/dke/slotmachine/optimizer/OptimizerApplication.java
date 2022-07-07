@@ -49,14 +49,6 @@ public class OptimizerApplication {
             logger.error("Could not read fitness estimator settings.", e);
         }
 
-        try {
-            PrivacyEngineService.writeInput(new Integer[][]{
-                    {1,2,3},
-                    {4,5,6}
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         SpringApplication.run(OptimizerApplication.class, args);
     }
 }
