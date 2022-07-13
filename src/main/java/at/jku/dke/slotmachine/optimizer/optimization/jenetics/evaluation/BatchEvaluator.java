@@ -4,6 +4,7 @@ import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
+import at.jku.dke.slotmachine.privacyEngine.dto.AboveIndividualsDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import io.jenetics.EnumGene;
@@ -276,103 +277,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         return evaluation;
     }
 
-    /**
-     * Takes the unevaluated population and assigns them to fitness-range-quantiles according to the fitness-precision
-     * @param population the unevaluated population
-     * @param fitnessEvolutionStep the evolution step of this generation
-     * @return the mapping of the candidates to the fitness-range-quantiles
-     */
-    protected PopulationEvaluation evaluatePopulationFitnessQuantiles(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep){
-        final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
-        Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation = null;
-        Genotype<EnumGene<Integer>> bestGenotype = null;
-        double maxFitness;
-
-        if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
-            logger.debug("Running in privacy-preserving mode: Evaluate the population using the Privacy Engine.");
-
-            logger.debug("Convert population to format required by Privacy Engine.");
-            Integer[][] input = this.convertPopulationToArray(population);
-
-            logger.debug("Invoke the Privacy Engine service to get fitness quantiles of population.");
-            FitnessQuantilesDTO fitnessQuantiles =
-                    this.optimization.getPrivacyEngineService().computeFitnessQuantiles(this.optimization, input);
-
-            // TODO convert between Privacy Engine's return format and format required by Optimizer
-            evaluatedPopulation = null;
-
-            maxFitness = fitnessQuantiles.getMaximum();
-
-        } else {
-            logger.debug("Running in non-privacy-preserving mode: Evaluate the population using the submitted weights.");
-            evaluatedPopulation =
-                    population.stream()
-                            .map(phenotype -> phenotype.withFitness(problem.fitness(phenotype.genotype())))
-                            .sorted(Comparator.comparingInt(Phenotype::fitness))
-                            .sorted(Comparator.reverseOrder())
-                            .toList();
-
-            maxFitness = evaluatedPopulation.get(0).fitness();
-            bestGenotype = evaluatedPopulation.get(0).genotype();
-
-            if(!useActualFitnessValues && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
-                maxFitness = population.size();
-
-                // Check if fitness has improved compared to current maximum.
-                boolean isMaxFitnessIncreased = evaluatedPopulation.get(0).fitness() > actualMaxFitness;
-
-                // Override max fitness used for estimation/optimization with dummy-value.
-                if(isMaxFitnessIncreased){
-                    actualMaxFitness = evaluatedPopulation.get(0).fitness();
-
-                    // Add increment to dummy maxFitness to indicate improvement.
-                    maxFitness = maxFitness + fitnessIncrement;
-                    fitnessIncrement ++;
-                }
-            }
-
-            logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
-
-            if(fitnessEvolutionStep != null) {
-                fitnessEvolutionStep.setEvaluatedPopulation(
-                        evaluatedPopulation.stream().map(phenotype -> (double) phenotype.fitness()).toArray(Double[]::new)
-                );
-                logger.debug("Tracing fitness evolution. Size of evaluated population: " + fitnessEvolutionStep.getEvaluatedPopulation().length);
-            }
-
-            double actualMinFitness = evaluatedPopulation.get(evaluatedPopulation.size()-1).fitness();
-
-            double difference = evaluatedPopulation.get(0).fitness() - actualMinFitness;
-
-            double windowLength = (difference / this.optimization.getFitnessPrecision()) + 0.01;
-
-            logger.debug("Diff: " + difference + ", windowLength: " + windowLength);
-
-            Map<Integer, List<Phenotype<EnumGene<Integer>, Integer>>> quantilePopulations = evaluatedPopulation.stream()
-                    .collect(Collectors.groupingBy(phenotype -> (int) ((evaluatedPopulation.get(0).fitness() - (double) phenotype.fitness()) / windowLength)));
-
-            logger.debug("Map phenotype to quantile");
-            fitnessQuantilesPopulation = new HashMap<>();
-
-            for(int quantile : quantilePopulations.keySet()) {
-                List<Phenotype<EnumGene<Integer>, Integer>> quantilePopulation = quantilePopulations.get(quantile);
-
-                for(Phenotype<EnumGene<Integer>, Integer> phenotype : quantilePopulation) {
-                    fitnessQuantilesPopulation.put(phenotype, quantile);
-                }
-            }
-
-            logger.debug("Mapped phenotypes to quantile");
-        }
-
-        PopulationEvaluation evaluation = new PopulationEvaluation();
-        evaluation.evaluatedPopulation = evaluatedPopulation;
-        evaluation.fitnessQuantilesPopulation = fitnessQuantilesPopulation;
-        evaluation.bestGenotype = bestGenotype;
-        evaluation.maxFitness = maxFitness;
-        return evaluation;
-    }
-
     public void printLogs(){
         logger.info("--------------- Statistics Batch Evaluator --------------------");
         logger.info("Deduplication: " + this.isDeduplicate + ".");
@@ -392,7 +296,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
      * @return the population in array format required by Privacy Engine
      */
     protected Integer[][] convertPopulationToArray(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
-        return population.stream()
+        return population.asList().stream()
                   .map(phenotype -> this.problem.decode(phenotype.genotype()))
                   .map(map ->
                        // 1. Get a flight list from the mapping of flights to slots, where the flights are
@@ -406,18 +310,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                   ).toArray(Integer[][]::new);
     }
 
-    /**
-     * Utility method that calculates a percentile
-     * @param values the values
-     * @param percentile the desired percentile
-     * @return the percentile
-     */
-    protected static double percentile(List<Double> values, double percentile) {
-        values = new ArrayList<>(values);
-        Collections.sort(values);
-        int index = (int) Math.ceil((percentile / 100) * values.size());
-        return values.get(index);
-    }
 
     /**
      * Represents the evaluation of a population

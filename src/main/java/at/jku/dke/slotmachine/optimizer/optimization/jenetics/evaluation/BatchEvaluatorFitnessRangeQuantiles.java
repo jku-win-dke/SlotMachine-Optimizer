@@ -4,6 +4,7 @@ import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
+import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
 import io.jenetics.EnumGene;
 import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
@@ -12,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,5 +84,103 @@ public class BatchEvaluatorFitnessRangeQuantiles extends BatchEvaluator{
     @Override
     protected PopulationEvaluation evaluatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep) {
         return evaluatePopulationFitnessQuantiles(population, fitnessEvolutionStep);
+    }
+
+
+    /**
+     * Takes the unevaluated population and assigns them to fitness-range-quantiles according to the fitness-precision
+     * @param population the unevaluated population
+     * @param fitnessEvolutionStep the evolution step of this generation
+     * @return the mapping of the candidates to the fitness-range-quantiles
+     */
+    protected PopulationEvaluation evaluatePopulationFitnessQuantiles(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep){
+        final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
+        Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation = null;
+        Genotype<EnumGene<Integer>> bestGenotype = null;
+        double maxFitness;
+
+        if(this.optimization.getMode() == OptimizationMode.PRIVACY_PRESERVING) {
+            logger.debug("Running in privacy-preserving mode: Evaluate the population using the Privacy Engine.");
+
+            logger.debug("Convert population to format required by Privacy Engine.");
+            Integer[][] input = this.convertPopulationToArray(population);
+
+            logger.debug("Invoke the Privacy Engine service to get fitness quantiles of population.");
+            FitnessQuantilesDTO fitnessQuantiles =
+                    this.optimization.getPrivacyEngineService().computeFitnessQuantiles(this.optimization, input);
+
+            // TODO convert between Privacy Engine's return format and format required by Optimizer
+            evaluatedPopulation = null;
+
+            maxFitness = fitnessQuantiles.getMaximum();
+
+        } else {
+            logger.debug("Running in non-privacy-preserving mode: Evaluate the population using the submitted weights.");
+            evaluatedPopulation =
+                    population.stream()
+                            .map(phenotype -> phenotype.withFitness(problem.fitness(phenotype.genotype())))
+                            .sorted(Comparator.comparingInt(Phenotype::fitness))
+                            .sorted(Comparator.reverseOrder())
+                            .toList();
+
+            maxFitness = evaluatedPopulation.get(0).fitness();
+            bestGenotype = evaluatedPopulation.get(0).genotype();
+
+            if(!useActualFitnessValues && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
+                maxFitness = population.size();
+
+                // Check if fitness has improved compared to current maximum.
+                boolean isMaxFitnessIncreased = evaluatedPopulation.get(0).fitness() > actualMaxFitness;
+
+                // Override max fitness used for estimation/optimization with dummy-value.
+                if(isMaxFitnessIncreased){
+                    actualMaxFitness = evaluatedPopulation.get(0).fitness();
+
+                    // Add increment to dummy maxFitness to indicate improvement.
+                    maxFitness = maxFitness + fitnessIncrement;
+                    fitnessIncrement ++;
+                }
+            }
+
+            logger.debug("Actual minimum fitness of the population: " + evaluatedPopulation.get(evaluatedPopulation.size() - 1).fitness());
+
+            if(fitnessEvolutionStep != null) {
+                fitnessEvolutionStep.setEvaluatedPopulation(
+                        evaluatedPopulation.stream().map(phenotype -> (double) phenotype.fitness()).toArray(Double[]::new)
+                );
+                logger.debug("Tracing fitness evolution. Size of evaluated population: " + fitnessEvolutionStep.getEvaluatedPopulation().length);
+            }
+
+            double actualMinFitness = evaluatedPopulation.get(evaluatedPopulation.size()-1).fitness();
+
+            double difference = evaluatedPopulation.get(0).fitness() - actualMinFitness;
+
+            double windowLength = (difference / this.optimization.getFitnessPrecision()) + 0.01;
+
+            logger.debug("Diff: " + difference + ", windowLength: " + windowLength);
+
+            Map<Integer, List<Phenotype<EnumGene<Integer>, Integer>>> quantilePopulations = evaluatedPopulation.stream()
+                    .collect(Collectors.groupingBy(phenotype -> (int) ((evaluatedPopulation.get(0).fitness() - (double) phenotype.fitness()) / windowLength)));
+
+            logger.debug("Map phenotype to quantile");
+            fitnessQuantilesPopulation = new HashMap<>();
+
+            for(int quantile : quantilePopulations.keySet()) {
+                List<Phenotype<EnumGene<Integer>, Integer>> quantilePopulation = quantilePopulations.get(quantile);
+
+                for(Phenotype<EnumGene<Integer>, Integer> phenotype : quantilePopulation) {
+                    fitnessQuantilesPopulation.put(phenotype, quantile);
+                }
+            }
+
+            logger.debug("Mapped phenotypes to quantile");
+        }
+
+        PopulationEvaluation evaluation = new PopulationEvaluation();
+        evaluation.evaluatedPopulation = evaluatedPopulation;
+        evaluation.fitnessQuantilesPopulation = fitnessQuantilesPopulation;
+        evaluation.bestGenotype = bestGenotype;
+        evaluation.maxFitness = maxFitness;
+        return evaluation;
     }
 }

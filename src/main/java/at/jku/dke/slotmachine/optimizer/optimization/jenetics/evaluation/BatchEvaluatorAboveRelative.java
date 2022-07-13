@@ -3,6 +3,10 @@ package at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * BatchEvaluator for the fitness-method ABOVE_RELATIVE_THRESHOLD
  */
@@ -23,5 +27,18 @@ public class BatchEvaluatorAboveRelative extends BatchEvaluatorAbove{
     @Override
     protected double getThreshold(PopulationEvaluation evaluation) {
         return percentile(evaluation.evaluatedPopulation.stream().map(ph -> (double) ph.fitness()).toList(), (100 - this.optimization.getFitnessPrecision()));
+    }
+
+    /**
+     * Utility method that calculates a percentile
+     * @param values the values
+     * @param percentile the desired percentile
+     * @return the percentile
+     */
+    protected static double percentile(List<Double> values, double percentile) {
+        values = new ArrayList<>(values);
+        Collections.sort(values);
+        int index = (int) Math.ceil((percentile / 100) * values.size());
+        return values.get(index);
     }
 }
