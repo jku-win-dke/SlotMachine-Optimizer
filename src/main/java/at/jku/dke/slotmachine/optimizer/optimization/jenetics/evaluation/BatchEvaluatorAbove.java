@@ -48,23 +48,25 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
     @Override
     protected List<Phenotype<EnumGene<Integer>, Integer>> estimatePopulation(Seq<Phenotype<EnumGene<Integer>, Integer>> population, List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation, FitnessEvolutionStep fitnessEvolutionStep, Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation, double maxFitness, double minFitness, Genotype<EnumGene<Integer>> bestGenotype) {
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation;
-        List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulationStream;
 
         List<Genotype<EnumGene<Integer>>> evaluatedGenotypes =
                 evaluatedPopulation.stream().map(phenotype -> phenotype.genotype()).toList();
 
         logger.debug("Assign each solution returned by the Privacy Engine the maximum fitness: " + maxFitness);
+        // Add all evaluated individuals to the estimated population with the max fitness
         estimatedPopulation = population.stream()
                 .filter(phenotype -> evaluatedGenotypes.contains(phenotype.genotype()))
                 .map(phenotype -> phenotype.withFitness((int)maxFitness))
                 .collect(Collectors.toList());
 
+        // Increase the fitness of the best genotype in the population if possible to improve selection process
         if(bestGenotype != null && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
             estimatedPopulation = estimatedPopulation.stream()
                     .map(phenotype -> phenotype.genotype().equals(bestGenotype) ? phenotype.withFitness( (int) maxFitness + 1) : phenotype)
                     .collect(Collectors.toList());
         }
 
+        // Add estimated individuals to the collection until the size of the estimated population equals the size of the population (Jenetics requirement)
         while(estimatedPopulation.size() < population.size()){
             estimatedPopulation.addAll(estimatedPopulation);
         }
@@ -100,7 +102,6 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
      */
     protected PopulationEvaluation evaluatePopulationAbove(Seq<Phenotype<EnumGene<Integer>, Integer>> population, FitnessEvolutionStep fitnessEvolutionStep){
         final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
-        Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation = null;
         Genotype<EnumGene<Integer>> bestGenotype = null;
         PopulationEvaluation evaluation = null;
         double maxFitness;
@@ -122,17 +123,19 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
             logger.debug("Returned best genotype is " + (individualsAbove.getBest() != null ? individualsAbove.getBest() : "NULL") + ".");
             logger.debug("Has max fitness improved: " + (individualsAbove.isMaxFitnessImproved() != null ? individualsAbove.isMaxFitnessImproved() : "NULL") + ".");
 
-            evaluatedPopulation = Arrays.stream(individualsAbove.getTop())
-                    .map(population::get)
-                    .toList();
 
             bestGenotype = individualsAbove.getBest() != null ? population.get(individualsAbove.getBest()).genotype() : null;
             maxFitness = individualsAbove.getMaximum() != null ? individualsAbove.getMaximum() : population.size();
 
+            // Increase max-fitness if no actual maximum has been provided by the PE but an improvement is indicated
             if(individualsAbove.getMaximum() == null && maxFitness == population.size() && Boolean.TRUE.equals(individualsAbove.isMaxFitnessImproved())){
                 maxFitness += this.fitnessIncrement;
                 this.fitnessIncrement++;
             }
+
+            evaluatedPopulation = Arrays.stream(individualsAbove.getTop())
+                    .map(population::get)
+                    .toList();
 
             evaluation = new PopulationEvaluation();
             evaluation.evaluatedPopulation = evaluatedPopulation;

@@ -3,6 +3,7 @@ package at.jku.dke.slotmachine.optimizer.service;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.privacyEngine.dto.AboveIndividualsDTO;
+import at.jku.dke.slotmachine.privacyEngine.dto.ActualFitnessValuesDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import org.apache.logging.log4j.LogManager;
@@ -71,7 +72,13 @@ public class PrivacyEngineService {
 
 	}
 
-
+	/**
+	 * Invokes the PE's /computeClassification endpoint that returns the top-individuals from the population.
+	 *
+	 * @param optimization the optimization
+	 * @param input the population in the format required by the PE
+	 * @return the DTO containing the top-individuals and additional information if available
+	 */
 	public AboveIndividualsDTO computeIndividualsAbove(JeneticsOptimization optimization, Integer[][] input) {
 		String url =  optimization.getPrivacyEngineEndpoint() + "/computeClassification";
 
@@ -80,10 +87,31 @@ public class PrivacyEngineService {
 						.accept(MediaType.APPLICATION_JSON)
 						.body(input);
 
-		logger.info("Requesting computation of population order from Privacy Engine at URL: " + url);
+		logger.info("Requesting computation of top individuals from Privacy Engine at URL: " + url);
 		ResponseEntity<AboveIndividualsDTO> response = this.restTemplate.exchange(request, AboveIndividualsDTO.class);
 		return response.getBody();
 	}
+
+	/**
+	 * Invokes the PE's endpoint to calculate actual fitness values for all individuals from the population.
+	 *
+	 * @param optimization the optimization
+	 * @param input the population in the format required by the PE
+	 * @return fitness values for all individuals
+	 */
+    public ActualFitnessValuesDTO computeActualFitnessValues(JeneticsOptimization optimization, Integer[][] input) {
+		// TODO: replace url when interface is implemented in PE
+		String url =  optimization.getPrivacyEngineEndpoint() + "/computeFitnessValues";
+
+		RequestEntity<Integer[][]> request =
+				RequestEntity.put(url)
+						.accept(MediaType.APPLICATION_JSON)
+						.body(input);
+
+		logger.info("Requesting computation of actual fitness values for all individuals from Privacy Engine at URL: " + url);
+		ResponseEntity<ActualFitnessValuesDTO> response = this.restTemplate.exchange(request, ActualFitnessValuesDTO.class);
+		return response.getBody();
+    }
 
 //	public static void writeInput(Integer[][] input) throws IOException, IOException {
 //		final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -96,6 +124,4 @@ public class PrivacyEngineService {
 //
 //		logger.info(out.toString());
 //	}
-
-
 }

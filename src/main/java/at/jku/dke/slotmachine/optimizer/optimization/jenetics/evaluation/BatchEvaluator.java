@@ -4,8 +4,6 @@ import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
-import at.jku.dke.slotmachine.privacyEngine.dto.AboveIndividualsDTO;
-import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import io.jenetics.EnumGene;
 import io.jenetics.Genotype;
@@ -42,7 +40,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     protected long noGenerationsEvaluated;
     protected long actualMaxFitness;
     protected long fitnessIncrement;
-    protected long actualCurrentMaxFitness;
     protected final boolean useActualFitnessValues;
 
 
@@ -62,7 +59,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         this.noRemainingDuplicates = 0;
         this.noGenerationsDuplicatesNotEliminated = 0;
         this.actualMaxFitness = Integer.MIN_VALUE;
-        this.actualCurrentMaxFitness = Integer.MIN_VALUE;
         this.fitnessIncrement = 1;
 
         // Configuration
@@ -238,11 +234,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
             maxFitness = evaluatedPopulation.get(0).fitness();
             bestGenotype = evaluatedPopulation.get(0).genotype();
 
-            /**
-             * Current fitness is required for ABOVE-methods {@link BatchEvaluatorAbove#evaluatePopulation(Seq, FitnessEvolutionStep)}.
-             * Not used for the optimization, when useActualFitnessValues is false.
-             */
-            actualCurrentMaxFitness = evaluatedPopulation.get(0).fitness();
 
             if(!useActualFitnessValues && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
                 maxFitness = population.size();
@@ -252,8 +243,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
                 // Override max fitness used for estimation/optimization with dummy-value.
                 if(isMaxFitnessIncreased){
-                    actualMaxFitness = actualCurrentMaxFitness;
-
                     // Add increment to dummy maxFitness to indicate improvement.
                     maxFitness = maxFitness + fitnessIncrement;
                     fitnessIncrement ++;
