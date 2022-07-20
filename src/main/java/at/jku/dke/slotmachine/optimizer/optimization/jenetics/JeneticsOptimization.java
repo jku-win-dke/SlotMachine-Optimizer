@@ -12,6 +12,7 @@ import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.Populat
 import io.jenetics.*;
 import io.jenetics.engine.*;
 import io.jenetics.util.ISeq;
+import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class JeneticsOptimization extends Optimization {
     private static final Logger logger = LogManager.getLogger();
@@ -213,14 +215,36 @@ public class JeneticsOptimization extends Optimization {
                     .collect(Collectors.toList());
 
             this.setFitnessValuesResults(distinctIndividualFitnessValues);
-        }else {
+        }else { // TODO: /computeFitnessClear responds with 400
             logger.debug("Running in privacy-preserving mode. Evaluating the last generation with actual values.");
-            var seq = ISeq.of(result.population()
+            var seq = Seq.of(result.population());
+            Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, PopulationConverter.convertPopulationToArray(seq, this.getProblem()));
+
+            EvolutionResult<EnumGene<Integer>, Integer> finalResult = result;
+            var evaluatedResultGeneration = IntStream
+                    .range(0, fitnessValues.length)
+                    .mapToObj(i -> finalResult.population().get(i).withFitness(fitnessValues[i]))
+                    .collect(Collectors.toList());
+
+            logger.info("Setting evaluated population as new result population.");
+            result = EvolutionResult.of(
+                    Optimize.MAXIMUM,
+                    ISeq.of(evaluatedResultGeneration),
+                    result.generation(),
+                    result.totalGenerations(),
+                    result.durations(),
+                    result.killCount(),
+                    result.invalidCount(),
+                    result.alterCount()
+            );
+            logger.info("Setting fitness values of distinct, evaluated population.");
+            var fitnessValueResults = result.population()
                     .stream()
                     .filter(PopulationConverter.distinctByAttribute(Phenotype::genotype))
-                    .collect(Collectors.toList()));
-            Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, PopulationConverter.convertPopulationToArray(seq, this.getProblem()));
-            this.setFitnessValuesResults(Arrays.stream(fitnessValues).sorted(Comparator.reverseOrder()).toList());
+                    .map(Phenotype::fitness)
+                    .toList();
+
+            this.setFitnessValuesResults(fitnessValueResults);
         }
 
 
