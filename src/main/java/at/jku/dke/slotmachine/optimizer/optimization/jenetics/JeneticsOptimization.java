@@ -2,6 +2,7 @@ package at.jku.dke.slotmachine.optimizer.optimization.jenetics;
 
 import at.jku.dke.slotmachine.optimizer.domain.Flight;
 import at.jku.dke.slotmachine.optimizer.domain.Slot;
+import at.jku.dke.slotmachine.optimizer.optimization.FitnessMethod;
 import at.jku.dke.slotmachine.optimizer.optimization.InvalidOptimizationParameterTypeException;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
@@ -212,7 +213,16 @@ public class JeneticsOptimization extends Optimization {
                     .collect(Collectors.toList());
 
             this.setFitnessValuesResults(distinctIndividualFitnessValues);
+        }else {
+            logger.debug("Running in privacy-preserving mode. Evaluating the last generation with actual values.");
+            var seq = ISeq.of(result.population()
+                    .stream()
+                    .filter(PopulationConverter.distinctByAttribute(Phenotype::genotype))
+                    .collect(Collectors.toList()));
+            Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, PopulationConverter.convertPopulationToArray(seq, this.getProblem()));
+            this.setFitnessValuesResults(Arrays.stream(fitnessValues).sorted(Comparator.reverseOrder()).toList());
         }
+
 
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
@@ -225,7 +235,7 @@ public class JeneticsOptimization extends Optimization {
 
         int resultFitness;
         if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
-           resultFitness = result.bestPhenotype().fitness(); // no exact fitness value may be available with PRIVACY_PRESERVING
+           resultFitness = this.getFitnessValuesResults().get(0); // no exact fitness value may be available with PRIVACY_PRESERVING
         }else{
             resultFitness = problem.fitness(result.bestPhenotype().genotype()); // exact fitness value can be calculated
         }
@@ -236,6 +246,7 @@ public class JeneticsOptimization extends Optimization {
         this.getStatistics().setIterations((int) statistics.altered().count());
         this.getStatistics().setFitnessFunctionInvocations(problem.getFitnessFunctionApplications());
         this.getStatistics().setSolutionGeneration(result.bestPhenotype().generation());
+        if(resultFitness > this.getMaximumFitness()) this.setMaximumFitness(resultFitness);
 
         logger.info("Fitness of best solution: " + this.getStatistics().getResultFitness());
         logger.info("Number of generations: " + this.getStatistics().getIterations());
