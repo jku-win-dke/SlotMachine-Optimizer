@@ -4,9 +4,6 @@ import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
-import at.jku.dke.slotmachine.optimizer.service.PrivacyEngineService;
-import at.jku.dke.slotmachine.privacyEngine.dto.ActualFitnessValuesDTO;
-import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import io.jenetics.EnumGene;
 import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
@@ -14,10 +11,9 @@ import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class BatchEvaluatorActualValues extends BatchEvaluator{
     private static final Logger logger = LogManager.getLogger();
@@ -66,22 +62,17 @@ public class BatchEvaluatorActualValues extends BatchEvaluator{
             Integer[][] input = this.convertPopulationToArray(population);
 
             logger.debug("Invoke the Privacy Engine service to evaluate population.");
-            // TODO: integrate PE endpoint when available
-            ActualFitnessValuesDTO fitnessValues = this.optimization.getPrivacyEngineService().computeActualFitnessValues(optimization, input);
+            Integer[] fitnessValues = this.optimization.getPrivacyEngineService().computeActualFitnessValues(optimization, input);
 
             logger.debug("Convert the evaluated population received from the Privacy Engine to the format required by Jenetics.");
-            evaluatedPopulation =
-                    fitnessValues.getFitnessValues().entrySet()
-                            .stream()
-                            .map(entry ->
-                                    population.get(entry.getKey()).withFitness(entry.getValue()))
-                            .sorted(Comparator.comparingInt(Phenotype::fitness))
-                            .sorted(Comparator.reverseOrder())
-                            .toList();
+            evaluatedPopulation = IntStream
+                    .range(0, fitnessValues.length)
+                    .mapToObj(i -> population.get(i).withFitness(fitnessValues[i]))
+                    .toList();
 
             logger.info("Maximum fitness in generation according to Privacy Engine is " + evaluatedPopulation.get(0).fitness() + ".");
         } else {
-            // population order is used as it provides all fitness values in NON_PRIVACY_PRESERVING mode
+            // order of population is used as it provides all fitness values in NON_PRIVACY_PRESERVING mode
             return evaluatePopulationOrder(population, fitnessEvolutionStep);
         }
 

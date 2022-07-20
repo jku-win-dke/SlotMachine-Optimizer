@@ -3,31 +3,16 @@ package at.jku.dke.slotmachine.optimizer.service;
 import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.privacyEngine.dto.AboveIndividualsDTO;
-import at.jku.dke.slotmachine.privacyEngine.dto.ActualFitnessValuesDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.FitnessQuantilesDTO;
 import at.jku.dke.slotmachine.privacyEngine.dto.PopulationOrderDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import at.jku.dke.slotmachine.optimizer.service.dto.OptimizationDTO;
-
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.UUID;
 
 @Service
 public class PrivacyEngineService {
@@ -99,9 +84,8 @@ public class PrivacyEngineService {
 	 * @param input the population in the format required by the PE
 	 * @return fitness values for all individuals
 	 */
-    public ActualFitnessValuesDTO computeActualFitnessValues(JeneticsOptimization optimization, Integer[][] input) {
-		// TODO: replace url when interface is implemented in PE
-		String url =  optimization.getPrivacyEngineEndpoint() + "/computeFitnessValues";
+    public Integer[] computeActualFitnessValues(JeneticsOptimization optimization, Integer[][] input) {
+		String url =  optimization.getPrivacyEngineEndpoint() + "/computeFitnessClear";
 
 		RequestEntity<Integer[][]> request =
 				RequestEntity.put(url)
@@ -109,7 +93,7 @@ public class PrivacyEngineService {
 						.body(input);
 
 		logger.info("Requesting computation of actual fitness values for all individuals from Privacy Engine at URL: " + url);
-		ResponseEntity<ActualFitnessValuesDTO> response = this.restTemplate.exchange(request, ActualFitnessValuesDTO.class);
+		ResponseEntity<Integer[]> response = this.restTemplate.exchange(request, Integer[].class);
 		return response.getBody();
     }
 

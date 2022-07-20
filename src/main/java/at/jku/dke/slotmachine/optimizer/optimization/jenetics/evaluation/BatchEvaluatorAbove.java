@@ -61,6 +61,7 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
 
         // Increase the fitness of the best genotype in the population if possible to improve selection process
         if(bestGenotype != null && maxFitness < this.optimization.getTheoreticalMaximumFitness()){
+            logger.debug("Assigning higher fitness value to best genotype(s).");
             estimatedPopulation = estimatedPopulation.stream()
                     .map(phenotype -> phenotype.genotype().equals(bestGenotype) ? phenotype.withFitness( (int) maxFitness + 1) : phenotype)
                     .collect(Collectors.toList());
@@ -119,21 +120,21 @@ public abstract class BatchEvaluatorAbove extends BatchEvaluator {
 
             // convert between Privacy Engine's return format and format required by Optimizer
             logger.debug("Convert returned population to format required by Jenetics.");
-            logger.debug("Returned max fitness is " + (individualsAbove.getMaximum() != null ? individualsAbove.getMaximum() : "NULL") + ".");
-            logger.debug("Returned best genotype is " + (individualsAbove.getBest() != null ? individualsAbove.getBest() : "NULL") + ".");
-            logger.debug("Has max fitness improved: " + (individualsAbove.isMaxFitnessImproved() != null ? individualsAbove.isMaxFitnessImproved() : "NULL") + ".");
+            logger.debug(" Using size of population as base for the maximum fitness in generation.");
+            logger.debug("Returned index of best genotype is {}",  (individualsAbove.getHighest() != null ? individualsAbove.getHighest() : "NULL") + ".");
+            logger.debug("Has max fitness improved: {}",  (individualsAbove.getBest() != null ? individualsAbove.getBest() : "NULL") + ".");
 
 
-            bestGenotype = individualsAbove.getBest() != null ? population.get(individualsAbove.getBest()).genotype() : null;
-            maxFitness = individualsAbove.getMaximum() != null ? individualsAbove.getMaximum() : population.size();
+            bestGenotype = population.get(individualsAbove.getHighest()).genotype();
+            maxFitness = population.size();
 
-            // Increase max-fitness if no actual maximum has been provided by the PE but an improvement is indicated
-            if(individualsAbove.getMaximum() == null && maxFitness == population.size() && Boolean.TRUE.equals(individualsAbove.isMaxFitnessImproved())){
+            if(Boolean.TRUE.equals(individualsAbove.getBest())){
                 maxFitness += this.fitnessIncrement;
                 this.fitnessIncrement++;
+                logger.debug("Increased max fitness to {}{}",  maxFitness, ".");
             }
 
-            evaluatedPopulation = Arrays.stream(individualsAbove.getTop())
+            evaluatedPopulation = Arrays.stream(individualsAbove.getIndices())
                     .map(population::get)
                     .toList();
 
