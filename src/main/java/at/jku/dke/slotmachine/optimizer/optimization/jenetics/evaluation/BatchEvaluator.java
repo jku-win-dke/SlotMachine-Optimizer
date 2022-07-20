@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -215,10 +216,14 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
             int[] order = populationOrder.getOrder();
 
             logger.debug("Convert the population order received from the Privacy Engine to the format required by Jenetics.");
+//            evaluatedPopulation =
+//                    population.stream()
+//                            .sorted(Comparator.comparingInt(phenotype -> order[population.indexOf(phenotype)]))
+//                            .toList();
+
             evaluatedPopulation =
-                    population.stream()
-                            .sorted(Comparator.comparingInt(phenotype -> order[population.indexOf(phenotype)]))
-                            .toList();
+                    Arrays.stream(order).mapToObj(population::get)
+                            .collect(Collectors.toList());
 
             maxFitness = populationOrder.getMaximum();
             logger.info("Maximum fitness in generation according to Privacy Engine is " + maxFitness + ".");
