@@ -32,6 +32,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     protected final SlotAllocationProblem problem;
     protected final boolean isDeduplicate;
     protected final boolean trackDuplicates;
+    protected final boolean useActualFitnessValues;
     protected long latestUnevaluatedGeneration;
     protected long noGenerationsUnevaluated;
     protected long noInitialDuplicates;
@@ -41,8 +42,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     protected long noGenerationsEvaluated;
     protected long actualMaxFitness;
     protected long fitnessIncrement;
-    protected final boolean useActualFitnessValues;
-
 
 
     /**
@@ -246,8 +245,9 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
                 // Check if fitness has improved compared to current maximum.
                 boolean isMaxFitnessIncreased = evaluatedPopulation.get(0).fitness() > actualMaxFitness;
 
-                // Override max fitness used for estimation/optimization with dummy-value.
-                if(isMaxFitnessIncreased){
+                // Override max fitness used for estimation/optimization with dummy-value (first Evaluation (noGenerations == 1) is ignored by Jenetics)
+                if(isMaxFitnessIncreased && noGenerations > 1){
+                    actualMaxFitness = evaluatedPopulation.get(0).fitness();
                     // Add increment to dummy maxFitness to indicate improvement.
                     maxFitness = maxFitness + fitnessIncrement;
                     fitnessIncrement ++;
