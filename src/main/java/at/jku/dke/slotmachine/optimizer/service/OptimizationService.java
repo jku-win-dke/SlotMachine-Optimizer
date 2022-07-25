@@ -415,11 +415,11 @@ public class OptimizationService {
 
 								newStep.setGeneration(fitnessEvolutionStep.getGeneration());
 
-								newStep.setEstimatedPopulation(
+								if(fitnessEvolutionStep.getEstimatedPopulation() != null)newStep.setEstimatedPopulation(
 										Arrays.stream(fitnessEvolutionStep.getEstimatedPopulation()).mapToDouble(Double::doubleValue).toArray()
 								);
 
-								newStep.setEvaluatedPopulation(
+								if(fitnessEvolutionStep.getEvaluatedPopulation() != null)newStep.setEvaluatedPopulation(
 										Arrays.stream(fitnessEvolutionStep.getEvaluatedPopulation()).mapToDouble(Double::doubleValue).toArray()
 								);
 

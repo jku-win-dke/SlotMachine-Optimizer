@@ -42,12 +42,6 @@ public class PrivacyEngineService {
 
 		logger.info("Requesting computation of population order from Privacy Engine at URL: " + url);
 		ResponseEntity<PopulationOrderDTO> response = this.restTemplate.exchange(request, PopulationOrderDTO.class);
-//		try {
-//			logger.info("Writing input to file.");
-//			writeInput(input);
-//		} catch (IOException e) {
-//			logger.info("Could not write input.");
-//		}
 		return response.getBody();
 	}
 
@@ -86,7 +80,6 @@ public class PrivacyEngineService {
 	 */
     public Integer[] computeActualFitnessValues(JeneticsOptimization optimization, Integer[][] input) {
 		String url =  optimization.getPrivacyEngineEndpoint() + "/computeFitnessClear";
-
 		RequestEntity<Integer[][]> request =
 				RequestEntity.put(url)
 						.accept(MediaType.APPLICATION_JSON)
@@ -96,16 +89,4 @@ public class PrivacyEngineService {
 		ResponseEntity<Integer[]> response = this.restTemplate.exchange(request, Integer[].class);
 		return response.getBody();
     }
-
-//	public static void writeInput(Integer[][] input) throws IOException, IOException {
-//		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-//		final ObjectMapper mapper = new ObjectMapper();
-//
-//		mapper.writeValue(out, input);
-//		try(OutputStream outputStream = new FileOutputStream("./pe_input_" + UUID.randomUUID()+".json")) {
-//			out.writeTo(outputStream);
-//		}
-//
-//		logger.info(out.toString());
-//	}
 }

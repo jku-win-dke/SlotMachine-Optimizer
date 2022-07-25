@@ -11,6 +11,7 @@ import io.jenetics.util.Seq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -68,6 +69,8 @@ public class BatchEvaluatorActualValues extends BatchEvaluator{
             evaluatedPopulation = IntStream
                     .range(0, fitnessValues.length)
                     .mapToObj(i -> population.get(i).withFitness(fitnessValues[i]))
+                    .sorted(Comparator.comparingInt(Phenotype::fitness))
+                    .sorted(Comparator.reverseOrder())
                     .toList();
 
             logger.info("Maximum fitness in generation according to Privacy Engine is " + evaluatedPopulation.get(0).fitness() + ".");

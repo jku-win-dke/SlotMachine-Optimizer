@@ -133,7 +133,7 @@ public class BatchEvaluatorFitnessRangeQuantiles extends BatchEvaluator{
                 boolean isMaxFitnessIncreased = evaluatedPopulation.get(0).fitness() > actualMaxFitness;
 
                 // Override max fitness used for estimation/optimization with dummy-value.
-                if(isMaxFitnessIncreased){
+                if(isMaxFitnessIncreased && noGenerations > 1){
                     actualMaxFitness = evaluatedPopulation.get(0).fitness();
 
                     // Add increment to dummy maxFitness to indicate improvement.
