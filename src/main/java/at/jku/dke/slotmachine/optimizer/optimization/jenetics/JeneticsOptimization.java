@@ -183,7 +183,7 @@ public class JeneticsOptimization extends Optimization {
 
         if(this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING ||
            this.getMode() == OptimizationMode.DEMONSTRATION ||
-           this.getMode() == OptimizationMode.BENCHMARKING){
+           this.getMode() == OptimizationMode.BENCHMARKING) {
             logger.info("Running in non-privacy-preserving mode.");
             logger.info("Evaluating result population with exact fitness values.");
             var evaluatedResultGeneration = result.population()
@@ -215,33 +215,36 @@ public class JeneticsOptimization extends Optimization {
                     .collect(Collectors.toList());
 
             this.setFitnessValuesResults(distinctIndividualFitnessValues);
-        }else { // TODO: /computeFitnessClear responds with 400
-            logger.debug("Running in privacy-preserving mode. Evaluating the last generation with actual values.");
-            var seq = Seq.of(result.population());
-            Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, PopulationConverter.convertPopulationToArray(seq, this.getProblem()));
+        }else {
+            if(getFitnessMethod() != FitnessMethod.ACTUAL_VALUES){
+                logger.debug("Running in privacy-preserving mode. Evaluating the last generation with actual values.");
+                var seq = Seq.of(result.population());
+                Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, PopulationConverter.convertPopulationToArray(seq, this.getProblem()));
 
-            EvolutionResult<EnumGene<Integer>, Integer> finalResult = result;
-            var evaluatedResultGeneration = IntStream
-                    .range(0, fitnessValues.length)
-                    .mapToObj(i -> finalResult.population().get(i).withFitness(fitnessValues[i]))
-                    .collect(Collectors.toList());
+                EvolutionResult<EnumGene<Integer>, Integer> finalResult = result;
+                var evaluatedResultGeneration = IntStream
+                        .range(0, fitnessValues.length)
+                        .mapToObj(i -> finalResult.population().get(i).withFitness(fitnessValues[i]))
+                        .collect(Collectors.toList());
 
-            logger.info("Setting evaluated population as new result population.");
-            result = EvolutionResult.of(
-                    Optimize.MAXIMUM,
-                    ISeq.of(evaluatedResultGeneration),
-                    result.generation(),
-                    result.totalGenerations(),
-                    result.durations(),
-                    result.killCount(),
-                    result.invalidCount(),
-                    result.alterCount()
-            );
+                logger.info("Setting evaluated population as new result population.");
+                result = EvolutionResult.of(
+                        Optimize.MAXIMUM,
+                        ISeq.of(evaluatedResultGeneration),
+                        result.generation(),
+                        result.totalGenerations(),
+                        result.durations(),
+                        result.killCount(),
+                        result.invalidCount(),
+                        result.alterCount()
+                );
+            }
             logger.info("Setting fitness values of distinct, evaluated population.");
             var fitnessValueResults = result.population()
                     .stream()
                     .filter(PopulationConverter.distinctByAttribute(Phenotype::genotype))
                     .map(Phenotype::fitness)
+                    .sorted(Comparator.reverseOrder())
                     .toList();
 
             this.setFitnessValuesResults(fitnessValueResults);
@@ -259,7 +262,7 @@ public class JeneticsOptimization extends Optimization {
 
         int resultFitness;
         if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
-           resultFitness = this.getFitnessValuesResults().get(0); // no exact fitness value may be available with PRIVACY_PRESERVING
+           resultFitness = result.bestPhenotype().fitness(); // no exact fitness value may be available with PRIVACY_PRESERVING
         }else{
             resultFitness = problem.fitness(result.bestPhenotype().genotype()); // exact fitness value can be calculated
         }
@@ -484,7 +487,7 @@ public class JeneticsOptimization extends Optimization {
         int initialFitness = Integer.MIN_VALUE;
 
         List<Flight> initialFlightSequence =
-                Arrays.stream(this.getInitialFlightSequence())
+                Arrays.stream(Objects.requireNonNullElse(this.getInitialFlightSequence(), new String[]{""}))
                         .map(flightId -> {
                             // return flight with same id (should find flight)
                             for(Flight flight : this.getFlights()) {
