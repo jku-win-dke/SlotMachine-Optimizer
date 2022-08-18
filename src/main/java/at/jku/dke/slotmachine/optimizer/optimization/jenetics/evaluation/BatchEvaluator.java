@@ -30,9 +30,31 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
 	protected final JeneticsOptimization optimization; // used to register new solutions
     protected final SlotAllocationProblem problem;
+    /**
+     * If true, evaluation is only triggered for generations encountered for the second time, or if no duplicates are present in the population.
+     */
     protected final boolean isDeduplicate;
+    /**
+     * If true, duplicate statistics are gathered, even if isDeduplicate is false.
+     */
     protected final boolean trackDuplicates;
+    /**
+     * If true, the actual fitness values are used. Otherwise, the fitness is obfuscated for the GA.
+     */
     protected final boolean useActualFitnessValues;
+
+    /**
+     * Used in NON_PRIVACY_PRESERVING mode when useActualFitnessValues is false, to verify if fitness has been improved in a given generation.
+     */
+    protected long actualMaxFitness;
+    /**
+     * Used in conjunction with useActualFitnessValues = false and holds the current increment of the obfuscated base fitness value.
+     */
+    protected long fitnessIncrement;
+
+    /**
+     * Fields for deduplicate and duplicate-statistics.
+     */
     protected long latestUnevaluatedGeneration;
     protected long noGenerationsUnevaluated;
     protected long noInitialDuplicates;
@@ -40,8 +62,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     protected long noGenerations;
     protected long noGenerationsDuplicatesNotEliminated;
     protected long noGenerationsEvaluated;
-    protected long actualMaxFitness;
-    protected long fitnessIncrement;
 
 
     /**
@@ -62,8 +82,9 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         this.fitnessIncrement = 1;
 
         // Configuration
-        this.trackDuplicates = false;
-        this.useActualFitnessValues = false;
+
+        this.trackDuplicates = Boolean.parseBoolean(System.getenv("TRACK_DUPLICATES"));
+        this.useActualFitnessValues = Boolean.parseBoolean(System.getenv("USE_ACTUAL_FITNESS"));
     }
 
     /**
