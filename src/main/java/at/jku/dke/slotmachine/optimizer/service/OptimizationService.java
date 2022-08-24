@@ -193,6 +193,15 @@ public class OptimizationService {
 				}
 
 				// set initial solution's fitness in optimization statistics; only available in non-privacy-preserving mode
+				logger.info("Initial flight sequence: ");
+				StringBuilder sb = new StringBuilder();
+				sb.append("\t[");
+				for(var flight : newOptimization.getInitialFlightSequence()){
+					sb.append(flight).append(",");
+				}
+				sb.append("]\n");
+				logger.info(sb.toString());
+
 				if(optimizationDto.getOptimizationMode() == OptimizationModeEnum.BENCHMARKING ||
 						optimizationDto.getOptimizationMode() == OptimizationModeEnum.DEMONSTRATION ||
 						optimizationDto.getOptimizationMode() == OptimizationModeEnum.NON_PRIVACY_PRESERVING
