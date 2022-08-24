@@ -1,6 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation;
 
 import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
+import at.jku.dke.slotmachine.optimizer.optimization.FitnessMethod;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.JeneticsOptimization;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.SlotAllocationProblem;
@@ -84,7 +85,9 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         // Configuration
 
         this.trackDuplicates = Boolean.parseBoolean(System.getenv("TRACK_DUPLICATES"));
-        this.useActualFitnessValues = Boolean.parseBoolean(System.getenv("USE_ACTUAL_FITNESS"));
+        this.useActualFitnessValues = Boolean.parseBoolean(System.getenv("USE_ACTUAL_FITNESS"))
+                || this.optimization.getFitnessMethod() == FitnessMethod.ACTUAL_VALUES;
+        logger.info("Using actual fitness values: {}.", useActualFitnessValues);
     }
 
     /**
@@ -236,10 +239,6 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
             int[] order = populationOrder.getOrder();
 
             logger.debug("Convert the population order received from the Privacy Engine to the format required by Jenetics.");
-//            evaluatedPopulation =
-//                    population.stream()
-//                            .sorted(Comparator.comparingInt(phenotype -> order[population.indexOf(phenotype)]))
-//                            .toList();
 
             evaluatedPopulation =
                     Arrays.stream(order).mapToObj(population::get)
@@ -310,18 +309,15 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
      * @param population the population in Jenetics representation
      * @return the population in array format required by Privacy Engine
      */
-    protected Integer[][] convertPopulationToArray(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
+    public Integer[][] convertPopulationToArray(Seq<Phenotype<EnumGene<Integer>, Integer>> population) {
         return population.asList().stream()
                   .map(phenotype -> this.problem.decode(phenotype.genotype()))
-                  .map(map ->
-                       // 1. Get a flight list from the mapping of flights to slots, where the flights are
-                       // ordered by their assigned time slot.
-                       // 2. Replace the flights by their position in the problem's sequence of flights.
-                       map.entrySet().stream()
-                          .sorted(Entry.comparingByValue())
-                          .map(Entry::getKey)
-                          .map(flight -> this.problem.getFlights().indexOf(flight))
-                          .toArray(Integer[]::new)
+                  .map(map ->{
+                              // 1. Get the slots ordered ascending by time
+                              // 2. Replace the flights in the flight sequence by the index of their assigned slot
+                              var orderedSlots = map.entrySet().stream().sorted(Entry.comparingByValue()).map(Entry::getValue).toList();
+                              return this.problem.getFlights().stream().map(flight -> orderedSlots.indexOf(map.get(flight))).toArray(Integer[]::new);
+                          }
                   ).toArray(Integer[][]::new);
     }
 

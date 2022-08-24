@@ -8,7 +8,6 @@ import at.jku.dke.slotmachine.optimizer.optimization.Optimization;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluator;
 import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.BatchEvaluatorFactory;
-import at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation.PopulationConverter;
 import io.jenetics.*;
 import io.jenetics.engine.*;
 import io.jenetics.util.ISeq;
@@ -18,6 +17,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -40,6 +41,22 @@ public class JeneticsOptimization extends Optimization {
                 ISeq.of(this.getSlots())
         );
         logger.info("Slot allocation problem initialized.");
+
+//        logger.info("Weights:");
+//        for(var flight : flights){
+//            logger.info("\tFlight: {}", flight.getFlightId());
+//            StringBuilder sb = new StringBuilder();
+//            sb.append("\t").append("[");
+//            for(var weight : flight.getWeights()){
+//                sb.append(weight).append(", ");
+//            }
+//            sb.append("]");
+//            logger.info(sb.toString());
+//            for(var slot : getSlots()){
+//                logger.info("\t\tSlot: {}. Weight: {}.", slot.getTime(), flight.getWeight(slot));
+//            }
+//        }
+//
     }
 
     @Override
@@ -181,6 +198,8 @@ public class JeneticsOptimization extends Optimization {
 
         logger.info(Thread.currentThread() + " was interrupted: " + Thread.currentThread().isInterrupted());
 
+        logger.info("Result fitness after optimization: {}.", result.bestFitness());
+        BatchEvaluator batchEvaluator = (BatchEvaluator) evaluator;
         if(this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING ||
            this.getMode() == OptimizationMode.DEMONSTRATION ||
            this.getMode() == OptimizationMode.BENCHMARKING) {
@@ -219,7 +238,7 @@ public class JeneticsOptimization extends Optimization {
             if(getFitnessMethod() != FitnessMethod.ACTUAL_VALUES){
                 logger.debug("Running in privacy-preserving mode. Evaluating the last generation with actual values.");
                 var seq = Seq.of(result.population());
-                Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, PopulationConverter.convertPopulationToArray(seq, this.getProblem()));
+                Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, batchEvaluator.convertPopulationToArray(seq));
 
                 EvolutionResult<EnumGene<Integer>, Integer> finalResult = result;
                 var evaluatedResultGeneration = IntStream
@@ -242,7 +261,7 @@ public class JeneticsOptimization extends Optimization {
             logger.info("Setting fitness values of distinct, evaluated population.");
             var fitnessValueResults = result.population()
                     .stream()
-                    .filter(PopulationConverter.distinctByAttribute(Phenotype::genotype))
+                    .filter(distinctByAttribute(Phenotype::genotype))
                     .map(Phenotype::fitness)
                     .sorted(Comparator.reverseOrder())
                     .toList();
@@ -250,14 +269,20 @@ public class JeneticsOptimization extends Optimization {
             this.setFitnessValuesResults(fitnessValueResults);
         }
 
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("Calculated fitness values of result generation: ").append("\n\t");
+//        for(int i : this.getFitnessValuesResults()){
+//            sb.append(i + ", ");
+//        }
+//        sb.append(".\n");
+//        logger.info(sb.toString());
+
 
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
         logger.info("Statistics: \n" + statistics);
-        if(evaluator instanceof BatchEvaluator batchEvaluator) {
-            logger.info("Printing statistics from BatchEvaluator");
-            batchEvaluator.printLogs();
-        }
+        logger.info("Printing statistics from BatchEvaluator");
+        batchEvaluator.printLogs();
 
 
         int resultFitness;
@@ -292,16 +317,46 @@ public class JeneticsOptimization extends Optimization {
 
         this.setResults(resultList);
 
+//        sb = new StringBuilder();
+//        sb.append("Fitness values of result generation: ").append("\n\t");
+//        for(var pheno : result.population().stream()
+//                .filter(distinctByAttribute(Phenotype::genotype))
+//                .sorted(Comparator.comparingInt(Phenotype::fitness))
+//                .sorted(Comparator.reverseOrder())
+//                .toList()){
+//            sb.append(pheno.fitness()).append(" ,");
+//        }
+//        sb.append("\n");
+//        logger.info(sb.toString());
+
         logger.info("Converting result population to the format required by the PE.");
-        Integer[][] resultListConverted = PopulationConverter.convertPopulationToArray(ISeq.of(result.population().stream()
-                .filter(PopulationConverter.distinctByAttribute(Phenotype::genotype))
+        Integer[][] resultListConverted = batchEvaluator.convertPopulationToArray(ISeq.of(result.population().stream()
+                .filter(distinctByAttribute(Phenotype::genotype))
                 .sorted(Comparator.comparingInt(Phenotype::fitness))
                 .sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList())), problem);
+                .collect(Collectors.toList())));
 
         this.setConvertedResults(resultListConverted);
 
         // return only the best result
+
+//        sb = new StringBuilder();
+//        sb.append("Best sequence (mapping): ").append("\n");
+//        for(var entry : resultMap.entrySet()
+//                .stream()
+//                .sorted(Comparator.comparing((Map.Entry<Flight, Slot> e) -> e.getValue().getTime())).toList()){
+//            sb.append("\t").append("Slot: ").append(entry.getValue().getTime()).append(". Flight: ").append(entry.getKey().getFlightId()).append(".").append("\n");
+//        }
+//        logger.info(sb.toString());
+//
+//        sb = new StringBuilder();
+//        sb.append("Flight sequenc in problem: [").append("\n");
+//        for(var flight : this.problem.getFlights()){
+//            sb.append(flight.getFlightId()).append(", ");
+//        }
+//        sb.append("]");
+//        logger.info(sb.toString());
+
         return resultMap;
     }
 
@@ -512,6 +567,7 @@ public class JeneticsOptimization extends Optimization {
             logger.info("Could not calculate initial fitness as not all initial flight IDs have been mapped to a slot.");
         }else{
             initialFitness = problem.fitness(initialAllocation);
+            logger.info("Initial fitness: {}.", initialFitness);
         }
 
         return initialFitness;
@@ -520,5 +576,16 @@ public class JeneticsOptimization extends Optimization {
 
     public SlotAllocationProblem getProblem() {
         return problem;
+    }
+
+    /**
+     * Get a Predicate that returns whether it has seen the elements' key according to the keyExtractor
+     * @param keyExtractor extracts the key from T for filtering
+     * @param <T> generic type
+     * @return a stateful filter
+     */
+    public static <T> Predicate<T> distinctByAttribute(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
     }
 }
