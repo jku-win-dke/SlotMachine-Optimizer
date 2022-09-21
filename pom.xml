@@ -19,7 +19,7 @@
         <springfox.version>2.6.1</springfox.version>
         <jenetics.version>6.3.0</jenetics.version>
         <optaplanner.version>8.14.0.Final</optaplanner.version>
-        <slma-object.version>1.0.15</slma-object.version>
+        <slma-object.version>1.0.16</slma-object.version>
     </properties>
     <dependencies>
 		<dependency>
