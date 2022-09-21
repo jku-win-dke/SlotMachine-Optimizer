@@ -310,9 +310,9 @@ public class JeneticsOptimization extends Optimization {
                 result.population().stream()
                         .sorted(Comparator.comparingInt(Phenotype::fitness))
                         .sorted(Comparator.reverseOrder())
-                        .map(phenotype -> phenotype.genotype())
+                        .map(Phenotype::genotype)
                         .distinct()
-                        .map(genotype -> problem.decode(genotype))
+                        .map(problem::decode)
                         .toList();
 
         this.setResults(resultList);
