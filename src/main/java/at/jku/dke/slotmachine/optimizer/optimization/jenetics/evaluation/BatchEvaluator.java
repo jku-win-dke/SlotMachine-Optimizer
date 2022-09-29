@@ -1,5 +1,7 @@
 package at.jku.dke.slotmachine.optimizer.optimization.jenetics.evaluation;
 
+import at.jku.dke.slotmachine.optimizer.domain.Flight;
+import at.jku.dke.slotmachine.optimizer.domain.Slot;
 import at.jku.dke.slotmachine.optimizer.optimization.FitnessEvolutionStep;
 import at.jku.dke.slotmachine.optimizer.optimization.FitnessMethod;
 import at.jku.dke.slotmachine.optimizer.optimization.OptimizationMode;
@@ -128,6 +130,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         }
         noGenerationsEvaluated++;
 
+
         final List<Phenotype<EnumGene<Integer>, Integer>> evaluatedPopulation;
         Map<Phenotype<EnumGene<Integer>, Integer>, Integer> fitnessQuantilesPopulation = null;
         List<Phenotype<EnumGene<Integer>, Integer>> estimatedPopulation = null;
@@ -174,6 +177,21 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
             );
             logger.debug("Size of estimated population: " + fitnessEvolutionStep.getEstimatedPopulation().length);
         }
+
+//        logger.debug("Devaluing invalid solutions.");
+//        estimatedPopulation = estimatedPopulation.stream().map(p -> {
+//            Map<Flight, Slot> phenotypeMap = this.problem.decode(p.genotype()); // decode phenotype
+//            long invalidAssignments = // determine how many invalid assignments the phenotype has
+//                phenotypeMap.entrySet().stream().filter(e -> e.getKey().getScheduledTime() != null && e.getKey().getScheduledTime().isAfter(e.getValue().getTime())).count();
+//
+//            Phenotype<EnumGene<Integer>, Integer> phenotype = p;
+//
+//            if(invalidAssignments > 0) {
+//                phenotype = p.withFitness((int) invalidAssignments * -10000000);
+//            }
+//
+//            return phenotype;
+//        }).collect(Collectors.toList());
 
         if(maxFitness >= this.optimization.getMaximumFitness() && estimatedPopulation != null) {
             logger.debug("Best fitness of current generation better than current best fitness. Attaching intermediate result to the optimization run.");

@@ -280,6 +280,24 @@ public class JeneticsOptimization extends Optimization {
 
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
+        if(logger.isDebugEnabled()) {
+            logger.debug("Checking if solution is valid ...");
+
+            int invalidCount = 0;
+            for (Flight f : resultMap.keySet()) {
+                if (f.getScheduledTime() != null && f.getScheduledTime().isAfter(resultMap.get(f).getTime())) {
+                    invalidCount++;
+                    logger.debug("Flight " + f.getFlightId() + " with scheduled time " + f.getScheduledTime() +" at Slot " + resultMap.get(f).getTime());
+                }
+
+                if(invalidCount > 0) {
+                    logger.debug("Solution is invalid. Number of invalid assignments: " + invalidCount);
+                } else {
+                    logger.debug("Solution is valid.");
+                }
+            }
+        }
+
         logger.info("Statistics: \n" + statistics);
         logger.info("Printing statistics from BatchEvaluator");
         batchEvaluator.printLogs();
