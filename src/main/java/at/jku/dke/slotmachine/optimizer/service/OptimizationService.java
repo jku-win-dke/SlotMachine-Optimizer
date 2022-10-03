@@ -292,6 +292,22 @@ public class OptimizationService {
 					Map<Flight, Slot> resultMap = resultMaps[i];
 					results.add(this.convertResultMapToOptimizationResultMapDto(optId, resultMap));
 
+					logger.info("Checking if result " + i + " is invalid ...");
+					int invalidCount = 0;
+					for (Flight f : resultMap.keySet()) {
+						if (f.getScheduledTime() != null && f.getScheduledTime().isAfter(resultMap.get(f).getTime())) {
+							invalidCount++;
+							logger.info("Flight " + f.getFlightId() + " with scheduled time " + f.getScheduledTime() +" at Slot " + resultMap.get(f).getTime());
+						}
+					}
+
+					if(invalidCount > 0) {
+						logger.info("Solution " + i + " is invalid. Number of invalid assignments: " + invalidCount);
+					} else {
+						logger.info("Solution " + i + " is valid.");
+					}
+
+
 					if(i == 0) {
 						// For the best result, we know the fitness
 						logger.info("Set fitness of solution " + i + " to " + optimization.getMaximumFitness());

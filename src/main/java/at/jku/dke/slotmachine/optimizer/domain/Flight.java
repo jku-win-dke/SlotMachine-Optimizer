@@ -79,8 +79,25 @@ public class Flight implements Comparable<Flight> {
 
     public void setMargins(Margins margins) { this.margins = margins; }
 
+    /**
+     * Flights are sorted by their scheduled time. A flight with no scheduled time is always assumed to be after
+     * a flight with a scheduled time. If two flights have no scheduled time, they have the same position; none is
+     * before or after the other.
+     */
     @Override
     public int compareTo(Flight flight) {
-        return this.getScheduledTime().compareTo(flight.getScheduledTime());
+        int comparison;
+
+        if(this.getScheduledTime() == null){
+            if(flight.getScheduledTime() == null) {
+                comparison = 0;
+            } else {
+                comparison = 1;
+            }
+        } else {
+            comparison = this.getScheduledTime().compareTo(flight.getScheduledTime());
+        }
+
+        return comparison;
     }
 }
