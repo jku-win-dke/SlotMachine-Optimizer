@@ -64,7 +64,8 @@ public class SlotAllocationProblem implements Problem<Map<Flight, Slot>, EnumGen
 						codec(),
 						flightSlotMap -> {
 							for(Map.Entry<Flight, Slot> e : flightSlotMap.entrySet()) {
-								if(e.getKey().getScheduledTime() != null && e.getKey().getScheduledTime().isAfter(e.getValue().getTime())) {
+								if(e.getKey().getScheduledTime() != null &&
+										e.getKey().getScheduledTime().isAfter(e.getValue().getTime())) {
 									return false;
 								}
 							}

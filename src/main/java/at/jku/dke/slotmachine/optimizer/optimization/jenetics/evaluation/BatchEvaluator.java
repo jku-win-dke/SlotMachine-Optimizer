@@ -30,8 +30,9 @@ import static java.util.stream.Collectors.toMap;
  */
 public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     private static final Logger logger = LogManager.getLogger();
+    private static final int DEVALUATOR = -100000000;
 
-	protected final JeneticsOptimization optimization; // used to register new solutions
+    protected final JeneticsOptimization optimization; // used to register new solutions
     protected final SlotAllocationProblem problem;
     /**
      * If true, evaluation is only triggered for generations encountered for the second time, or if no duplicates are present in the population.
@@ -182,12 +183,15 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         estimatedPopulation = estimatedPopulation.stream().map(p -> {
             Map<Flight, Slot> phenotypeMap = this.problem.decode(p.genotype()); // decode phenotype
             long invalidAssignments = // determine how many invalid assignments the phenotype has
-                phenotypeMap.entrySet().stream().filter(e -> e.getKey().getScheduledTime() != null && e.getKey().getScheduledTime().isAfter(e.getValue().getTime())).count();
+                phenotypeMap.entrySet().stream().filter(e ->
+                        e.getKey().getScheduledTime() != null &&
+                                e.getKey().getScheduledTime().isAfter(e.getValue().getTime())).count();
 
             Phenotype<EnumGene<Integer>, Integer> phenotype = p;
 
+            // if there are violations of the constraint, devalue the individual accordingly
             if(invalidAssignments > 0) {
-                phenotype = p.withFitness((int) invalidAssignments * -10000000);
+                phenotype = p.withFitness((int) invalidAssignments * DEVALUATOR);
             }
 
             return phenotype;
