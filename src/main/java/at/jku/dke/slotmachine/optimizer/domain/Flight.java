@@ -94,7 +94,9 @@ public class Flight implements Comparable<Flight> {
             } else {
                 comparison = 1;
             }
-        } else {
+        } else if(flight.getScheduledTime() == null){
+            comparison = -1;
+        } else{
             comparison = this.getScheduledTime().compareTo(flight.getScheduledTime());
         }
 

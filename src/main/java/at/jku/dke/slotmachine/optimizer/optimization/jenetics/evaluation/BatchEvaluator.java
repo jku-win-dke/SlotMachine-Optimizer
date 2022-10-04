@@ -30,7 +30,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Integer> {
     private static final Logger logger = LogManager.getLogger();
-    private static final int DEVALUATOR = -100000000;
+    private static final int DEVALUATOR = -10000000;
 
     protected final JeneticsOptimization optimization; // used to register new solutions
     protected final SlotAllocationProblem problem;
