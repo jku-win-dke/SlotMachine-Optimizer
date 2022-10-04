@@ -216,7 +216,10 @@ public class OptimizationService {
 					logger.info("Get theoretical maximum fitness by running the Hungarian algorithm before the actual optimization.");
 
 					HungarianOptimization hungarianOptimization = new HungarianOptimization(flights, slots);
-					hungarianOptimization.run();
+					var optimalSolution = hungarianOptimization.run();
+					logger.info("Checking if optimal solution produced by Hungarian is valid.");
+					var invalidMappings = optimalSolution.entrySet().stream().filter(e -> e.getKey().getScheduledTime() != null && e.getValue().getTime().isBefore(e.getKey().getScheduledTime())).count();
+					logger.info("Solution contains {} assignments where the scheduled time of the flight is available and after the assigned slots' time.", invalidMappings);
 
 					double theoreticalMaximumFitness = hungarianOptimization.getStatistics().getResultFitness();
 
