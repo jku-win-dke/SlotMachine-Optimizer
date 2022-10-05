@@ -67,6 +67,12 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
     protected long noGenerationsDuplicatesNotEliminated;
     protected long noGenerationsEvaluated;
 
+    /**
+     * Devaluation statistics
+     */
+    protected long noPhenotypes;
+    protected long noInvalidPhenotypes;
+    protected long noInvalidAssignments;
 
     /**
      *
@@ -84,6 +90,9 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         this.noGenerationsDuplicatesNotEliminated = 0;
         this.actualMaxFitness = Integer.MIN_VALUE;
         this.fitnessIncrement = 1;
+        this.noPhenotypes = 0;
+        this.noInvalidAssignments = 0;
+        this.noInvalidPhenotypes = 0;
 
         // Configuration
 
@@ -182,6 +191,7 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         logger.debug("Devaluing invalid solutions.");
         estimatedPopulation = estimatedPopulation.stream().map(p -> {
             Map<Flight, Slot> phenotypeMap = this.problem.decode(p.genotype()); // decode phenotype
+            this.noPhenotypes++;
             long invalidAssignments = // determine how many invalid assignments the phenotype has
                 phenotypeMap.entrySet().stream().filter(e ->
                         e.getKey().getScheduledTime() != null &&
@@ -191,6 +201,8 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
 
             // if there are violations of the constraint, devalue the individual accordingly
             if(invalidAssignments > 0) {
+                this.noInvalidPhenotypes++;
+                this.noInvalidAssignments += invalidAssignments;
                 phenotype = p.withFitness((int) invalidAssignments * DEVALUATOR);
             }
 
@@ -322,7 +334,10 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
         logger.info("Number of populations that have been rejected because of duplicates: " + this.noGenerationsUnevaluated);
         logger.info("Number of initial duplicates encountered: " + this.noInitialDuplicates);
         logger.info("Number of remaining duplicates after deduplication: " + this.noRemainingDuplicates);
-        logger.info("Number of populations where duplicates have not been removed by deduplication: " + this.noGenerationsDuplicatesNotEliminated);
+        logger.info("Number of phenotypes checked for validness: " + this.noPhenotypes);
+        logger.info("Number of invalid phenotypes found: " + this.noInvalidPhenotypes);
+        logger.info("Number of invalid assignments: " + this.noInvalidAssignments);
+        logger.info("----------------------------------------------------------------");
     }
 
     /**
