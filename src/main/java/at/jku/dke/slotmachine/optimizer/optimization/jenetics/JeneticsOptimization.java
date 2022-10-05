@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -199,6 +200,36 @@ public class JeneticsOptimization extends Optimization {
         logger.info(Thread.currentThread() + " was interrupted: " + Thread.currentThread().isInterrupted());
 
         logger.info("Result fitness after optimization: {}.", result.bestFitness());
+        logger.info("Removing invalid solutions from result generation");
+        logger.info("Result population contains {} invalid solutions.", result.invalidCount());
+        AtomicInteger invalidPhenotypeCount = new AtomicInteger();
+        List<Phenotype<EnumGene<Integer>, Integer>> validSolutions = result.population()
+                .stream()
+                .filter(phenotype -> {
+                    Map<Flight, Slot> decodedGenotype = problem.decode(phenotype.genotype());
+                    for(Map.Entry<Flight, Slot> entry : decodedGenotype.entrySet()){
+                        if(entry.getKey().getScheduledTime() != null && entry.getKey().getScheduledTime().isAfter(entry.getValue().getTime())){
+                            invalidPhenotypeCount.getAndIncrement();
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                .toList();
+        logger.info("Removed {} invalid solutions.", invalidPhenotypeCount.get());
+        logger.info("Result has {} remaining solutions.", validSolutions.size());
+        result = EvolutionResult.of(
+                Optimize.MAXIMUM,
+                ISeq.of(validSolutions),
+                result.generation(),
+                result.totalGenerations(),
+                result.durations(),
+                invalidPhenotypeCount.get(),
+                result.invalidCount() - invalidPhenotypeCount.get(),
+                result.alterCount()
+        );
+        logger.info("Result fitness after invalid solutions have been removed: {}.", result.bestFitness());
+
         BatchEvaluator batchEvaluator = (BatchEvaluator) evaluator;
         if(this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING ||
            this.getMode() == OptimizationMode.DEMONSTRATION ||

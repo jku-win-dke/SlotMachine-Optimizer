@@ -193,9 +193,9 @@ public abstract class BatchEvaluator implements Evaluator<EnumGene<Integer>, Int
             Map<Flight, Slot> phenotypeMap = this.problem.decode(p.genotype()); // decode phenotype
             this.noPhenotypes++;
             long invalidAssignments = // determine how many invalid assignments the phenotype has
-                phenotypeMap.entrySet().stream().filter(e ->
-                        e.getKey().getScheduledTime() != null &&
-                                e.getKey().getScheduledTime().isAfter(e.getValue().getTime())).count();
+                    phenotypeMap.entrySet().stream().filter(e ->
+                            e.getKey().getScheduledTime() != null &&
+                                    e.getKey().getScheduledTime().isAfter(e.getValue().getTime())).count();
 
             Phenotype<EnumGene<Integer>, Integer> phenotype = p;
 
