@@ -364,6 +364,7 @@ public class JeneticsOptimization extends Optimization {
                         .map(problem::decode)
                         .toList();
 
+        logger.info("Saving {} distinct results.", resultList.size());
         this.setResults(resultList);
 
 //        sb = new StringBuilder();
