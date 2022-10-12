@@ -13,6 +13,8 @@ import org.apache.logging.log4j.Logger;
 
 public class HungarianOptimization extends Optimization {
 	private static final Logger logger = LogManager.getLogger();
+	private static final int DEVALUATION = -10000000;
+	private static final boolean DEVALUE_SOBT_CONSTRAINT = true;
 
 	private HungarianOptimizationStatistics statistics;
 	
@@ -36,9 +38,16 @@ public class HungarianOptimization extends Optimization {
     	double[][] costMatrix = new double[slots.length][flights.length];
     	for (int i = 0; i < slots.length; i++) {
     		for (int j = 0; j < flights.length; j++) {
-    			flights[j].computeWeightMap(slots);
-    			costMatrix[i][j] = flights[j].getWeight(slots[i]);
-    		}
+    			if(i == 0) flights[j].computeWeightMap(slots);
+
+				if(DEVALUE_SOBT_CONSTRAINT &&
+						flights[j].getScheduledTime() != null &&
+						slots[i].getTime().isBefore(flights[j].getScheduledTime())){
+					costMatrix[i][j] = DEVALUATION;
+				}else{
+					costMatrix[i][j] = flights[j].getWeight(slots[i]);
+				}
+			}
     	}
     	
     	//logger.debug - print costmatrix
@@ -112,13 +121,21 @@ public class HungarianOptimization extends Optimization {
     	}
 
     	double sumOfWeights = 0;
-    	Map<Flight, Slot> resultMap = new HashMap<Flight, Slot>();
+    	Map<Flight, Slot> resultMap = new HashMap<>();
     	for (int i = 0; i < result.length; i++) {
     		resultMap.put(flights[result[i]], slots[i]);
+			int weight;
+			if(DEVALUE_SOBT_CONSTRAINT &&
+					flights[result[i]].getScheduledTime() != null &&
+					slots[i].getTime().isBefore(flights[result[i]].getScheduledTime())){
+				weight = DEVALUATION;
+			}else{
+				weight = flights[result[i]].getWeight(slots[i]);
+			}
     		logger.debug("Slot " + slots[i].getTime().toString() + ": " + flights[result[i]].getFlightId() 
     				+ " | weight: " + flights[result[i]].getWeight(slots[i]));
 
-    		sumOfWeights = sumOfWeights + flights[result[i]].getWeight(slots[i]);
+    		sumOfWeights = sumOfWeights + weight;
     	}
     	logger.info("Finished optimization using Hungarian algorithm for " + this.getOptId() + " with a fitness value of " + sumOfWeights);
 
