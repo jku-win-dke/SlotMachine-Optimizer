@@ -73,7 +73,7 @@ public class BatchEvaluatorActualValues extends BatchEvaluator{
                     .sorted(Comparator.reverseOrder())
                     .toList();
 
-            logger.info("Maximum fitness in generation according to Privacy Engine is " + evaluatedPopulation.get(0).fitness() + ".");
+            logger.debug("Maximum fitness in generation according to Privacy Engine is " + evaluatedPopulation.get(0).fitness() + ".");
         } else {
             // order of population is used as it provides all fitness values in NON_PRIVACY_PRESERVING mode
             return evaluatePopulationOrder(population, fitnessEvolutionStep);

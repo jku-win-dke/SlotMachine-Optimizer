@@ -40,7 +40,7 @@ public class PrivacyEngineService {
 						 .accept(MediaType.APPLICATION_JSON)
 						 .body(input);
 
-		logger.info("Requesting computation of population order from Privacy Engine at URL: " + url);
+		logger.debug("Requesting computation of population order from Privacy Engine at URL: " + url);
 		ResponseEntity<PopulationOrderDTO> response = this.restTemplate.exchange(request, PopulationOrderDTO.class);
 		return response.getBody();
 	}
@@ -66,7 +66,7 @@ public class PrivacyEngineService {
 						.accept(MediaType.APPLICATION_JSON)
 						.body(input);
 
-		logger.info("Requesting computation of top individuals from Privacy Engine at URL: " + url);
+		logger.debug("Requesting computation of top individuals from Privacy Engine at URL: " + url);
 		ResponseEntity<AboveIndividualsDTO> response = this.restTemplate.exchange(request, AboveIndividualsDTO.class);
 		return response.getBody();
 	}
@@ -85,7 +85,7 @@ public class PrivacyEngineService {
 						.accept(MediaType.APPLICATION_JSON)
 						.body(input);
 
-		logger.info("Requesting computation of actual fitness values for all individuals from Privacy Engine at URL: " + url);
+		logger.debug("Requesting computation of actual fitness values for all individuals from Privacy Engine at URL: " + url);
 		ResponseEntity<Integer[]> response = this.restTemplate.exchange(request, Integer[].class);
 		return response.getBody();
     }
