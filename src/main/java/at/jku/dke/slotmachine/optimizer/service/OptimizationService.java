@@ -93,6 +93,24 @@ public class OptimizationService {
 					.map(s -> new Slot(s.getTime()))
 					.toArray(Slot[]::new);
 
+			logger.info("Checking if flights can be assigned to slots without violating SOBT constraint..");
+			var flightsWithScheduledTime = Arrays.stream(flights)
+					.filter(f -> f.getScheduledTime() != null)
+					.sorted()
+					.collect(Collectors.toList());
+			var slotsOrdered = Arrays.stream(slots).sorted();
+			for(int i = 1; i <= flightsWithScheduledTime.size(); i++){
+				var flight = flightsWithScheduledTime.get(flightsWithScheduledTime.size() - i);
+				long availableSlots = Arrays.stream(slots).filter(slot -> slot.getTime().compareTo(flight.getScheduledTime()) >= 0).count();
+				if(availableSlots < i){
+					logger.error("It is not possible to construct a valid solution.");
+					logger.error("{} flights require a slot after or equal to {}, but there are only {} slots available.", i, flight.getScheduledTime().toString(), availableSlots);
+					logger.warn("Initialize the optimization with a feasible input.");
+					break;
+				}
+			}
+			logger.info("Finished validating SOBT constraint.");
+
 			Optimization newOptimization;
 			try {
 				logger.info("Create a new optimization with the specified characteristics");
@@ -193,15 +211,8 @@ public class OptimizationService {
 				}
 
 				// set initial solution's fitness in optimization statistics; only available in non-privacy-preserving mode
-				logger.info("Initial flight sequence: ");
-				StringBuilder sb = new StringBuilder();
-				sb.append("\t[");
-				for(var flight : newOptimization.getInitialFlightSequence()){
-					sb.append(flight).append(",");
-				}
-				sb.append("]\n");
-				logger.info(sb.toString());
-
+				logger.info("Initial flight sequence: {}.", Arrays.toString(newOptimization.getInitialFlightSequence()));
+				
 				if(optimizationDto.getOptimizationMode() == OptimizationModeEnum.BENCHMARKING ||
 						optimizationDto.getOptimizationMode() == OptimizationModeEnum.DEMONSTRATION ||
 						optimizationDto.getOptimizationMode() == OptimizationModeEnum.NON_PRIVACY_PRESERVING
@@ -220,6 +231,12 @@ public class OptimizationService {
 					logger.info("Checking if optimal solution produced by Hungarian is valid.");
 					var invalidMappings = optimalSolution.entrySet().stream().filter(e -> e.getKey().getScheduledTime() != null && e.getValue().getTime().isBefore(e.getKey().getScheduledTime())).count();
 					logger.info("Solution contains {} assignments where the scheduled time of the flight is available and after the assigned slots' time.", invalidMappings);
+
+					logger.info("Optimal flight sequence according to Hungarian: {}", Arrays.toString(optimalSolution.keySet()
+							.stream()
+							.sorted((flight, otherFlight) -> optimalSolution.get(flight).getTime().compareTo(optimalSolution.get(otherFlight).getTime()))
+							.map(Flight::getFlightId)
+							.toArray()));
 
 					double theoreticalMaximumFitness = hungarianOptimization.getStatistics().getResultFitness();
 
@@ -321,7 +338,9 @@ public class OptimizationService {
 								optimization.getFitnessValuesResults().get(i)
 								: 0.0);
 					}
-					results.get(i).setOptimizedFlightSequenceIndexes(optimization.getConvertedResults()[i]);
+					if(optimization.getConvertedResults() != null){
+						results.get(i).setOptimizedFlightSequenceIndexes(optimization.getConvertedResults()[i]);
+					}
 				}
 			}
 		}
