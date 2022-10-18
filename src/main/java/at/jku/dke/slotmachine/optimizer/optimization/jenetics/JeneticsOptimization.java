@@ -219,6 +219,7 @@ public class JeneticsOptimization extends Optimization {
         if(validSolutions.isEmpty()){
             logger.warn("There are no valid solutions left.");
             logger.warn("Optimization will return an invalid solution.");
+            validSolutions = new ArrayList<>();
             validSolutions.add(result.bestPhenotype());
         }
 
