@@ -93,40 +93,20 @@ public class OptimizationService {
 					.map(s -> new Slot(s.getTime()))
 					.toArray(Slot[]::new);
 
-
-			if(logger.isDebugEnabled()){
-
-			}
-			logger.info("Constructing weight matrix from given input.");
-			int[][] matrix = new int[slots.length][flights.length];
-			for(int i = 0; i < flights.length; i++){
-				matrix[i] = flights[i].getWeights();
-				logger.info(Arrays.toString(matrix[i]));
-			}
-
-
 			logger.info("Checking if flights can be assigned to slots without violating SOBT constraint..");
 			var flightsWithScheduledTime = Arrays.stream(flights)
 					.filter(f -> f.getScheduledTime() != null)
 					.sorted()
 					.collect(Collectors.toList());
-			List<Long> estimationFactors = new ArrayList<>();
-			boolean isValidSolutionPossible = true;
 			for(int i = 1; i <= flightsWithScheduledTime.size(); i++){
 				var flight = flightsWithScheduledTime.get(flightsWithScheduledTime.size() - i);
 				Long availableSlots = Arrays.stream(slots).filter(slot -> slot.getTime().compareTo(flight.getScheduledTime()) >= 0).count();
 				if(availableSlots < i){
-					isValidSolutionPossible = false;
 					logger.error("It is not possible to construct a valid solution.");
 					logger.error("{} flights require a slot after or equal to {}, but there are only {} slots available.", i, flight.getScheduledTime().toString(), availableSlots);
 					logger.warn("Initialize the optimization with a feasible input.");
 					break;
 				}
-				estimationFactors.add((availableSlots - (i-1)));
-			}
-			if(isValidSolutionPossible){
-				logger.info(Arrays.toString(estimationFactors.toArray()));
-				logger.info("There are estimated to be approximately {} possible solutions.", estimationFactors.stream().filter(i -> i != 0).reduce(1L, (i1, i2) -> i1 * i2));
 			}
 			logger.info("Finished validating SOBT constraint.");
 
