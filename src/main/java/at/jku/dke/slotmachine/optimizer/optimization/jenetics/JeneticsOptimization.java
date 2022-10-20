@@ -216,7 +216,8 @@ public class JeneticsOptimization extends Optimization {
                     return true;
                 })
                 .toList();
-        if(validSolutions.isEmpty()){
+        boolean hasValidSolutions = !validSolutions.isEmpty();
+        if(!hasValidSolutions){
             logger.warn("There are no valid solutions left.");
             logger.warn("Optimization will return an invalid solution.");
             validSolutions = new ArrayList<>();
@@ -237,54 +238,22 @@ public class JeneticsOptimization extends Optimization {
         );
         logger.info("Result fitness after invalid solutions have been removed: {}.", result.bestFitness());
 
+
         BatchEvaluator batchEvaluator = (BatchEvaluator) evaluator;
-        if(this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING ||
-           this.getMode() == OptimizationMode.DEMONSTRATION ||
-           this.getMode() == OptimizationMode.BENCHMARKING) {
-            logger.info("Running in non-privacy-preserving mode.");
-            logger.info("Evaluating result population with exact fitness values.");
-            var evaluatedResultGeneration = result.population()
-                    .stream()
-                    .map(phenotype -> phenotype.withFitness(problem.fitness(phenotype.genotype())))
-                    .sorted(Comparator.comparingInt(Phenotype::fitness))
-                    .sorted(Comparator.reverseOrder())
-                    .collect(Collectors.toList());
-
-            logger.info("Setting evaluated population as result.");
-            result = EvolutionResult.of(
-                    Optimize.MAXIMUM,
-                    ISeq.of(evaluatedResultGeneration),
-                    result.generation(),
-                    result.totalGenerations(),
-                    result.durations(),
-                    result.killCount(),
-                    result.invalidCount(),
-                    result.alterCount()
-            );
-
-            logger.info("Setting fitness values of distinct, evaluated population.");
-            var distinctIndividualFitnessValues = result.population()
-                    .stream()
-                    .map(Phenotype::genotype)
-                    .distinct()
-                    .map(problem::fitness)
-                    .sorted(Comparator.reverseOrder())
-                    .collect(Collectors.toList());
-
-            this.setFitnessValuesResults(distinctIndividualFitnessValues);
-        }else {
-            if(getFitnessMethod() != FitnessMethod.ACTUAL_VALUES){
-                logger.debug("Running in privacy-preserving mode. Evaluating the last generation with actual values.");
-                var seq = Seq.of(result.population());
-                Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, batchEvaluator.convertPopulationToArray(seq));
-
-                EvolutionResult<EnumGene<Integer>, Integer> finalResult = result;
-                var evaluatedResultGeneration = IntStream
-                        .range(0, fitnessValues.length)
-                        .mapToObj(i -> finalResult.population().get(i).withFitness(fitnessValues[i]))
+        if(hasValidSolutions){ // for invalid solutions, the devalued fitness will be returned
+            if(this.getMode() == OptimizationMode.NON_PRIVACY_PRESERVING ||
+                    this.getMode() == OptimizationMode.DEMONSTRATION ||
+                    this.getMode() == OptimizationMode.BENCHMARKING) {
+                logger.info("Running in non-privacy-preserving mode.");
+                logger.info("Evaluating result population with exact fitness values.");
+                var evaluatedResultGeneration = result.population()
+                        .stream()
+                        .map(phenotype -> phenotype.withFitness(problem.fitness(phenotype.genotype())))
+                        .sorted(Comparator.comparingInt(Phenotype::fitness))
+                        .sorted(Comparator.reverseOrder())
                         .collect(Collectors.toList());
 
-                logger.info("Setting evaluated population as new result population.");
+                logger.info("Setting evaluated population as result.");
                 result = EvolutionResult.of(
                         Optimize.MAXIMUM,
                         ISeq.of(evaluatedResultGeneration),
@@ -295,16 +264,53 @@ public class JeneticsOptimization extends Optimization {
                         result.invalidCount(),
                         result.alterCount()
                 );
-            }
-            logger.info("Setting fitness values of distinct, evaluated population.");
-            var fitnessValueResults = result.population()
-                    .stream()
-                    .filter(distinctByAttribute(Phenotype::genotype))
-                    .map(Phenotype::fitness)
-                    .sorted(Comparator.reverseOrder())
-                    .toList();
 
-            this.setFitnessValuesResults(fitnessValueResults);
+                logger.info("Setting fitness values of distinct, evaluated population.");
+                var distinctIndividualFitnessValues = result.population()
+                        .stream()
+                        .map(Phenotype::genotype)
+                        .distinct()
+                        .map(problem::fitness)
+                        .sorted(Comparator.reverseOrder())
+                        .collect(Collectors.toList());
+
+                this.setFitnessValuesResults(distinctIndividualFitnessValues);
+            }else{
+                if(getFitnessMethod() != FitnessMethod.ACTUAL_VALUES){
+                    logger.debug("Running in privacy-preserving mode. Evaluating the last generation with actual values.");
+                    var seq = Seq.of(result.population());
+                    Integer[] fitnessValues = this.getPrivacyEngineService().computeActualFitnessValues(this, batchEvaluator.convertPopulationToArray(seq));
+
+                    EvolutionResult<EnumGene<Integer>, Integer> finalResult = result;
+                    var evaluatedResultGeneration = IntStream
+                            .range(0, fitnessValues.length)
+                            .mapToObj(i -> finalResult.population().get(i).withFitness(fitnessValues[i]))
+                            .collect(Collectors.toList());
+
+                    logger.info("Setting evaluated population as new result population.");
+                    result = EvolutionResult.of(
+                            Optimize.MAXIMUM,
+                            ISeq.of(evaluatedResultGeneration),
+                            result.generation(),
+                            result.totalGenerations(),
+                            result.durations(),
+                            result.killCount(),
+                            result.invalidCount(),
+                            result.alterCount()
+                    );
+                }
+                logger.info("Setting fitness values of distinct, evaluated population.");
+                var fitnessValueResults = result.population()
+                        .stream()
+                        .filter(distinctByAttribute(Phenotype::genotype))
+                        .map(Phenotype::fitness)
+                        .sorted(Comparator.reverseOrder())
+                        .toList();
+
+                this.setFitnessValuesResults(fitnessValueResults);
+            }
+        }else{
+            logger.info("No actual fitness values will be calculated, as the result contains no valid solutions");
         }
 
 //        StringBuilder sb = new StringBuilder();
