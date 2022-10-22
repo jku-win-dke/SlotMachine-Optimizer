@@ -346,20 +346,13 @@ public class JeneticsOptimization extends Optimization {
         logger.info("Printing statistics from BatchEvaluator");
         batchEvaluator.printLogs();
 
-
-        int resultFitness;
-        if(this.getMode() == OptimizationMode.PRIVACY_PRESERVING){
-           resultFitness = result.bestPhenotype().fitness(); // no exact fitness value may be available with PRIVACY_PRESERVING
-        }else{
-            resultFitness = problem.fitness(result.bestPhenotype().genotype()); // exact fitness value can be calculated
-        }
-
+        int resultFitness = result.bestPhenotype().fitness();
         logger.info("Setting statistics for this optimization."); // already initialized in constructor
         this.getStatistics().setTimeFinished(LocalDateTime.now());
-        this.getStatistics().setResultFitness(resultFitness);
+        this.getStatistics().setResultFitness(result.bestPhenotype().fitness());
         this.getStatistics().setIterations((int) statistics.altered().count());
         this.getStatistics().setFitnessFunctionInvocations(problem.getFitnessFunctionApplications());
-        this.getStatistics().setSolutionGeneration(result.bestPhenotype().generation());
+        this.getStatistics().setSolutionGeneration(resultFitness);
         if(resultFitness > this.getMaximumFitness()) this.setMaximumFitness(resultFitness);
 
         logger.info("Fitness of best solution: " + this.getStatistics().getResultFitness());
