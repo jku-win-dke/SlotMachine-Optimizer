@@ -42,22 +42,6 @@ public class JeneticsOptimization extends Optimization {
                 ISeq.of(this.getSlots())
         );
         logger.info("Slot allocation problem initialized.");
-
-//        logger.info("Weights:");
-//        for(var flight : flights){
-//            logger.info("\tFlight: {}", flight.getFlightId());
-//            StringBuilder sb = new StringBuilder();
-//            sb.append("\t").append("[");
-//            for(var weight : flight.getWeights()){
-//                sb.append(weight).append(", ");
-//            }
-//            sb.append("]");
-//            logger.info(sb.toString());
-//            for(var slot : getSlots()){
-//                logger.info("\t\tSlot: {}. Weight: {}.", slot.getTime(), flight.getWeight(slot));
-//            }
-//        }
-//
     }
 
     @Override
@@ -313,15 +297,6 @@ public class JeneticsOptimization extends Optimization {
             logger.info("No actual fitness values will be calculated, as the result contains no valid solutions");
         }
 
-//        StringBuilder sb = new StringBuilder();
-//        sb.append("Calculated fitness values of result generation: ").append("\n\t");
-//        for(int i : this.getFitnessValuesResults()){
-//            sb.append(i + ", ");
-//        }
-//        sb.append(".\n");
-//        logger.info(sb.toString());
-
-
         Map<Flight, Slot> resultMap = problem.decode(result.bestPhenotype().genotype());
 
         if(logger.isDebugEnabled()) {
@@ -373,18 +348,6 @@ public class JeneticsOptimization extends Optimization {
         logger.info("Saving {} distinct results.", resultList.size());
         this.setResults(resultList);
 
-//        sb = new StringBuilder();
-//        sb.append("Fitness values of result generation: ").append("\n\t");
-//        for(var pheno : result.population().stream()
-//                .filter(distinctByAttribute(Phenotype::genotype))
-//                .sorted(Comparator.comparingInt(Phenotype::fitness))
-//                .sorted(Comparator.reverseOrder())
-//                .toList()){
-//            sb.append(pheno.fitness()).append(" ,");
-//        }
-//        sb.append("\n");
-//        logger.info(sb.toString());
-
         logger.info("Converting result population to the format required by the PE.");
         Integer[][] resultListConverted = batchEvaluator.convertPopulationToArray(ISeq.of(result.population().stream()
                 .filter(distinctByAttribute(Phenotype::genotype))
@@ -395,23 +358,6 @@ public class JeneticsOptimization extends Optimization {
         this.setConvertedResults(resultListConverted);
 
         // return only the best result
-
-//        sb = new StringBuilder();
-//        sb.append("Best sequence (mapping): ").append("\n");
-//        for(var entry : resultMap.entrySet()
-//                .stream()
-//                .sorted(Comparator.comparing((Map.Entry<Flight, Slot> e) -> e.getValue().getTime())).toList()){
-//            sb.append("\t").append("Slot: ").append(entry.getValue().getTime()).append(". Flight: ").append(entry.getKey().getFlightId()).append(".").append("\n");
-//        }
-//        logger.info(sb.toString());
-//
-//        sb = new StringBuilder();
-//        sb.append("Flight sequenc in problem: [").append("\n");
-//        for(var flight : this.problem.getFlights()){
-//            sb.append(flight.getFlightId()).append(", ");
-//        }
-//        sb.append("]");
-//        logger.info(sb.toString());
 
         return resultMap;
     }
